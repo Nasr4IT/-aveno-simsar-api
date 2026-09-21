@@ -1,0 +1,469 @@
+{
+  "info": {
+    "name": "Aveno Marketplace API",
+    "description": "Live deployment: {{base_url}}. See docs/API_REFERENCE.md for full field-by-field details.\n\nQuick start:\n1. Run \"Register\" or \"Login\" once — the token is saved automatically for every other request.\n2. Fill in the collection variables (ad_id, category_id, etc.) as you create things, or copy ids from responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://aveno-simsar-api.onrender.com/api" },
+    { "key": "token", "value": "" },
+    { "key": "ad_id", "value": "" },
+    { "key": "image_id", "value": "" },
+    { "key": "category_id", "value": "" },
+    { "key": "conversation_id", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "notification_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"phone\": \"0999111222\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) { const body = pm.response.json(); pm.collectionVariables.set('token', body.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0999111222\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) { const body = pm.response.json(); pm.collectionVariables.set('token', body.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Show category (with attributes)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["categories", "{{category_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ads",
+      "item": [
+        {
+          "name": "Browse ads (public feed)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/ads?category_id=&governorate_id=&city_id=&min_price=&max_price=&q=",
+              "host": ["{{base_url}}"], "path": ["ads"],
+              "query": [
+                { "key": "category_id", "value": "" },
+                { "key": "governorate_id", "value": "" },
+                { "key": "city_id", "value": "" },
+                { "key": "min_price", "value": "" },
+                { "key": "max_price", "value": "" },
+                { "key": "q", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show ad detail",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}"] }
+          }
+        },
+        {
+          "name": "My ads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/my/ads", "host": ["{{base_url}}"], "path": ["my", "ads"] }
+          }
+        },
+        {
+          "name": "Create ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "category_id", "value": "1", "type": "text" },
+                { "key": "governorate_id", "value": "1", "type": "text" },
+                { "key": "city_id", "value": "1", "type": "text" },
+                { "key": "title", "value": "Kia Sportage 2020", "type": "text" },
+                { "key": "description", "value": "Well maintained, single owner.", "type": "text" },
+                { "key": "price", "value": "15000", "type": "text" },
+                { "key": "currency", "value": "USD", "type": "text" },
+                { "key": "attributes[condition]", "value": "مستعملة", "type": "text" },
+                { "key": "attributes[year]", "value": "2020", "type": "text" },
+                { "key": "images[]", "type": "file", "src": [] }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/ads", "host": ["{{base_url}}"], "path": ["ads"] }
+          }
+        },
+        {
+          "name": "Update ad",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated title\",\n  \"price\": 14000\n}" },
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}"] }
+          }
+        },
+        {
+          "name": "Delete ad",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}"] }
+          }
+        },
+        {
+          "name": "Add photos to ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "images[]", "type": "file", "src": [] }]
+            },
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/images", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "images"] }
+          }
+        },
+        {
+          "name": "Remove a photo from ad",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/images/{{image_id}}", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "images", "{{image_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "List favorites",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/favorites", "host": ["{{base_url}}"], "path": ["favorites"] }
+          }
+        },
+        {
+          "name": "Favorite an ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/favorite", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "favorite"] }
+          }
+        },
+        {
+          "name": "Unfavorite an ad",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/favorite", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "favorite"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "List my conversations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/conversations", "host": ["{{base_url}}"], "path": ["conversations"] }
+          }
+        },
+        {
+          "name": "Start conversation about an ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/conversations", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "conversations"] }
+          }
+        },
+        {
+          "name": "List messages",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/conversations/{{conversation_id}}/messages", "host": ["{{base_url}}"], "path": ["conversations", "{{conversation_id}}", "messages"] }
+          }
+        },
+        {
+          "name": "Send message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"body\": \"Is this still available?\"\n}" },
+            "url": { "raw": "{{base_url}}/conversations/{{conversation_id}}/messages", "host": ["{{base_url}}"], "path": ["conversations", "{{conversation_id}}", "messages"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ratings",
+      "item": [
+        {
+          "name": "List a user's ratings",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/ratings", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "ratings"] }
+          }
+        },
+        {
+          "name": "Rate a user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"score\": 5,\n  \"comment\": \"Great seller!\",\n  \"ad_id\": null\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/ratings", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "ratings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"] }
+          }
+        },
+        {
+          "name": "Mark one read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications/{{notification_id}}/read", "host": ["{{base_url}}"], "path": ["notifications", "{{notification_id}}", "read"] }
+          }
+        },
+        {
+          "name": "Mark all read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications/read-all", "host": ["{{base_url}}"], "path": ["notifications", "read-all"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments (Sham Cash — stub)",
+      "item": [
+        {
+          "name": "List ad packages",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ad-packages", "host": ["{{base_url}}"], "path": ["ad-packages"] }
+          }
+        },
+        {
+          "name": "Checkout (returns 501 — not implemented yet)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"ad_package_id\": 1\n}" },
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/checkout", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "checkout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Categories",
+          "item": [
+            {
+              "name": "List all categories (admin)",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/categories", "host": ["{{base_url}}"], "path": ["admin", "categories"] }
+              }
+            },
+            {
+              "name": "Create category",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name_ar\": \"قطع غيار\",\n  \"name_en\": \"Auto Parts\"\n}" },
+                "url": { "raw": "{{base_url}}/admin/categories", "host": ["{{base_url}}"], "path": ["admin", "categories"] }
+              }
+            },
+            {
+              "name": "Update category",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"is_active\": true\n}" },
+                "url": { "raw": "{{base_url}}/admin/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["admin", "categories", "{{category_id}}"] }
+              }
+            },
+            {
+              "name": "Delete category",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/categories/{{category_id}}", "host": ["{{base_url}}"], "path": ["admin", "categories", "{{category_id}}"] }
+              }
+            },
+            {
+              "name": "Add dynamic attribute",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"key\": \"fuel_type\",\n  \"label_ar\": \"نوع الوقود\",\n  \"type\": \"select\",\n  \"options\": [\"بنزين\", \"ديزل\"],\n  \"is_required\": false,\n  \"is_filterable\": true\n}" },
+                "url": { "raw": "{{base_url}}/admin/categories/{{category_id}}/attributes", "host": ["{{base_url}}"], "path": ["admin", "categories", "{{category_id}}", "attributes"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "item": [
+            {
+              "name": "Search/list users",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/users?q=", "host": ["{{base_url}}"], "path": ["admin", "users"], "query": [{ "key": "q", "value": "" }] }
+              }
+            },
+            {
+              "name": "Ban user",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/users/{{user_id}}/ban", "host": ["{{base_url}}"], "path": ["admin", "users", "{{user_id}}", "ban"] }
+              }
+            },
+            {
+              "name": "Unban user",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/users/{{user_id}}/unban", "host": ["{{base_url}}"], "path": ["admin", "users", "{{user_id}}", "unban"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ads (moderation)",
+          "item": [
+            {
+              "name": "List ads by status",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/ads?status=pending", "host": ["{{base_url}}"], "path": ["admin", "ads"], "query": [{ "key": "status", "value": "pending" }] }
+              }
+            },
+            {
+              "name": "Approve ad",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/ads/{{ad_id}}/approve", "host": ["{{base_url}}"], "path": ["admin", "ads", "{{ad_id}}", "approve"] }
+              }
+            },
+            {
+              "name": "Reject ad",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"reason\": \"الصور مطموسة ولا يمكن التمليز.\"\n}" },
+                "url": { "raw": "{{base_url}}/admin/ads/{{ad_id}}/reject", "host": ["{{base_url}}"], "path": ["admin", "ads", "{{ad_id}}", "reject"] }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
