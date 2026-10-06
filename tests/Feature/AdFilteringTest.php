@@ -171,6 +171,58 @@ class AdFilteringTest extends TestCase
             ->assertJsonValidationErrors(['lat', 'lng']);
     }
 
+    public function test_search_falls_back_to_a_typo_tolerant_match_when_no_exact_match_exists(): void
+    {
+        $toyota = Ad::factory()->create(['title' => 'Toyota Corolla 2019', 'status' => 'approved']);
+        Ad::factory()->create(['title' => 'Unrelated listing', 'status' => 'approved']);
+
+        // No substring of "Totoya" appears anywhere, so this only succeeds
+        // via the fuzzy fallback, not the plain LIKE pass.
+        $response = $this->getJson('/api/ads?q=Totoya');
+
+        $response->assertOk();
+        $this->assertCount(1, $response->json('data'));
+        $this->assertSame($toyota->id, $response->json('data.0.id'));
+    }
+
+    // Confirms the fuzzy fallback is multibyte-safe — PHP's own
+    // levenshtein() works byte-by-byte and silently misbehaves on Arabic,
+    // which is routine in this app's ad titles.
+    public function test_search_fuzzy_fallback_works_on_arabic_text(): void
+    {
+        $ad = Ad::factory()->create(['title' => 'سيارة تويوتا للبيع', 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?'.http_build_query(['q' => 'تيوتا']));
+
+        $response->assertOk();
+        $this->assertCount(1, $response->json('data'));
+        $this->assertSame($ad->id, $response->json('data.0.id'));
+    }
+
+    public function test_search_does_not_fuzzy_match_unrelated_words(): void
+    {
+        Ad::factory()->create(['title' => 'Toyota Corolla 2019', 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?q=Bicycle');
+
+        $response->assertOk();
+        $this->assertCount(0, $response->json('data'));
+    }
+
+    public function test_an_exact_substring_match_skips_the_fuzzy_fallback_entirely(): void
+    {
+        // "Car" is a substring of both — if the fuzzy fallback somehow ran
+        // instead of the exact pass, short common words could over-match;
+        // this just confirms the exact path still wins outright.
+        $exact = Ad::factory()->create(['title' => 'Nice Car for sale', 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?q=Car');
+
+        $response->assertOk();
+        $this->assertCount(1, $response->json('data'));
+        $this->assertSame($exact->id, $response->json('data.0.id'));
+    }
+
     public function test_default_sort_is_unchanged_featured_then_newest(): void
     {
         $older = Ad::factory()->create(['status' => 'approved', 'created_at' => now()->subDay()]);

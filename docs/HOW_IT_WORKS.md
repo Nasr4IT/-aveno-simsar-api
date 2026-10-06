@@ -59,7 +59,7 @@ This is the one endpoint in the whole API that's deliberately simple with no par
 
 | Param | Does |
 |---|---|
-| `q` | free-text match against title/description |
+| `q` | free-text match against title/description — typo-tolerant: a plain substring match runs first, and only if that finds nothing does a fuzzy fallback try matching title words within a small edit distance (e.g. "Totoya" still finds "Toyota"), multibyte-safe so this works on Arabic titles too |
 | `category_id`, `governorate_id`, `city_id` | exact-match dropdowns |
 | `min_price`, `max_price` | range slider |
 | `sort` | the "Sort" dropdown: `newest` (default — featured first, then newest), `price_asc`, `price_desc`, `popular` (most-viewed first), or `nearest` (needs `lat`/`lng` — see below) |

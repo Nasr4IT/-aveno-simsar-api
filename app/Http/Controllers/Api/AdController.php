@@ -49,18 +49,106 @@ class AdController extends Controller
             ->when($filters['city_id'] ?? null, fn ($q, $v) => $q->where('city_id', $v))
             ->when($filters['min_price'] ?? null, fn ($q, $v) => $q->where('price', '>=', $v))
             ->when($filters['max_price'] ?? null, fn ($q, $v) => $q->where('price', '<=', $v))
-            ->when($filters['q'] ?? null, fn ($q, $v) => $q->where(fn ($q2) => $q2
-                ->where('title', 'like', "%{$v}%")
-                ->orWhere('description', 'like', "%{$v}%")
-            ))
-            ->tap(fn ($q) => $this->applyAttributeFilters($q, $request, $filters['category_id'] ?? null))
-            ->with(['images', 'category', 'city', 'governorate']);
+            ->tap(fn ($q) => $this->applyAttributeFilters($q, $request, $filters['category_id'] ?? null));
+
+        if ($filters['q'] ?? null) {
+            $this->applySearch($query, $filters['q']);
+        }
+
+        $query->with(['images', 'category', 'city', 'governorate']);
 
         $this->applySort($query, $filters);
 
         $ads = $query->paginate(20)->withQueryString();
 
         return AdResource::collection($ads);
+    }
+
+    // A plain substring match (fast, uses the DB) first; only if that comes
+    // back empty do we fall back to a typo-tolerant pass — someone who
+    // types "Totoya" instead of "Toyota" should still find it, but running
+    // PHP-side fuzzy matching on every search (instead of just the ones
+    // that actually need it) wouldn't scale even at this app's size.
+    private function applySearch($query, string $q): void
+    {
+        $exactIds = (clone $query)->where(fn ($w) => $w
+            ->where('title', 'like', "%{$q}%")
+            ->orWhere('description', 'like', "%{$q}%"))
+            ->pluck('id');
+
+        if ($exactIds->isNotEmpty()) {
+            $query->whereIn('id', $exactIds);
+
+            return;
+        }
+
+        // Fuzzy fallback: title only (that's where a typo actually costs a
+        // seller a buyer — "Totoya Corola" — descriptions are long/noisy
+        // enough that fuzzy-matching them invites false positives), capped
+        // to a bounded candidate pool from whatever other filters are
+        // already active, never the whole table.
+        $candidates = (clone $query)->select('id', 'title')->limit(500)->get();
+        $fuzzyIds = $candidates->filter(fn ($ad) => $this->fuzzyMatches($ad->title, $q))->pluck('id');
+
+        // Explicit [0] (an id that can never exist) rather than leaving the
+        // query unfiltered — an empty whereIn() would silently match
+        // everything instead of correctly matching nothing.
+        $query->whereIn('id', $fuzzyIds->isNotEmpty() ? $fuzzyIds : [0]);
+    }
+
+    // True if any word in $title is within a typo's edit distance of any
+    // word in the search query $q. Distance scales with word length so
+    // short words (where one swapped letter changes meaning) aren't
+    // over-matched.
+    private function fuzzyMatches(string $title, string $q): bool
+    {
+        $titleWords = preg_split('/\s+/u', mb_strtolower(trim($title)));
+        $queryWords = preg_split('/\s+/u', mb_strtolower(trim($q)));
+
+        foreach ($queryWords as $queryWord) {
+            if (mb_strlen($queryWord) < 3) {
+                continue;
+            }
+
+            $maxDistance = mb_strlen($queryWord) <= 5 ? 1 : 2;
+
+            foreach ($titleWords as $titleWord) {
+                if ($this->multibyteLevenshtein($queryWord, $titleWord) <= $maxDistance) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // PHP's own levenshtein() works byte-by-byte, which silently gives
+    // wrong distances for multibyte text — and this app's titles are
+    // routinely Arabic. Standard Wagner–Fischer edit distance, just run
+    // over mb_str_split() characters instead of raw bytes.
+    private function multibyteLevenshtein(string $a, string $b): int
+    {
+        $a = mb_str_split($a);
+        $b = mb_str_split($b);
+
+        $previousRow = range(0, count($b));
+
+        foreach ($a as $i => $charA) {
+            $currentRow = [$i + 1];
+
+            foreach ($b as $j => $charB) {
+                $cost = $charA === $charB ? 0 : 1;
+                $currentRow[] = min(
+                    $previousRow[$j + 1] + 1,
+                    $currentRow[$j] + 1,
+                    $previousRow[$j] + $cost
+                );
+            }
+
+            $previousRow = $currentRow;
+        }
+
+        return end($previousRow);
     }
 
     // Default (no sort param, or 'newest') preserves the original
