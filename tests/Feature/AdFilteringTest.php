@@ -106,4 +106,80 @@ class AdFilteringTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data');
     }
+
+    public function test_feed_can_be_sorted_by_price_ascending(): void
+    {
+        $mid = Ad::factory()->create(['price' => 500, 'status' => 'approved']);
+        $cheap = Ad::factory()->create(['price' => 100, 'status' => 'approved']);
+        $expensive = Ad::factory()->create(['price' => 900, 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?sort=price_asc');
+
+        $response->assertOk();
+        $this->assertSame([$cheap->id, $mid->id, $expensive->id], $response->json('data.*.id'));
+    }
+
+    public function test_feed_can_be_sorted_by_price_descending(): void
+    {
+        $mid = Ad::factory()->create(['price' => 500, 'status' => 'approved']);
+        $cheap = Ad::factory()->create(['price' => 100, 'status' => 'approved']);
+        $expensive = Ad::factory()->create(['price' => 900, 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?sort=price_desc');
+
+        $response->assertOk();
+        $this->assertSame([$expensive->id, $mid->id, $cheap->id], $response->json('data.*.id'));
+    }
+
+    public function test_feed_can_be_sorted_by_popularity(): void
+    {
+        // views_count isn't mass-assignable (only ever touched via
+        // Ad::show()'s increment()), so it has to be set with forceFill
+        // here rather than through the factory.
+        $popular = Ad::factory()->create(['status' => 'approved']);
+        $popular->forceFill(['views_count' => 500])->save();
+        $unpopular = Ad::factory()->create(['status' => 'approved']);
+        $unpopular->forceFill(['views_count' => 2])->save();
+
+        $response = $this->getJson('/api/ads?sort=popular');
+
+        $response->assertOk();
+        $this->assertSame([$popular->id, $unpopular->id], $response->json('data.*.id'));
+    }
+
+    public function test_feed_can_be_sorted_by_distance_from_the_caller(): void
+    {
+        // Seattle-ish coordinates for the caller.
+        $near = Ad::factory()->create(['latitude' => 47.62, 'longitude' => -122.33, 'status' => 'approved']);
+        $far = Ad::factory()->create(['latitude' => 40.71, 'longitude' => -74.01, 'status' => 'approved']); // NYC
+        Ad::factory()->create(['latitude' => null, 'longitude' => null, 'status' => 'approved']); // no location at all
+
+        $response = $this->getJson('/api/ads?sort=nearest&lat=47.60&lng=-122.33');
+
+        $response->assertOk();
+        // Only the two located ads participate; the one with no coordinates
+        // can't be placed on a distance ordering at all.
+        $this->assertSame([$near->id, $far->id], $response->json('data.*.id'));
+    }
+
+    public function test_sorting_by_nearest_requires_lat_and_lng(): void
+    {
+        Ad::factory()->create(['status' => 'approved']);
+
+        $this->getJson('/api/ads?sort=nearest')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['lat', 'lng']);
+    }
+
+    public function test_default_sort_is_unchanged_featured_then_newest(): void
+    {
+        $older = Ad::factory()->create(['status' => 'approved', 'created_at' => now()->subDay()]);
+        $newer = Ad::factory()->create(['status' => 'approved', 'created_at' => now()]);
+        $featuredButOlder = Ad::factory()->create(['status' => 'approved', 'is_featured' => true, 'created_at' => now()->subDays(5)]);
+
+        $response = $this->getJson('/api/ads');
+
+        $response->assertOk();
+        $this->assertSame([$featuredButOlder->id, $newer->id, $older->id], $response->json('data.*.id'));
+    }
 }

@@ -27,7 +27,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q` + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
+| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
 | GET | `/ads/{id}` | – | full detail, increments `views_count` |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
 | POST | `/ads` | ✓ | multipart: `category_id, governorate_id, city_id, title, description, price?, currency?, latitude?, longitude?, images[] (1-12), attributes[<key>]=<value>`. Created as `status=pending` |

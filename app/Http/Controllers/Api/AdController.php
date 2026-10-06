@@ -24,8 +24,9 @@ use Illuminate\Validation\ValidationException;
 class AdController extends Controller
 {
     // GET /api/ads — public feed with filters: category_id, governorate_id, city_id,
-    // min_price, max_price, q (title search), plus one query param per filterable
-    // category_attribute (e.g. ?fuel_type=بنزين). Only status=approved is returned.
+    // min_price, max_price, q (title search), sort, plus one query param per
+    // filterable category_attribute (e.g. ?fuel_type=بنزين). Only status=approved
+    // is returned.
     public function index(Request $request)
     {
         $filters = $request->validate([
@@ -35,9 +36,14 @@ class AdController extends Controller
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
             'q' => ['nullable', 'string', 'max:150'],
+            // 'nearest' needs the caller's own position to sort by, since an
+            // ad's distance is meaningless without a reference point.
+            'sort' => ['nullable', 'in:newest,price_asc,price_desc,popular,nearest'],
+            'lat' => ['required_if:sort,nearest', 'numeric', 'between:-90,90'],
+            'lng' => ['required_if:sort,nearest', 'numeric', 'between:-180,180'],
         ]);
 
-        $ads = Ad::approved()
+        $query = Ad::approved()
             ->when($filters['category_id'] ?? null, fn ($q, $v) => $q->where('category_id', $v))
             ->when($filters['governorate_id'] ?? null, fn ($q, $v) => $q->where('governorate_id', $v))
             ->when($filters['city_id'] ?? null, fn ($q, $v) => $q->where('city_id', $v))
@@ -48,13 +54,37 @@ class AdController extends Controller
                 ->orWhere('description', 'like', "%{$v}%")
             ))
             ->tap(fn ($q) => $this->applyAttributeFilters($q, $request, $filters['category_id'] ?? null))
-            ->with(['images', 'category', 'city', 'governorate'])
-            ->latest('is_featured')
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+            ->with(['images', 'category', 'city', 'governorate']);
+
+        $this->applySort($query, $filters);
+
+        $ads = $query->paginate(20)->withQueryString();
 
         return AdResource::collection($ads);
+    }
+
+    // Default (no sort param, or 'newest') preserves the original
+    // featured-first-then-newest order so existing clients/tests don't
+    // change behavior. The other modes are plain, predictable orderings —
+    // picking one opts out of the featured-pinning rather than layering
+    // on top of it, which is what a "Sort: price low to high" control
+    // actually means to a user.
+    private function applySort($query, array $filters): void
+    {
+        match ($filters['sort'] ?? 'newest') {
+            'price_asc' => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
+            'popular' => $query->orderBy('views_count', 'desc'),
+            // Flat-earth squared-distance (no sqrt/trig) — wrong unit, but
+            // preserves correct nearest-first ordering at city scale and
+            // runs as plain arithmetic, portable across sqlite/mysql/pgsql
+            // (no reliance on each DB's math-function support).
+            'nearest' => $query->whereNotNull('latitude')->whereNotNull('longitude')->orderByRaw(
+                '(latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?) asc',
+                [$filters['lat'], $filters['lat'], $filters['lng'], $filters['lng']]
+            ),
+            default => $query->latest('is_featured')->latest(),
+        };
     }
 
     // Applies one whereHas(attributeValues) constraint per query param whose
@@ -64,7 +94,7 @@ class AdController extends Controller
     // categories; without a category_id all filterable keys are eligible.
     private function applyAttributeFilters($query, Request $request, ?int $categoryId): void
     {
-        $reserved = ['category_id', 'governorate_id', 'city_id', 'min_price', 'max_price', 'q', 'page'];
+        $reserved = ['category_id', 'governorate_id', 'city_id', 'min_price', 'max_price', 'q', 'page', 'sort', 'lat', 'lng'];
 
         $params = collect($request->query())->except($reserved)->filter(fn ($v) => $v !== null && $v !== '');
         if ($params->isEmpty()) {

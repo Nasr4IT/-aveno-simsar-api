@@ -54,7 +54,7 @@ This is the one endpoint in the whole API that's deliberately simple with no par
 
 ## 4. Search & Filters
 
-**Screen:** same feed as the home page, but with a search bar and a filter sheet (price range, location, category-specific specs like fuel type or number of rooms).
+**Screen:** same feed as the home page, but with a search bar, a sort dropdown, and a filter sheet (price range, location, category-specific specs like fuel type or number of rooms).
 **Call:** still `GET /ads`, now with query params:
 
 | Param | Does |
@@ -62,9 +62,13 @@ This is the one endpoint in the whole API that's deliberately simple with no par
 | `q` | free-text match against title/description |
 | `category_id`, `governorate_id`, `city_id` | exact-match dropdowns |
 | `min_price`, `max_price` | range slider |
+| `sort` | the "Sort" dropdown: `newest` (default — featured first, then newest), `price_asc`, `price_desc`, `popular` (most-viewed first), or `nearest` (needs `lat`/`lng` — see below) |
+| `lat`, `lng` | the device's current coordinates — required only when `sort=nearest`; this is also the building block for a "Popular near you" home-screen section (e.g. call `GET /ads?sort=popular&city_id=<the user's city>`, or `sort=nearest` with real GPS coordinates for true proximity) |
 | any dynamic attribute key (e.g. `fuel_type=بنزين`) | category-specific filter chips — see §6 for where these keys come from |
 
-There's no separate "search" endpoint — search is just `GET /ads` with `q` set, same pagination and same response shape as browsing. The Flutter app can reuse one feed widget for "home," "search results," and "filtered browse."
+There's no separate "search" endpoint — search is just `GET /ads` with `q` set, same pagination and same response shape as browsing. The Flutter app can reuse one feed widget for "home," "search results," "filtered browse," and a "popular near you" rail.
+
+One thing to get right in the UI: picking a `sort` value other than `newest` **replaces** the normal featured-first ordering, it doesn't add to it — e.g. `sort=price_asc` is a flat price-ascending list, a featured ad doesn't get pinned to the top of it.
 
 ---
 

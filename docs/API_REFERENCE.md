@@ -134,7 +134,7 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 
 ### `GET /ads`
 **Auth:** none.
-**Does:** The public browse/search feed. **Only `status = approved` ads are ever returned here.** Featured ads (`is_featured`) sort first, then newest first.
+**Does:** The public browse/search feed. **Only `status = approved` ads are ever returned here.** Default order (no `sort` given, or `sort=newest`) is featured ads first, then newest first — the same as before `sort` existed, so omitting it doesn't change anything for existing clients.
 **Input (all query params optional):**
 | Param | Type | Does |
 |---|---|---|
@@ -143,6 +143,8 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 | `city_id` | int | exact match |
 | `min_price` / `max_price` | number | inclusive range on `price` |
 | `q` | string | matches against `title` **or** `description` (`LIKE %q%`) |
+| `sort` | string | one of `newest` (default), `price_asc`, `price_desc`, `popular` (by `views_count` descending), `nearest`. Picking any value other than `newest` **replaces** the default featured-first ordering entirely — it doesn't layer on top of it. |
+| `lat` / `lng` | number | **required when `sort=nearest`** (`422` otherwise) — the caller's own coordinates, to sort by. Only ads with both `latitude` and `longitude` set participate in `nearest`; ads without a location are excluded from the results entirely for that sort (not pushed to the end). Distance is an unscaled flat-earth approximation (fine for sort order, not an actual km/mi value) — not returned in the response. |
 | any category-attribute key (e.g. `fuel_type`, `condition`) | string | matches ads whose dynamic attribute of that key equals the given value. If the key is defined on more than one category (e.g. `condition` exists on both "cars" and "motorcycles"), matches are OR'd across all of them unless `category_id` is also given to disambiguate. Only attributes with `is_filterable = true` are matchable this way; unrecognized params are silently ignored (not an error). |
 
 **Output — `200`:** paginated list of `AdResource` (20/page). Each item (note: `description` is **omitted** here — only present on the single-ad `show` endpoint):

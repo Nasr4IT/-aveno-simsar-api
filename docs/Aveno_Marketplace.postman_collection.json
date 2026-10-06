@@ -120,7 +120,7 @@
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": {
-              "raw": "{{base_url}}/ads?category_id=&governorate_id=&city_id=&min_price=&max_price=&q=",
+              "raw": "{{base_url}}/ads?category_id=&governorate_id=&city_id=&min_price=&max_price=&q=&sort=&lat=&lng=",
               "host": ["{{base_url}}"], "path": ["ads"],
               "query": [
                 { "key": "category_id", "value": "" },
@@ -128,7 +128,10 @@
                 { "key": "city_id", "value": "" },
                 { "key": "min_price", "value": "" },
                 { "key": "max_price", "value": "" },
-                { "key": "q", "value": "" }
+                { "key": "q", "value": "" },
+                { "key": "sort", "value": "", "description": "newest (default) | price_asc | price_desc | popular | nearest" },
+                { "key": "lat", "value": "", "description": "required only if sort=nearest" },
+                { "key": "lng", "value": "", "description": "required only if sort=nearest" }
               ]
             }
           }
