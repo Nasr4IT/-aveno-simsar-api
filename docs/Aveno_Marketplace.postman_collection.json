@@ -17,7 +17,8 @@
     { "key": "conversation_id", "value": "" },
     { "key": "user_id", "value": "" },
     { "key": "notification_id", "value": "" },
-    { "key": "banner_id", "value": "" }
+    { "key": "banner_id", "value": "" },
+    { "key": "report_id", "value": "" }
   ],
   "item": [
     {
@@ -83,6 +84,24 @@
             "method": "POST",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        },
+        {
+          "name": "Register device token (push)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"fcm-device-token-here\",\n  \"platform\": \"android\"\n}" },
+            "url": { "raw": "{{base_url}}/device-tokens", "host": ["{{base_url}}"], "path": ["device-tokens"] }
+          }
+        },
+        {
+          "name": "Unregister device token (logout)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"fcm-device-token-here\"\n}" },
+            "url": { "raw": "{{base_url}}/device-tokens", "host": ["{{base_url}}"], "path": ["device-tokens"] }
           }
         }
       ]
@@ -154,6 +173,23 @@
           }
         },
         {
+          "name": "My ads — stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/my/ads/stats", "host": ["{{base_url}}"], "path": ["my", "ads", "stats"] }
+          }
+        },
+        {
+          "name": "Similar ads",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/similar", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "similar"] }
+          }
+        },
+        {
           "name": "Create ad",
           "request": {
             "method": "POST",
@@ -211,6 +247,31 @@
             "method": "DELETE",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": { "raw": "{{base_url}}/ads/{{ad_id}}/images/{{image_id}}", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "images", "{{image_id}}"] }
+          }
+        },
+        {
+          "name": "Mark ad as sold",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/mark-sold", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "mark-sold"] }
+          }
+        },
+        {
+          "name": "Relist a sold/expired ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/relist", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "relist"] }
+          }
+        },
+        {
+          "name": "Report an ad",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"scam\",\n  \"details\": \"Asked for payment outside the app\"\n}" },
+            "url": { "raw": "{{base_url}}/ads/{{ad_id}}/report", "host": ["{{base_url}}"], "path": ["ads", "{{ad_id}}", "report"] }
           }
         }
       ]
@@ -301,6 +362,15 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\n  \"score\": 5,\n  \"comment\": \"Great seller!\",\n  \"ad_id\": null\n}" },
             "url": { "raw": "{{base_url}}/users/{{user_id}}/ratings", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "ratings"] }
+          }
+        },
+        {
+          "name": "Report a user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"inappropriate\",\n  \"details\": \"\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/report", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "report"] }
           }
         }
       ]
@@ -521,6 +591,35 @@
                 "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
                 "body": { "mode": "raw", "raw": "{\n  \"reason\": \"الصور مطموسة ولا يمكن التمليز.\"\n}" },
                 "url": { "raw": "{{base_url}}/admin/ads/{{ad_id}}/reject", "host": ["{{base_url}}"], "path": ["admin", "ads", "{{ad_id}}", "reject"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reports",
+          "item": [
+            {
+              "name": "List reports by status",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/reports?status=pending", "host": ["{{base_url}}"], "path": ["admin", "reports"], "query": [{ "key": "status", "value": "pending" }] }
+              }
+            },
+            {
+              "name": "Resolve report",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/reports/{{report_id}}/resolve", "host": ["{{base_url}}"], "path": ["admin", "reports", "{{report_id}}", "resolve"] }
+              }
+            },
+            {
+              "name": "Dismiss report",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": { "raw": "{{base_url}}/admin/reports/{{report_id}}/dismiss", "host": ["{{base_url}}"], "path": ["admin", "reports", "{{report_id}}", "dismiss"] }
               }
             }
           ]

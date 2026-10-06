@@ -173,11 +173,15 @@ These are in-app only right now (stored in the DB, fetched by polling `GET /noti
 
 ## 14. The Admin Side
 
-There's no admin UI in this repo — moderation happens via direct API calls (Postman today; a real admin panel is future work). Three things an admin can do, each gated by the `admin` role on top of normal auth:
+**There's a real admin panel now** — a small server-rendered web UI at `/admin-panel` (login at `/admin-panel/login`), separate from the Flutter-facing JSON API. It's session-based (the Laravel `web` guard + a login form), not Sanctum bearer tokens — an admin opens it in a browser, logs in with their phone + password, and gets cookie-based sessions from there. Log in with the seeded admin account (`DatabaseSeeder` → `AdminUserSeeder`: phone `0999999999`) or any user who has the `admin` role. The underlying `/admin/*` JSON endpoints below still exist too (useful for Postman/automation) — the panel is a second client of the same rules, not a replacement for the API.
 
-- **Moderate the ad queue** — `GET /admin/ads?status=pending` to see what's waiting, then `POST /admin/ads/{id}/approve` or `POST /admin/ads/{id}/reject` (reject requires a `reason`, which becomes the `ad_rejected` notification the owner sees). This is the only way an ad ever becomes publicly visible.
-- **Manage users** — `GET /admin/users?q=` to search, `POST /admin/users/{id}/ban` / `/unban`. Banning instantly revokes the user's tokens (§2) and is blocked entirely against another admin account — there's no way to ban (or accidentally self-ban) an admin through this endpoint.
-- **Manage categories** — full CRUD on categories plus `POST /admin/categories/{id}/attributes` to add a new dynamic spec field to a category. This is exactly the mechanism from §6 — adding "trunk capacity" to the cars category is an API call, not a deploy.
+What's in it, each gated by the `admin` role on top of normal auth:
+
+- **Moderate the ad queue** (`/admin-panel/ads`, or `GET/POST /admin/ads...`) — filter by status, approve with one click, or reject with a reason (becomes the `ad_rejected` notification the owner sees, push included). This is the only way an ad ever becomes publicly visible.
+- **Manage users** (`/admin-panel/users`, or `/admin/users...`) — search, ban/unban. Banning instantly revokes the user's tokens (§2) and is blocked entirely against another admin account — there's no way to ban (or accidentally self-ban) an admin through this.
+- **Manage categories** (`/admin-panel/categories`, or `/admin/categories...`) — create categories and add dynamic spec fields to them. This is exactly the mechanism from §6 — adding "trunk capacity" to the cars category is a form submission, not a deploy.
+- **Manage banners** (`/admin-panel/banners`, or `/admin/banners...`) — create/pause/delete sponsored banners (§15) with an actual image upload form, instead of needing Postman for something as simple as a file upload.
+- **Review reports** (`/admin-panel/reports`, or `/admin/reports...`) — see what's been flagged (§16) and mark it resolved or dismissed.
 
 ---
 
@@ -193,14 +197,31 @@ There's no admin UI in this repo — moderation happens via direct API calls (Po
 
 **What this is *not*:** there's no in-app payment flow for banners, unlike the ad-boost packages in §13 — the admin is trusted to have actually been paid before creating one. If that ever needs to change (e.g. tracking banner revenue in-app), it'd reuse the same `Payment` model from §13 rather than inventing a second one.
 
+## 16. Reporting
+
+**Screen:** a "Report" action on an ad or a user profile — spam, scam, inappropriate content, or other.
+**Calls:** `POST /ads/{id}/report` / `POST /users/{id}/report`, body `{reason, details?}` where `reason` is one of `spam|inappropriate|scam|other`. You can't report your own ad or yourself. Reporting the same target again updates and reopens your existing report rather than creating a duplicate — so escalating with new details, or re-flagging something that was dismissed, both just work.
+
+This **never takes action by itself** — no auto-ban, no auto-unlist. It only queues something onto the admin's Reports tab (§14) for a human to look at; any follow-up (banning the user, rejecting the ad) is a separate, deliberate admin action.
+
+---
+
+## Seller Tools: Analytics, Sold, Relist, Similar Ads
+
+A few smaller pieces that round out the seller experience, all added onto existing endpoints rather than new screens:
+
+- **Seller stats** — `GET /my/ads/stats` returns aggregate numbers across all of a seller's ads (counts by status, total views, total favorites, total conversations) — the data for a simple "your activity" dashboard card. Per-ad numbers (`favorites_count`, `conversations_count`) are also on individual ads returned from `GET /my/ads` and `GET /ads/{id}` — `views_count` was already there, just never had company.
+- **Mark as sold / relist** — `POST /ads/{id}/mark-sold` takes an approved ad off the public feed (it's not deleted — `GET /ads/{id}` still shows it, for closure, just with a `sold` badge) and `POST /ads/{id}/relist` sends a sold/expired ad back through the normal review queue to make it live again.
+- **Similar ads** — `GET /ads/{id}/similar` for a "you might also like" rail on the detail page: same category, price within ±30% when the ad has one, closest price first.
+
 ---
 
 ## Known gaps (so nobody builds against something that isn't there)
 
 - **Sham Cash payments are stubbed** (§13) — `501` on checkout, no real money flow yet.
-- **No push notifications** — in-app/polling only (§12).
-- **Uploaded images aren't permanently persisted** on the current free Render hosting — they live on local disk inside the container, which has no persistent volume on the free tier, so they can be wiped on a restart/redeploy. Fine for demoing; worth revisiting (e.g. S3/Cloudflare R2) before any real launch.
-- **No admin UI** — the admin flows (§14) are real and tested, just client-less today.
+- **Push notifications and S3/R2 image storage are code-complete but need an external account to actually turn on** — both silently no-op without credentials (the same pattern as Sham Cash), so nothing breaks by leaving them off, but nothing happens either until `FIREBASE_CREDENTIALS_JSON` (push) or `FILESYSTEM_DISK=s3` + `AWS_*` (persistent image storage, e.g. Cloudflare R2) are actually set. Until then, in-app/polling notifications (§12) and local-disk images both still work exactly as before.
+- **Sentry error tracking is wired in but inactive** without a `SENTRY_LARAVEL_DSN` — free to sign up for when you want it.
+- **The queue worker has no supervisor** — it's a second process backgrounded inside the same container as the web server (Render's free tier has no separate worker-service type), so it dies silently with the container rather than being restarted on its own if it crashes. Acceptable for this scale; revisit before relying on it for anything time-sensitive.
 
 ## Where to go next
 

@@ -23,28 +23,27 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
-        // This is a pure JSON API — there is no "login" page to send guests to.
-        // ApplicationBuilder::withMiddleware() always pre-registers
-        // `redirectGuestsTo(fn () => route('login'))` before this closure
-        // runs. Illuminate\Auth\Middleware\Authenticate::unauthenticated()
-        // then calls that callback *while constructing* the
-        // AuthenticationException, any time `$request->expectsJson()` is
-        // false (e.g. Postman/curl without an explicit
-        // "Accept: application/json" header) — so without overriding it,
-        // building the exception itself crashes with
-        // "RouteNotFoundException: Route [login] not defined." before the
-        // exception is even thrown. Overriding it to return null stops that.
-        $middleware->redirectGuestsTo(fn () => null);
+        // This is a JSON API for every route except the small server-rendered
+        // admin panel (routes/web.php, 'admin-panel/*') — so unauthenticated
+        // API requests get a plain 401, while a guest hitting the admin
+        // panel gets redirected to its real login page. Without this
+        // override entirely, ApplicationBuilder::withMiddleware()'s default
+        // `redirectGuestsTo(fn () => route('login'))` crashes the API path
+        // with "RouteNotFoundException: Route [login] not defined." — there
+        // is no route literally named 'login', only 'admin.login'.
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : route('admin.login'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Second half of the same fix: Handler::unauthenticated() does
         //   $this->shouldReturnJson($request, $e) ? json 401
         //       : redirect()->guest($exception->redirectTo($request) ?? route('login'))
-        // Since the exception's redirectTo is now null (see above),
-        // `null ?? route('login')` would still crash on the same route if
-        // shouldReturnJson() ever fell through to the redirect branch.
-        // Forcing every /api/* request down the JSON path — regardless of
-        // Accept header — guarantees it never does.
+        // For api/* the exception's redirectTo is null (see above), so the
+        // `?? route('login')` fallback would still crash on that
+        // still-undefined route name if shouldReturnJson() ever fell
+        // through to the redirect branch. Forcing every /api/* request down
+        // the JSON path — regardless of Accept header — guarantees it never
+        // does. (The admin panel's own redirectTo is never null, so it
+        // never reaches this fallback at all.)
         $exceptions->shouldRenderJsonWhen(function ($request, Throwable $e) {
             return $request->is('api/*') || $request->expectsJson();
         });

@@ -28,11 +28,18 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
-| GET | `/ads/{id}` | – | full detail, increments `views_count` |
+| GET | `/ads/{id}` | – | full detail, increments `views_count`; visible for `approved` and `sold` |
+| GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
+| GET | `/my/ads/stats` | ✓ | aggregate counts across the caller's ads: by status, total views, favorites, conversations |
 | POST | `/ads` | ✓ | multipart: `category_id, governorate_id, city_id, title, description, price?, currency?, latitude?, longitude?, images[] (1-12), attributes[<key>]=<value>`. Created as `status=pending` |
 | PUT/PATCH | `/ads/{id}` | ✓ (owner) | partial update; edits re-queue the ad for review |
 | DELETE | `/ads/{id}` | ✓ (owner) | soft delete |
+| POST | `/ads/{id}/images` | ✓ (owner) | multipart: `images[]` — appends photos, up to 12 total; re-queues for review |
+| DELETE | `/ads/{id}/images/{imageId}` | ✓ (owner) | can't remove the ad's last photo |
+| POST | `/ads/{id}/mark-sold` | ✓ (owner) | `approved` → `sold`; drops out of the public feed but stays viewable |
+| POST | `/ads/{id}/relist` | ✓ (owner) | `sold`/`expired` → `pending`, re-queues for review |
+| POST | `/ads/{id}/report` | ✓ | body: `{reason: spam\|inappropriate\|scam\|other, details?}` |
 
 ## Favorites
 
@@ -59,6 +66,7 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 |---|---|---|---|
 | GET | `/users/{id}/ratings` | – | public, shown on a seller's profile |
 | POST | `/users/{id}/ratings` | ✓ | body: `{ad_id?, score (1-5), comment?}`; one rating per (rater, rated, ad) |
+| POST | `/users/{id}/report` | ✓ | body: `{reason: spam\|inappropriate\|scam\|other, details?}` |
 
 ## Notifications
 
@@ -67,6 +75,15 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 | GET | `/notifications` | ✓ |
 | POST | `/notifications/{id}/read` | ✓ |
 | POST | `/notifications/read-all` | ✓ |
+
+## Push notification device registration
+
+Code-complete but inactive without `FIREBASE_CREDENTIALS_JSON` — see `App\Services\PushNotificationService`.
+
+| Method | Path | Auth | Body |
+|---|---|---|---|
+| POST | `/device-tokens` | ✓ | `{token, platform?: android\|ios\|web}` — upserts by token |
+| DELETE | `/device-tokens` | ✓ | `{token}` — call on logout |
 
 ## Banners (sponsored, home-screen carousel)
 
@@ -99,10 +116,16 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 | GET | `/admin/ads?status=pending` | review queue |
 | POST | `/admin/ads/{id}/approve` | – |
 | POST | `/admin/ads/{id}/reject` | body: `{reason}` |
+| GET | `/admin/reports?status=pending` | review queue (reason, reporter, and the reported ad/user) |
+| POST | `/admin/reports/{id}/resolve` \| `/dismiss` | triage marker only — doesn't itself ban/unlist anything |
+
+**Admin panel:** everything above also has a server-rendered UI at `/admin-panel` (session-login, not Sanctum) — same rules, same backend, just a second client. See `HOW_IT_WORKS.md` § The Admin Side.
 
 ## Current implementation status
 
-Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destroy, incl. image upload + resize and dynamic attributes), ad photo management (`POST`/`DELETE /ads/{id}/images[/{imageId}]`), `Favorites`, `Chat`, `Ratings`, `Notifications` (read), `Banners`, `Admin ▸ Categories/Users/Ads/Banners`.
+Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destroy, incl. image upload + resize and dynamic attributes, similar-ads, mark-sold/relist), ad photo management (`POST`/`DELETE /ads/{id}/images[/{imageId}]`), seller stats (`/my/ads/stats`), `Favorites`, `Chat`, `Ratings`, `Reporting`, `Notifications` (read), `Banners`, `Admin ▸ Categories/Users/Ads/Banners/Reports`, the `/admin-panel` web UI.
+
+Code-complete but needs an external account to actually activate (silently no-ops without it — see `HOW_IT_WORKS.md` § Known gaps): push notifications (`FIREBASE_CREDENTIALS_JSON`), S3/R2 image storage (`FILESYSTEM_DISK=s3` + `AWS_*`), Sentry error tracking (`SENTRY_LARAVEL_DSN`).
 
 Stubbed (`501 Not Implemented`): `Payments@checkout`/`@webhook` only — real Sham Cash HTTP calls still need to be written in `app/Services/ShamCash/ShamCashClient.php`.
 
