@@ -8,6 +8,7 @@ use App\Http\Resources\MessageResource;
 use App\Models\Ad;
 use App\Models\Conversation;
 use App\Notifications\NewMessageReceived;
+use App\Services\PushNotificationService;
 use Illuminate\Http\Request;
 
 /**
@@ -57,7 +58,7 @@ class ChatController extends Controller
     }
 
     // POST /api/conversations/{conversation}/messages
-    public function sendMessage(Request $request, Conversation $conversation)
+    public function sendMessage(Request $request, Conversation $conversation, PushNotificationService $push)
     {
         $this->authorizeParticipant($request, $conversation);
 
@@ -72,6 +73,7 @@ class ChatController extends Controller
 
         $recipient = $conversation->buyer_id === $request->user()->id ? $conversation->seller : $conversation->buyer;
         $recipient->notify(new NewMessageReceived($message));
+        $push->sendToUser($recipient, "رسالة جديدة من {$request->user()->name}", $data['body'], ['type' => 'new_message', 'conversation_id' => $conversation->id]);
 
         return new MessageResource($message);
     }

@@ -3,10 +3,15 @@
 namespace App\Notifications;
 
 use App\Models\Rating;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels;
 
-class NewRatingReceived extends Notification
+class NewRatingReceived extends Notification implements ShouldQueue
 {
+    use Queueable, SerializesModels;
+
     public function __construct(private readonly Rating $rating) {}
 
     public function via(object $notifiable): array

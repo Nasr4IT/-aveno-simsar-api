@@ -7,6 +7,7 @@ use App\Http\Resources\RatingResource;
 use App\Models\Rating;
 use App\Models\User;
 use App\Notifications\NewRatingReceived;
+use App\Services\PushNotificationService;
 use App\Services\RatingService;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class RatingController extends Controller
     }
 
     // POST /api/users/{user}/ratings — one rating per (rater, rated, ad) triple.
-    public function store(Request $request, User $user, RatingService $ratingService)
+    public function store(Request $request, User $user, RatingService $ratingService, PushNotificationService $push)
     {
         abort_if($user->id === $request->user()->id, 422, 'لا يمكنك تقييم نفسك');
 
@@ -41,6 +42,7 @@ class RatingController extends Controller
         $ratingService->recomputeForUser($user);
 
         $user->notify(new NewRatingReceived($rating));
+        $push->sendToUser($user, 'تقييم جديد', "قيّمك {$request->user()->name} بـ {$data['score']} نجوم", ['type' => 'new_rating']);
 
         return new RatingResource($rating);
     }

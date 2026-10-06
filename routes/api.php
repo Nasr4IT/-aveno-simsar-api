@@ -4,15 +4,18 @@ use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\Admin\AdminAdController;
 use App\Http\Controllers\Api\Admin\AdminBannerController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
+use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,6 +36,7 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 Route::get('/ads', [AdController::class, 'index']);
 Route::get('/ads/{ad}', [AdController::class, 'show']);
+Route::get('/ads/{ad}/similar', [AdController::class, 'similar']);
 
 Route::get('/banners', [BannerController::class, 'index']);
 
@@ -46,12 +50,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
+    Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
+
     Route::get('/my/ads', [AdController::class, 'myAds']);
+    Route::get('/my/ads/stats', [AdController::class, 'myAdsStats']);
     Route::post('/ads', [AdController::class, 'store']);
     Route::match(['put', 'patch'], '/ads/{ad}', [AdController::class, 'update']);
     Route::delete('/ads/{ad}', [AdController::class, 'destroy']);
     Route::post('/ads/{ad}/images', [AdController::class, 'addImages']);
     Route::delete('/ads/{ad}/images/{image}', [AdController::class, 'removeImage']);
+    Route::post('/ads/{ad}/mark-sold', [AdController::class, 'markSold']);
+    Route::post('/ads/{ad}/relist', [AdController::class, 'relist']);
+    Route::post('/ads/{ad}/report', [ReportController::class, 'reportAd']);
 
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/ads/{ad}/favorite', [FavoriteController::class, 'store']);
@@ -63,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
 
     Route::post('/users/{user}/ratings', [RatingController::class, 'store']);
+    Route::post('/users/{user}/report', [ReportController::class, 'reportUser']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
@@ -87,5 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('banners', [AdminBannerController::class, 'store']);
         Route::match(['put', 'patch'], 'banners/{banner}', [AdminBannerController::class, 'update']);
         Route::delete('banners/{banner}', [AdminBannerController::class, 'destroy']);
+
+        Route::get('reports', [AdminReportController::class, 'index']);
+        Route::post('reports/{report}/resolve', [AdminReportController::class, 'resolve']);
+        Route::post('reports/{report}/dismiss', [AdminReportController::class, 'dismiss']);
     });
 });

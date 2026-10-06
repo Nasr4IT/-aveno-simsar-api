@@ -69,7 +69,7 @@ class AdminBannerController extends Controller
 
     public function destroy(Banner $banner)
     {
-        Storage::disk('public')->delete($banner->image_path);
+        Storage::disk(config('filesystems.default'))->delete($banner->image_path);
         $banner->delete();
 
         return response()->json(['message' => 'تم الحذف']);

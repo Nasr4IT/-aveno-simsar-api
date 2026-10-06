@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -47,4 +48,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(function ($request, Throwable $e) {
             return $request->is('api/*') || $request->expectsJson();
         });
+
+        // No-ops entirely without SENTRY_LARAVEL_DSN set (the SDK's own
+        // behavior, not a check we have to write) — safe to leave wired up
+        // in every environment, including local dev with no DSN configured.
+        Integration::handles($exceptions);
     })->create();

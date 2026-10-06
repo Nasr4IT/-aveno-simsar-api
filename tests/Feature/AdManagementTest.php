@@ -257,4 +257,105 @@ class AdManagementTest extends TestCase
         Sanctum::actingAs($stranger);
         $this->deleteJson("/api/ads/{$ad->id}/images/{$image->id}")->assertForbidden();
     }
+
+    public function test_owner_can_mark_an_approved_ad_as_sold(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'approved']);
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/api/ads/{$ad->id}/mark-sold")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'sold');
+
+        $this->assertSame('sold', $ad->fresh()->status);
+    }
+
+    public function test_only_the_owner_can_mark_an_ad_as_sold(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'approved']);
+
+        Sanctum::actingAs($stranger);
+        $this->postJson("/api/ads/{$ad->id}/mark-sold")->assertForbidden();
+    }
+
+    public function test_a_pending_ad_cannot_be_marked_sold(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'pending']);
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/api/ads/{$ad->id}/mark-sold")->assertStatus(422);
+    }
+
+    public function test_a_sold_ad_is_hidden_from_the_feed_but_still_directly_viewable(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'sold']);
+
+        $this->getJson('/api/ads')->assertOk()->assertJsonCount(0, 'data');
+        $this->getJson("/api/ads/{$ad->id}")->assertOk()->assertJsonPath('data.status', 'sold');
+    }
+
+    public function test_owner_can_relist_a_sold_ad_for_re_review(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'sold']);
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/api/ads/{$ad->id}/relist")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'pending');
+    }
+
+    public function test_an_approved_ad_cannot_be_relisted(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'approved']);
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/api/ads/{$ad->id}/relist")->assertStatus(422);
+    }
+
+    public function test_similar_ads_matches_same_category_and_a_nearby_price(): void
+    {
+        $category = Category::factory()->create();
+        $otherCategory = Category::factory()->create();
+        $ad = Ad::factory()->create(['category_id' => $category->id, 'price' => 1000, 'status' => 'approved']);
+        $close = Ad::factory()->create(['category_id' => $category->id, 'price' => 1100, 'status' => 'approved']);
+        $tooExpensive = Ad::factory()->create(['category_id' => $category->id, 'price' => 5000, 'status' => 'approved']);
+        $wrongCategory = Ad::factory()->create(['category_id' => $otherCategory->id, 'price' => 1000, 'status' => 'approved']);
+
+        $response = $this->getJson("/api/ads/{$ad->id}/similar");
+
+        $response->assertOk();
+        $ids = $response->json('data.*.id');
+        $this->assertContains($close->id, $ids);
+        $this->assertNotContains($tooExpensive->id, $ids);
+        $this->assertNotContains($wrongCategory->id, $ids);
+        $this->assertNotContains($ad->id, $ids);
+    }
+
+    public function test_my_ads_stats_summarizes_counts_across_the_callers_ads(): void
+    {
+        $owner = User::factory()->create();
+        $approved = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'approved']);
+        Ad::factory()->create(['user_id' => $owner->id, 'status' => 'pending']);
+        Ad::factory()->create(['status' => 'approved']); // someone else's — must not count
+
+        $approved->forceFill(['views_count' => 10])->save();
+        $approved->favoritedBy()->create(['user_id' => User::factory()->create()->id]);
+
+        Sanctum::actingAs($owner);
+        $response = $this->getJson('/api/my/ads/stats');
+
+        $response->assertOk();
+        $this->assertSame(2, $response->json('data.total_ads'));
+        $this->assertSame(1, $response->json('data.by_status.approved'));
+        $this->assertSame(1, $response->json('data.by_status.pending'));
+        $this->assertSame(10, $response->json('data.total_views'));
+        $this->assertSame(1, $response->json('data.total_favorites'));
+    }
 }

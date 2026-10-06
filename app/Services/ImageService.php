@@ -23,11 +23,16 @@ class ImageService
     }
 
     // Resizes (only if larger than MAX_DIMENSION, aspect ratio preserved),
-    // re-encodes as JPEG at JPEG_QUALITY, and stores on the given disk.
-    // Raw phone-camera uploads are several MB each otherwise (see
-    // AdController@storeImages).
-    public function storeResized(UploadedFile $file, string $directory, string $disk = 'public'): string
+    // re-encodes as JPEG at JPEG_QUALITY, and stores on the given disk —
+    // defaults to filesystems.default (FILESYSTEM_DISK), so switching that
+    // to 's3' (an S3-compatible bucket, e.g. Cloudflare R2 — see
+    // docs/HOW_IT_WORKS.md § Persistent Image Storage) moves every upload
+    // there with no call-site changes. Raw phone-camera uploads are
+    // several MB each otherwise (see AdController@storeImages).
+    public function storeResized(UploadedFile $file, string $directory, ?string $disk = null): string
     {
+        $disk ??= config('filesystems.default');
+
         // Laravel's 'image' validation rule accepts formats GD can't decode
         // (e.g. SVG) — without this, such an upload crashes with an
         // unhandled 500 instead of a normal validation error.

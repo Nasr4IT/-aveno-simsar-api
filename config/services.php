@@ -27,8 +27,13 @@ return [
         'callback_url' => env('SHAMCASH_CALLBACK_URL'),
     ],
 
+    // Push notifications via FCM HTTP v1 (see App\Services\PushNotificationService
+    // and docs/HOW_IT_WORKS.md § Push Notifications). Needs a Firebase service
+    // account — FCM's older server-key API this used to target is retired, so
+    // that's the only live option. credentials_json is the full service
+    // account JSON (Firebase console ▸ Project settings ▸ Service accounts ▸
+    // Generate new private key), as a single-line string env value.
     'firebase' => [
-        // Phase 2 — push notifications (see proposal, "الخدمات المستقبلية").
-        'server_key' => env('FIREBASE_SERVER_KEY'),
+        'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
     ],
 ];

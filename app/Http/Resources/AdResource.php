@@ -19,6 +19,12 @@ class AdResource extends JsonResource
             'status' => $this->status,
             'is_featured' => $this->is_featured,
             'views_count' => $this->views_count,
+            // Only present when the controller eager-loaded them via
+            // withCount/loadCount (GET /ads/{id}, /my/ads, /my/ads/stats) —
+            // omitted elsewhere rather than silently returning 0, so a
+            // missing value in the response can't be misread as "zero".
+            'favorites_count' => $this->whenCounted('favoritedBy'),
+            'conversations_count' => $this->whenCounted('conversations'),
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'category' => new CategoryResource($this->whenLoaded('category')),

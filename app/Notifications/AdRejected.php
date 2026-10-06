@@ -3,10 +3,15 @@
 namespace App\Notifications;
 
 use App\Models\Ad;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels;
 
-class AdRejected extends Notification
+class AdRejected extends Notification implements ShouldQueue
 {
+    use Queueable, SerializesModels;
+
     public function __construct(private readonly Ad $ad) {}
 
     public function via(object $notifiable): array

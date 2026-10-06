@@ -132,12 +132,66 @@ class AdController extends Controller
     }
 
     // GET /api/ads/{ad} — increments views_count, returns full detail incl. seller info.
+    // A sold ad stays viewable (closure for anyone who had it favorited/in a
+    // conversation, and the seller can point back to it) — it's only hidden
+    // from the browse feed itself, via Ad::scopeApproved().
     public function show(Ad $ad)
     {
-        abort_unless($ad->status === 'approved', 404);
+        abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
 
         $ad->increment('views_count');
-        $ad->load(['images', 'attributeValues.attribute', 'user', 'category']);
+        $ad->load(['images', 'attributeValues.attribute', 'user', 'category'])
+            ->loadCount(['favoritedBy', 'conversations']);
+
+        return new AdResource($ad);
+    }
+
+    // GET /api/ads/{ad}/similar — same category, price within ±30% when the
+    // ad has one, closest price first. Small unpaginated set (like
+    // /categories, /ad-packages, /banners) for a "similar ads" rail on the
+    // detail page.
+    public function similar(Ad $ad)
+    {
+        abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
+
+        $query = Ad::approved()
+            ->where('id', '!=', $ad->id)
+            ->where('category_id', $ad->category_id)
+            ->with(['images', 'category', 'city', 'governorate']);
+
+        if ($ad->price !== null) {
+            $query->whereBetween('price', [$ad->price * 0.7, $ad->price * 1.3])
+                ->orderByRaw('ABS(price - ?) asc', [$ad->price]);
+        } else {
+            $query->latest();
+        }
+
+        return AdResource::collection($query->limit(10)->get());
+    }
+
+    // POST /api/ads/{ad}/mark-sold — owner only. Removes it from the public
+    // feed (scopeApproved only matches 'approved') while keeping it
+    // reachable via GET /ads/{id} for closure, same as any approved ad.
+    public function markSold(Ad $ad)
+    {
+        $this->authorizeOwner($ad);
+        abort_unless($ad->status === 'approved', 422, 'لا يمكن تحديد إعلان غير منشور كمباع');
+
+        $ad->update(['status' => 'sold']);
+
+        return new AdResource($ad);
+    }
+
+    // POST /api/ads/{ad}/relist — owner only. Sends a sold/expired ad back
+    // through the normal review queue (resetToPending — same as any other
+    // edit) rather than instantly re-publishing it, since the listing may
+    // be stale (price, availability) after sitting inactive.
+    public function relist(Ad $ad)
+    {
+        $this->authorizeOwner($ad);
+        abort_unless(in_array($ad->status, ['sold', 'expired'], true), 422, 'يمكن إعادة النشر فقط للإعلانات المباعة أو منتهية الصلاحية');
+
+        $this->resetToPending($ad);
 
         return new AdResource($ad);
     }
@@ -263,7 +317,7 @@ class AdController extends Controller
         DB::transaction(function () use ($ad, $image) {
             $wasCover = $image->is_cover;
 
-            Storage::disk('public')->delete($image->path);
+            Storage::disk(config('filesystems.default'))->delete($image->path);
             $image->delete();
 
             if ($wasCover) {
@@ -294,8 +348,38 @@ class AdController extends Controller
     public function myAds(Request $request)
     {
         return AdResource::collection(
-            $request->user()->ads()->with('images')->latest()->paginate(20)
+            $request->user()->ads()->with('images')->withCount(['favoritedBy', 'conversations'])->latest()->paginate(20)
         );
+    }
+
+    // GET /api/my/ads/stats — aggregate seller dashboard numbers across all
+    // of the caller's ads. One query (withCount runs as subselects on it,
+    // not N+1) since a seller's own ad count is always small enough to
+    // pull into memory and sum client-side here.
+    public function myAdsStats(Request $request)
+    {
+        $ads = $request->user()->ads()
+            ->withCount(['favoritedBy', 'conversations'])
+            ->get(['id', 'status', 'views_count']);
+
+        return response()->json([
+            'data' => [
+                'total_ads' => $ads->count(),
+                'by_status' => [
+                    'pending' => $ads->where('status', 'pending')->count(),
+                    'approved' => $ads->where('status', 'approved')->count(),
+                    'rejected' => $ads->where('status', 'rejected')->count(),
+                    'sold' => $ads->where('status', 'sold')->count(),
+                    'expired' => $ads->where('status', 'expired')->count(),
+                ],
+                'total_views' => (int) $ads->sum('views_count'),
+                // withCount snake_cases the relation name for its generated
+                // attribute key regardless of how the relation method itself
+                // is named — favoritedBy becomes favorited_by_count.
+                'total_favorites' => (int) $ads->sum('favorited_by_count'),
+                'total_conversations' => (int) $ads->sum('conversations_count'),
+            ],
+        ]);
     }
 
     private function authorizeOwner(Ad $ad): void
