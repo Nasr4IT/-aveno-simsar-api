@@ -68,6 +68,18 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 | POST | `/notifications/{id}/read` | ✓ |
 | POST | `/notifications/read-all` | ✓ |
 
+## Banners (sponsored, home-screen carousel)
+
+Separate from `ads` — a business pays the admin directly (outside this app) for a spot in the home-screen carousel; no in-app payment flow.
+
+| Method | Path | Auth | Body | Notes |
+|---|---|---|---|---|
+| GET | `/banners` | – | – | only banners currently inside their window and not paused, ordered by `sort_order` |
+| GET | `/admin/banners` | admin | – | every banner, any status (management view) |
+| POST | `/admin/banners` | admin | multipart: `image, title?, link_url?, starts_at, ends_at, sort_order?` | `link_url` must be `https://...` or `tel:...` if given |
+| PUT/PATCH | `/admin/banners/{id}` | admin | any of: `title, link_url, starts_at, ends_at, sort_order, is_active` | no image replacement — delete + recreate instead |
+| DELETE | `/admin/banners/{id}` | admin | – | also deletes the image file |
+
 ## Payments (Sham Cash featured-ad packages)
 
 | Method | Path | Auth | Notes |
@@ -90,7 +102,7 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 
 ## Current implementation status
 
-Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destroy, incl. image upload + resize and dynamic attributes), ad photo management (`POST`/`DELETE /ads/{id}/images[/{imageId}]`), `Favorites`, `Chat`, `Ratings`, `Notifications` (read), `Admin ▸ Categories/Users/Ads`.
+Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destroy, incl. image upload + resize and dynamic attributes), ad photo management (`POST`/`DELETE /ads/{id}/images[/{imageId}]`), `Favorites`, `Chat`, `Ratings`, `Notifications` (read), `Banners`, `Admin ▸ Categories/Users/Ads/Banners`.
 
 Stubbed (`501 Not Implemented`): `Payments@checkout`/`@webhook` only — real Sham Cash HTTP calls still need to be written in `app/Services/ShamCash/ShamCashClient.php`.
 

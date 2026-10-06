@@ -368,6 +368,54 @@ Note `id` here is a UUID string, not an integer — pass it as-is to the two end
 
 ---
 
+## Banners (sponsored, home-screen carousel)
+
+Separate from `ads` entirely — no owner, no approval workflow, no in-app payment. A business pays the admin directly (e.g. a Sham Cash transfer arranged outside the app, same as cash) for a slot in the home-screen carousel for an agreed window, and the admin creates the banner here. See `docs/HOW_IT_WORKS.md` § Sponsored Banners for the full story.
+
+### `GET /banners`
+**Auth:** none.
+**Does:** The banners currently inside their `starts_at`/`ends_at` window **and** not paused (`is_active = true`) — exactly what the home-screen carousel should render. Ordered by `sort_order`, then creation order.
+**Output — `200`:**
+```json
+{
+  "data": [
+    { "id": 1, "title": "Pizza Palace", "image_url": "http://.../storage/banners/xyz.jpg", "link_url": "tel:+963911111111", "starts_at": "...", "ends_at": "...", "sort_order": 0, "is_active": true }
+  ]
+}
+```
+(Unpaginated — the full active set every time, like `/categories` and `/ad-packages`.)
+
+### `GET /admin/banners`
+**Auth:** admin.
+**Does:** Every banner regardless of its window or `is_active` — the admin's own management list, not what the public carousel shows.
+**Output — `200`:** paginated (30/page) `BannerResource` collection.
+
+### `POST /admin/banners`
+**Auth:** admin. **Content-Type:** `multipart/form-data` (carries the image).
+**Does:** Creates a banner. Resized/compressed the same way as ad photos (max 1600×1600, JPEG q80).
+**Input (form fields):**
+| Field | Required | Notes |
+|---|---|---|
+| `image` | yes | image file, ≤5MB |
+| `title` | no | string, max 150 — admin-facing label, also returned to the client |
+| `link_url` | no | must start with `https://`, `http://`, or `tel:` if given — whatever tapping the banner should open |
+| `starts_at` / `ends_at` | yes | datetimes; `ends_at` must be ≥ `starts_at` |
+| `sort_order` | no | integer, defaults to 0 — lower sorts first |
+
+**Output — `201`:** the new `BannerResource`.
+**Errors:** `422` on validation failure (including a rejected `link_url` scheme, e.g. `javascript:...`).
+
+### `PUT/PATCH /admin/banners/{id}`
+**Auth:** admin.
+**Does:** Partial update of any of `title, link_url, starts_at, ends_at, sort_order, is_active`. Flipping `is_active` to `false` is how an admin pauses a banner early **without** recalculating its dates. Does **not** support replacing the image — delete and recreate the banner instead.
+**Output — `200`:** the updated `BannerResource`.
+
+### `DELETE /admin/banners/{id}`
+**Does:** Deletes the banner and its stored image file.
+**Output — `200`:** `{"message": "تم الحذف"}`.
+
+---
+
 ## Payments (Sham Cash) — partially implemented
 
 ### `GET /ad-packages`

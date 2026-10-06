@@ -16,7 +16,8 @@
     { "key": "category_id", "value": "" },
     { "key": "conversation_id", "value": "" },
     { "key": "user_id", "value": "" },
-    { "key": "notification_id", "value": "" }
+    { "key": "notification_id", "value": "" },
+    { "key": "banner_id", "value": "" }
   ],
   "item": [
     {
@@ -326,6 +327,64 @@
             "method": "POST",
             "header": [{ "key": "Accept", "value": "application/json" }],
             "url": { "raw": "{{base_url}}/notifications/read-all", "host": ["{{base_url}}"], "path": ["notifications", "read-all"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Banners",
+      "item": [
+        {
+          "name": "List active banners (home screen)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/banners", "host": ["{{base_url}}"], "path": ["banners"] }
+          }
+        },
+        {
+          "name": "Admin: list all banners",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/admin/banners", "host": ["{{base_url}}"], "path": ["admin", "banners"] }
+          }
+        },
+        {
+          "name": "Admin: create banner",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": [] },
+                { "key": "title", "value": "Pizza Palace", "type": "text" },
+                { "key": "link_url", "value": "tel:+963911111111", "type": "text" },
+                { "key": "starts_at", "value": "2026-01-01 00:00:00", "type": "text" },
+                { "key": "ends_at", "value": "2026-01-31 00:00:00", "type": "text" },
+                { "key": "sort_order", "value": "0", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/admin/banners", "host": ["{{base_url}}"], "path": ["admin", "banners"] }
+          }
+        },
+        {
+          "name": "Admin: update banner (e.g. pause it)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"is_active\": false\n}" },
+            "url": { "raw": "{{base_url}}/admin/banners/{{banner_id}}", "host": ["{{base_url}}"], "path": ["admin", "banners", "{{banner_id}}"] }
+          }
+        },
+        {
+          "name": "Admin: delete banner",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/admin/banners/{{banner_id}}", "host": ["{{base_url}}"], "path": ["admin", "banners", "{{banner_id}}"] }
           }
         }
       ]

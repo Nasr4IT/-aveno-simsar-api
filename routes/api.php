@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\Admin\AdminAdController;
+use App\Http\Controllers\Api\Admin\AdminBannerController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\FavoriteController;
@@ -31,6 +33,8 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 Route::get('/ads', [AdController::class, 'index']);
 Route::get('/ads/{ad}', [AdController::class, 'show']);
+
+Route::get('/banners', [BannerController::class, 'index']);
 
 Route::get('/ad-packages', [PaymentController::class, 'packages']);
 Route::post('/payments/shamcash/webhook', [PaymentController::class, 'webhook']);
@@ -78,5 +82,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('ads', [AdminAdController::class, 'index']);
         Route::post('ads/{ad}/approve', [AdminAdController::class, 'approve']);
         Route::post('ads/{ad}/reject', [AdminAdController::class, 'reject']);
+
+        Route::get('banners', [AdminBannerController::class, 'index']);
+        Route::post('banners', [AdminBannerController::class, 'store']);
+        Route::match(['put', 'patch'], 'banners/{banner}', [AdminBannerController::class, 'update']);
+        Route::delete('banners/{banner}', [AdminBannerController::class, 'destroy']);
     });
 });

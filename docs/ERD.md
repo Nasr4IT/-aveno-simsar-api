@@ -34,6 +34,8 @@ erDiagram
     CONVERSATIONS ||--o{ MESSAGES : contains
 
     AD_PACKAGES ||--o{ PAYMENTS : "purchased as"
+
+    USERS ||--o{ BANNERS : "created by (admin)"
 ```
 
 ## Table notes
@@ -61,6 +63,8 @@ erDiagram
 **ratings** — `(rater, rated, ad)` unique triple, so a buyer/seller pair can rate each other once per transaction; `ad_id` is nullable for a general rating not tied to one deal.
 
 **payments** — one row per Sham Cash checkout attempt. `provider_reference` is Sham Cash's own transaction id, used to match the incoming webhook back to this row. `raw_response` keeps the full gateway payload for support/debugging.
+
+**banners** — sponsored home-screen carousel entries, deliberately independent of `ads`: no owner, no approval workflow, no `Payment` row — a business pays the admin directly outside the app and the admin creates one for the agreed `starts_at`–`ends_at` window. `is_active` is a separate manual pause switch from the date window. `created_by` is nullable (`SET NULL` on the creating admin's deletion) purely for an audit trail, not an authorization check.
 
 **Spatie `roles` / `model_has_roles` / …** — only the `admin` role is used right now (gates every `admin/*` route). Swap to fine-grained permissions later if the admin team grows past one role.
 

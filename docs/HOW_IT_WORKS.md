@@ -43,7 +43,7 @@ Once banned, a user is locked out **immediately**, not just on their next login 
 
 ## 3. Home Page
 
-**Screen:** category grid + a scrollable feed of ads.
+**Screen:** category grid + a sponsored-banner carousel (§15) + a scrollable feed of ads.
 **Calls:**
 - `GET /categories` — top-level categories (سيارات / عقارات / دراجات نارية) with their subcategories, for the grid.
 - `GET /ads` — the public feed. Only ever returns `status = approved` ads; featured ads (paid boost, see §10) sort first, then newest first.
@@ -174,6 +174,20 @@ There's no admin UI in this repo — moderation happens via direct API calls (Po
 - **Moderate the ad queue** — `GET /admin/ads?status=pending` to see what's waiting, then `POST /admin/ads/{id}/approve` or `POST /admin/ads/{id}/reject` (reject requires a `reason`, which becomes the `ad_rejected` notification the owner sees). This is the only way an ad ever becomes publicly visible.
 - **Manage users** — `GET /admin/users?q=` to search, `POST /admin/users/{id}/ban` / `/unban`. Banning instantly revokes the user's tokens (§2) and is blocked entirely against another admin account — there's no way to ban (or accidentally self-ban) an admin through this endpoint.
 - **Manage categories** — full CRUD on categories plus `POST /admin/categories/{id}/attributes` to add a new dynamic spec field to a category. This is exactly the mechanism from §6 — adding "trunk capacity" to the cars category is an API call, not a deploy.
+
+---
+
+## 15. Sponsored Banners (Home Screen)
+
+**Screen:** a banner carousel on the home screen (§3) — separate from the ads feed. This is for businesses who pay the admin **directly, outside the app** (e.g. a restaurant hands the admin money or pays via Sham Cash as a side deal, not through `/ads/{id}/checkout`) to get their image displayed for an agreed window.
+
+**Calls:**
+- `GET /banners` — public, unauthenticated. Returns only banners currently inside their admin-set `starts_at`/`ends_at` window **and** not paused — this is exactly what the home-screen carousel should render, in `sort_order`.
+- Everything else is admin-only (`/admin/banners`): `GET` to list every banner regardless of status (the admin's own management view), `POST` to create one (multipart — `image`, optional `title`, optional `link_url`, `starts_at`, `ends_at`, optional `sort_order`), `PUT/PATCH /admin/banners/{id}` to edit fields or flip `is_active` (pausing a banner early without touching its dates), `DELETE` to remove one (also deletes its image file).
+
+**How tapping a banner behaves:** `link_url` can be a normal `https://...` link or a `tel:+963...` number — the Flutter app opens whichever it is with `url_launcher`, same call either way. It can also be left blank for a purely visual banner. Any other scheme (e.g. `javascript:`) is rejected server-side — not a real use case and a good thing to block regardless.
+
+**What this is *not*:** there's no in-app payment flow for banners, unlike the ad-boost packages in §13 — the admin is trusted to have actually been paid before creating one. If that ever needs to change (e.g. tracking banner revenue in-app), it'd reuse the same `Payment` model from §13 rather than inventing a second one.
 
 ---
 
