@@ -90,6 +90,8 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 
 ## Current implementation status
 
-Fully implemented: `Auth`, `Categories` (read), `Ads` (read + destroy), `Favorites`, `Chat`, `Ratings`, `Notifications` (read), `Admin ▸ Categories/Users/Ads`.
+Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destroy, incl. image upload + resize and dynamic attributes), ad photo management (`POST`/`DELETE /ads/{id}/images[/{imageId}]`), `Favorites`, `Chat`, `Ratings`, `Notifications` (read), `Admin ▸ Categories/Users/Ads`.
 
-Stubbed (`501 Not Implemented`, business logic to write in sprint order per the roadmap): `Ads@store`/`Ads@update` (image upload + dynamic attribute persistence), `Payments@checkout`/`@webhook` (real Sham Cash HTTP calls in `app/Services/ShamCash/ShamCashClient.php`).
+Stubbed (`501 Not Implemented`): `Payments@checkout`/`@webhook` only — real Sham Cash HTTP calls still need to be written in `app/Services/ShamCash/ShamCashClient.php`.
+
+See [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) for how all of the above fit together screen-by-screen.
