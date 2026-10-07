@@ -33,6 +33,38 @@ class User extends Authenticatable
         ];
     }
 
+    // The one place the ban rules live (the API and the /admin-panel both
+    // call this). Admins can never be banned — returns false instead. A
+    // ban also revokes every API token, so an already-logged-in user loses
+    // access immediately rather than keeping it on their existing token,
+    // and drops their push device tokens so they stop receiving pushes.
+    // is_banned is deliberately not in $fillable, hence forceFill().
+    public function ban(): bool
+    {
+        if ($this->hasRole('admin')) {
+            return false;
+        }
+
+        $this->forceFill(['is_banned' => true])->save();
+        $this->tokens()->delete();
+        $this->deviceTokens()->delete();
+
+        return true;
+    }
+
+    public function unban(): void
+    {
+        $this->forceFill(['is_banned' => false])->save();
+    }
+
+    // Who may use the admin API and the /admin-panel — checked on every
+    // request (EnsureUserIsAdmin), not only at login, so revoking the role
+    // or banning the account takes effect on an already-open session too.
+    public function isActiveAdmin(): bool
+    {
+        return ! $this->is_banned && $this->hasRole('admin');
+    }
+
     public function governorate(): BelongsTo
     {
         return $this->belongsTo(Governorate::class);

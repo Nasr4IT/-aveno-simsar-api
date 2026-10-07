@@ -110,12 +110,12 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 | Method | Path | Notes |
 |---|---|---|
 | GET/POST/PUT/DELETE | `/admin/categories[/{id}]` | category CRUD |
-| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field to a category |
+| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field: `{key, label_ar, label_en?, type, options?, is_required?, is_filterable?}`. `key`: snake_case (`^[a-z][a-z0-9_]*$`), unique within the category, not a reserved feed param (`category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng`). `options`: required non-empty array for `select`/`multiselect`, ignored otherwise. `is_filterable` defaults to `true` |
 | GET | `/admin/users?q=` | search/list users |
-| POST | `/admin/users/{id}/ban` \| `/unban` | – |
+| POST | `/admin/users/{id}/ban` \| `/unban` | ban revokes all tokens and device tokens; `422` for an admin account |
 | GET | `/admin/ads?status=pending` | review queue |
-| POST | `/admin/ads/{id}/approve` | – |
-| POST | `/admin/ads/{id}/reject` | body: `{reason}` |
+| POST | `/admin/ads/{id}/approve` | `pending` ads only, else `422` |
+| POST | `/admin/ads/{id}/reject` | body: `{reason}`. `pending` or `approved` (takes a live ad down), else `422` |
 | GET | `/admin/reports?status=pending` | review queue (reason, reporter, and the reported ad/user) |
 | POST | `/admin/reports/{id}/resolve` \| `/dismiss` | triage marker only — doesn't itself ban/unlist anything |
 

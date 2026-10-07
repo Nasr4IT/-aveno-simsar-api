@@ -2,8 +2,8 @@
 @section('title', 'مراجعة الإعلانات')
 @section('content')
     <div class="tabs">
-        @foreach (['pending' => 'بانتظار المراجعة', 'approved' => 'منشورة', 'rejected' => 'مرفوضة', 'sold' => 'مباعة', '' => 'الكل'] as $value => $label)
-            <a href="{{ route('admin.ads.index', $value ? ['status' => $value] : []) }}" class="{{ $status === $value ? 'active' : '' }}">{{ $label }}</a>
+        @foreach (['pending' => 'بانتظار المراجعة', 'approved' => 'منشورة', 'rejected' => 'مرفوضة', 'sold' => 'مباعة', 'expired' => 'منتهية', 'all' => 'الكل'] as $value => $label)
+            <a href="{{ route('admin.ads.index', ['status' => $value]) }}" class="{{ $status === $value ? 'active' : '' }}">{{ $label }}</a>
         @endforeach
     </div>
 
@@ -27,13 +27,16 @@
                         <td><span class="badge badge-{{ $ad->status }}">{{ $ad->status }}</span></td>
                         <td>{{ $ad->created_at->format('Y-m-d') }}</td>
                         <td>
-                            @if ($ad->status === 'pending')
-                                <form class="inline" method="POST" action="{{ route('admin.ads.approve', $ad) }}">
-                                    @csrf
-                                    <button class="btn btn-primary" type="submit">موافقة</button>
-                                </form>
+                            {{-- Approve only from the queue; reject also takes a live ad down (e.g. after a report). --}}
+                            @if (in_array($ad->status, ['pending', 'approved'], true))
+                                @if ($ad->status === 'pending')
+                                    <form class="inline" method="POST" action="{{ route('admin.ads.approve', $ad) }}">
+                                        @csrf
+                                        <button class="btn btn-primary" type="submit">موافقة</button>
+                                    </form>
+                                @endif
                                 <details class="reject-box">
-                                    <summary>رفض</summary>
+                                    <summary>{{ $ad->status === 'pending' ? 'رفض' : 'رفض وإلغاء النشر' }}</summary>
                                     <div class="card">
                                         <form method="POST" action="{{ route('admin.ads.reject', $ad) }}">
                                             @csrf
@@ -55,5 +58,5 @@
         </table>
     </div>
 
-    <div class="pagination">{{ $ads->links() }}</div>
+    {{ $ads->links('admin.partials.pagination') }}
 @endsection

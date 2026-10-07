@@ -15,7 +15,9 @@ return [
     'cookie' => env('SESSION_COOKIE', Str::slug(env('APP_NAME', 'laravel'), '_').'_session'),
     'path' => env('SESSION_PATH', '/'),
     'domain' => env('SESSION_DOMAIN'),
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Defaults to Secure whenever the app is served over https (APP_URL),
+    // so the /admin-panel's session cookie is never sent over plain http.
+    'secure' => env('SESSION_SECURE_COOKIE', str_starts_with((string) env('APP_URL'), 'https://')),
     'http_only' => env('SESSION_HTTP_ONLY', true),
     'same_site' => env('SESSION_SAME_SITE', 'lax'),
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),

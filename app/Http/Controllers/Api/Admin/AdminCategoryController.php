@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoryAttributeRequest;
+use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 // See docs/API_CONTRACT.md § Admin ▸ Categories. All routes require the "admin" middleware.
 class AdminCategoryController extends Controller
@@ -17,16 +18,9 @@ class AdminCategoryController extends Controller
         return CategoryResource::collection(Category::with('children', 'attributes_')->orderBy('sort_order')->get());
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $data = $request->validate([
-            'parent_id' => ['nullable', 'exists:categories,id'],
-            'name_ar' => ['required', 'string', 'max:100'],
-            'name_en' => ['nullable', 'string', 'max:100'],
-            'sort_order' => ['nullable', 'integer'],
-        ]);
-
-        $category = Category::create([...$data, 'slug' => Str::slug($data['name_en'] ?? $data['name_ar']).'-'.Str::random(4)]);
+        $category = Category::create($request->validated());
 
         return new CategoryResource($category);
     }
@@ -60,19 +54,9 @@ class AdminCategoryController extends Controller
     }
 
     // POST /api/admin/categories/{category}/attributes — add a dynamic spec field.
-    public function storeAttribute(Request $request, Category $category)
+    public function storeAttribute(StoreCategoryAttributeRequest $request, Category $category)
     {
-        $data = $request->validate([
-            'key' => ['required', 'string', 'max:60'],
-            'label_ar' => ['required', 'string', 'max:100'],
-            'label_en' => ['nullable', 'string', 'max:100'],
-            'type' => ['required', 'in:text,number,boolean,select,multiselect'],
-            'options' => ['nullable', 'array'],
-            'is_required' => ['boolean'],
-            'is_filterable' => ['boolean'],
-        ]);
-
-        $attribute = $category->attributes_()->create($data);
+        $attribute = $category->attributes_()->create($request->validated());
 
         return response()->json($attribute, 201);
     }

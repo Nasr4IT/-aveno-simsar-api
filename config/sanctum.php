@@ -14,7 +14,9 @@ return [
             : ''
     ))),
 
-    'guard' => ['web'],
+    // Empty: never fall back to the 'web' session — the /admin-panel's login
+    // cookie must not double as an API credential. Bearer tokens only.
+    'guard' => [],
 
     // The Flutter app authenticates with a bearer token (no cookies), so tokens
     // effectively never expire unless you set this — revoke via logout instead.

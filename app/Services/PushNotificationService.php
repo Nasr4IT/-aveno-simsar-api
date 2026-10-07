@@ -6,6 +6,7 @@ use App\Models\DeviceToken;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 // Push via FCM HTTP v1 — the legacy FCM server-key API this would once
 // have targeted is retired, so this is the only live option, and it needs
@@ -20,7 +21,24 @@ use Illuminate\Support\Facades\Http;
 // can't fully exercise without live credentials anyway.
 class PushNotificationService
 {
+    // These calls run inline in the request that triggered the push, so
+    // don't let a slow FCM hold it for Http's default 30s.
+    private const TIMEOUT_SECONDS = 5;
+
+    // Best effort: a push is a side channel next to the database
+    // notification the caller has already written, so an FCM/OAuth outage
+    // or timeout is reported (Sentry) but never fails the caller's request
+    // — e.g. an admin's approve, which has already been saved by then.
     public function sendToUser(User $user, string $title, string $body, array $data = []): void
+    {
+        try {
+            $this->send($user, $title, $body, $data);
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function send(User $user, string $title, string $body, array $data): void
     {
         $credentials = $this->credentials();
         if (! $credentials) {
@@ -38,7 +56,7 @@ class PushNotificationService
         }
 
         foreach ($tokens as $token) {
-            $response = Http::withToken($accessToken)->post(
+            $response = Http::withToken($accessToken)->timeout(self::TIMEOUT_SECONDS)->post(
                 "https://fcm.googleapis.com/v1/projects/{$credentials['project_id']}/messages:send",
                 ['message' => [
                     'token' => $token,
@@ -83,7 +101,7 @@ class PushNotificationService
         openssl_sign($signingInput, $signature, $credentials['private_key'], OPENSSL_ALGO_SHA256);
         $jwt = $signingInput.'.'.$this->base64url($signature);
 
-        $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+        $response = Http::asForm()->timeout(self::TIMEOUT_SECONDS)->post('https://oauth2.googleapis.com/token', [
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion' => $jwt,
         ]);

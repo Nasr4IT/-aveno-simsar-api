@@ -70,4 +70,20 @@ class AdminCategoryTest extends TestCase
         $response->assertStatus(409);
         $this->assertDatabaseHas('categories', ['id' => $category->id]);
     }
+
+    // Same request class as the /admin-panel form (AdminPanelEdgeCasesTest).
+    public function test_attribute_validation_rejects_duplicate_keys_and_choice_types_without_options(): void
+    {
+        Sanctum::actingAs($this->adminUser());
+        $category = Category::factory()->create();
+        $category->attributes_()->create(['key' => 'color', 'label_ar' => 'اللون', 'type' => 'text']);
+
+        $this->postJson("/api/admin/categories/{$category->id}/attributes", [
+            'key' => 'color', 'label_ar' => 'اللون', 'type' => 'text',
+        ])->assertStatus(422)->assertJsonValidationErrors('key');
+
+        $this->postJson("/api/admin/categories/{$category->id}/attributes", [
+            'key' => 'material', 'label_ar' => 'الخامة', 'type' => 'select', 'options' => [],
+        ])->assertStatus(422)->assertJsonValidationErrors('options');
+    }
 }

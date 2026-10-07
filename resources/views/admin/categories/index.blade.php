@@ -9,6 +9,8 @@
             <input type="text" name="name_ar" required>
             <label>الاسم بالإنجليزية (اختياري)</label>
             <input type="text" name="name_en">
+            <label>ترتيب العرض (اختياري، الأصغر يظهر أولاً)</label>
+            <input type="number" name="sort_order" min="0" value="0">
             <label>فئة رئيسية (اختياري)</label>
             <select name="parent_id">
                 <option value="">— بدون —</option>
@@ -60,8 +62,8 @@
                 <summary style="cursor:pointer; color:var(--primary); font-size:13px;">+ إضافة خاصية ديناميكية</summary>
                 <form method="POST" action="{{ route('admin.categories.attributes.store', $category) }}" style="margin-top:10px">
                     @csrf
-                    <label>المفتاح (بالإنجليزية، بدون مسافات)</label>
-                    <input type="text" name="key" required>
+                    <label>المفتاح (أحرف إنجليزية صغيرة وأرقام و _ فقط، مثل fuel_type)</label>
+                    <input type="text" name="key" required pattern="[a-z][a-z0-9_]*" maxlength="60" dir="ltr">
                     <label>التسمية بالعربية</label>
                     <input type="text" name="label_ar" required>
                     <label>النوع</label>
@@ -72,10 +74,13 @@
                         <option value="select">اختيار واحد</option>
                         <option value="multiselect">اختيار متعدد</option>
                     </select>
-                    <label>الخيارات (مفصولة بفاصلة — لنوع الاختيار فقط)</label>
+                    <label>الخيارات (مفصولة بفاصلة — مطلوبة لنوع الاختيار، ويُتجاهل لغيره)</label>
                     <input type="text" name="options" placeholder="بنزين، ديزل، كهربائي">
+                    {{-- The hidden 0 makes an unticked box send false explicitly, like the API's JSON boolean. --}}
+                    <input type="hidden" name="is_required" value="0">
                     <label><input type="checkbox" name="is_required" value="1" style="width:auto"> مطلوب</label>
-                    <label><input type="checkbox" name="is_filterable" value="1" style="width:auto"> قابل للفلترة في البحث</label>
+                    <input type="hidden" name="is_filterable" value="0">
+                    <label><input type="checkbox" name="is_filterable" value="1" style="width:auto" checked> قابل للفلترة في البحث</label>
                     <button class="btn btn-primary" type="submit" style="margin-top:10px">إضافة الخاصية</button>
                 </form>
             </details>

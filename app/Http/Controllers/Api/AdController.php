@@ -94,9 +94,7 @@ class AdController extends Controller
     // categories; without a category_id all filterable keys are eligible.
     private function applyAttributeFilters($query, Request $request, ?int $categoryId): void
     {
-        $reserved = ['category_id', 'governorate_id', 'city_id', 'min_price', 'max_price', 'q', 'page', 'sort', 'lat', 'lng'];
-
-        $params = collect($request->query())->except($reserved)->filter(fn ($v) => $v !== null && $v !== '');
+        $params = collect($request->query())->except(CategoryAttribute::RESERVED_FILTER_KEYS)->filter(fn ($v) => $v !== null && $v !== '');
         if ($params->isEmpty()) {
             return;
         }

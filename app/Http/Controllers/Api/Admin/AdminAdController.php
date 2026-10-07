@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdResource;
 use App\Models\Ad;
-use App\Notifications\AdApproved;
-use App\Notifications\AdRejected;
-use App\Services\PushNotificationService;
+use App\Services\AdModerationService;
 use Illuminate\Http\Request;
 
 // See docs/API_CONTRACT.md § Admin ▸ Ads ("نظام مراجعة المنشورات — قبول/رفض").
@@ -24,34 +22,20 @@ class AdminAdController extends Controller
         );
     }
 
-    public function approve(Request $request, Ad $ad, PushNotificationService $push)
+    // Only a pending ad — see AdModerationService for why.
+    public function approve(Request $request, Ad $ad, AdModerationService $moderation)
     {
-        $ad->update([
-            'status' => 'approved',
-            'published_at' => now(),
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-        ]);
-
-        $ad->user->notify(new AdApproved($ad));
-        $push->sendToUser($ad->user, 'تمت الموافقة على إعلانك', $ad->title, ['type' => 'ad_approved', 'ad_id' => $ad->id]);
+        abort_unless($moderation->approve($ad, $request->user()), 422, 'يمكن الموافقة فقط على إعلان بانتظار المراجعة');
 
         return new AdResource($ad);
     }
 
-    public function reject(Request $request, Ad $ad, PushNotificationService $push)
+    // A pending ad, or an approved one to take it down.
+    public function reject(Request $request, Ad $ad, AdModerationService $moderation)
     {
         $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        $ad->update([
-            'status' => 'rejected',
-            'rejection_reason' => $data['reason'],
-            'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
-        ]);
-
-        $ad->user->notify(new AdRejected($ad));
-        $push->sendToUser($ad->user, 'تم رفض إعلانك', $ad->title, ['type' => 'ad_rejected', 'ad_id' => $ad->id]);
+        abort_unless($moderation->reject($ad, $request->user(), $data['reason']), 422, 'يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط');
 
         return new AdResource($ad);
     }

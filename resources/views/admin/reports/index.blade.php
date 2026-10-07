@@ -2,8 +2,8 @@
 @section('title', 'البلاغات')
 @section('content')
     <div class="tabs">
-        @foreach (['pending' => 'بانتظار المعالجة', 'resolved' => 'تمت معالجتها', 'dismissed' => 'تم تجاهلها', '' => 'الكل'] as $value => $label)
-            <a href="{{ route('admin.reports.index', $value ? ['status' => $value] : []) }}" class="{{ $status === $value ? 'active' : '' }}">{{ $label }}</a>
+        @foreach (['pending' => 'بانتظار المعالجة', 'resolved' => 'تمت معالجتها', 'dismissed' => 'تم تجاهلها', 'all' => 'الكل'] as $value => $label)
+            <a href="{{ route('admin.reports.index', ['status' => $value]) }}" class="{{ $status === $value ? 'active' : '' }}">{{ $label }}</a>
         @endforeach
     </div>
 
@@ -48,5 +48,5 @@
         </table>
     </div>
 
-    <div class="pagination">{{ $reports->links() }}</div>
+    {{ $reports->links('admin.partials.pagination') }}
 @endsection

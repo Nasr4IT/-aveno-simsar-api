@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\AdminPanel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreBannerRequest;
 use App\Models\Banner;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
@@ -10,23 +11,14 @@ use Illuminate\Support\Facades\Storage;
 
 class BannerManagementController extends Controller
 {
-    private const LINK_URL_RULE = 'regex:/^(https?:\/\/|tel:).+/';
-
     public function index()
     {
         return view('admin.banners.index', ['banners' => Banner::latest()->paginate(30)]);
     }
 
-    public function store(Request $request, ImageService $imageService)
+    public function store(StoreBannerRequest $request, ImageService $imageService)
     {
-        $data = $request->validate([
-            'image' => ['required', 'image', 'max:5120'],
-            'title' => ['nullable', 'string', 'max:150'],
-            'link_url' => ['nullable', 'string', 'max:500', self::LINK_URL_RULE],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after_or_equal:starts_at'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $data = $request->validated();
 
         Banner::create([
             ...$data,
@@ -38,13 +30,14 @@ class BannerManagementController extends Controller
         return back()->with('status', 'تمت إضافة البانر.');
     }
 
-    // The on/off switch separate from the ad-boost's date window — same
-    // single field Api\Admin\AdminBannerController@update exposes as
-    // is_active, just toggled from its current value instead of taking an
-    // explicit payload (simpler for a plain form button).
-    public function toggle(Banner $banner)
+    // The on/off switch separate from the banner's date window — the same
+    // is_active field Api\Admin\AdminBannerController@update takes. The
+    // form sends the state its button was labelled with rather than this
+    // flipping whatever is stored now, so a double-click (or two admins
+    // both clicking "pause") still leaves the banner paused.
+    public function setActive(Request $request, Banner $banner)
     {
-        $banner->update(['is_active' => ! $banner->is_active]);
+        $banner->update($request->validate(['is_active' => ['required', 'boolean']]));
 
         return back()->with('status', $banner->is_active ? 'تم تفعيل البانر.' : 'تم إيقاف البانر.');
     }

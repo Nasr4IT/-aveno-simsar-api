@@ -97,7 +97,9 @@ class AdminPanelTest extends TestCase
         $admin = $this->adminUser();
         $otherAdmin = $this->adminUser();
 
-        $this->actingAs($admin)->post(route('admin.users.ban', $otherAdmin))->assertStatus(422);
+        $this->actingAs($admin)->post(route('admin.users.ban', $otherAdmin))
+            ->assertRedirect()
+            ->assertSessionHasErrors('user');
         $this->assertFalse($otherAdmin->fresh()->is_banned);
     }
 
@@ -134,7 +136,7 @@ class AdminPanelTest extends TestCase
         $banner = Banner::sole();
         $this->assertTrue($banner->is_active);
 
-        $this->actingAs($admin)->post(route('admin.banners.toggle', $banner))->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.banners.active', $banner), ['is_active' => 0])->assertRedirect();
         $this->assertFalse($banner->fresh()->is_active);
 
         $this->actingAs($admin)->post(route('admin.banners.destroy', $banner))->assertRedirect();
@@ -162,7 +164,10 @@ class AdminPanelTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('admin.dashboard'))->assertForbidden();
+        $this->actingAs($user)->get(route('admin.dashboard'))
+            ->assertRedirect(route('admin.login'))
+            ->assertSessionHasErrors('phone');
+        $this->assertGuest();
     }
 
     // The tests above only ever POST to the mutating actions (which just
@@ -185,11 +190,11 @@ class AdminPanelTest extends TestCase
         $this->actingAs($admin);
         $this->get(route('admin.dashboard'))->assertOk();
         $this->get(route('admin.ads.index'))->assertOk()->assertSee($ad->title);
-        $this->get(route('admin.ads.index', ['status' => '']))->assertOk();
+        $this->get(route('admin.ads.index', ['status' => 'all']))->assertOk();
         $this->get(route('admin.users.index'))->assertOk()->assertSee($admin->name);
         $this->get(route('admin.categories.index'))->assertOk()->assertSee('اللون');
         $this->get(route('admin.banners.index'))->assertOk();
         $this->get(route('admin.reports.index'))->assertOk()->assertSee('spam');
-        $this->get(route('admin.reports.index', ['status' => '']))->assertOk();
+        $this->get(route('admin.reports.index', ['status' => 'all']))->assertOk();
     }
 }

@@ -10,9 +10,10 @@ class ReportManagementController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->get('status', 'pending');
+        // "all" is explicit for the same reason as AdModerationController@index.
+        $status = $request->query('status') ?: 'pending';
 
-        $reports = Report::when($status, fn ($q, $v) => $q->where('status', $v))
+        $reports = Report::when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->with(['reporter', 'reportable'])
             ->latest()
             ->paginate(30)

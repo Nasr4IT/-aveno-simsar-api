@@ -20,28 +20,17 @@ class AdminUserController extends Controller
         );
     }
 
-    // is_banned is deliberately excluded from User::$fillable (it must only ever
-    // be set by this admin action, never via mass assignment elsewhere), so it's
-    // set with forceFill() here rather than update().
+    // See User::ban() for the rules (shared with the /admin-panel).
     public function ban(User $user)
     {
-        abort_if($user->hasRole('admin'), 422, 'لا يمكن حظر مستخدم يمتلك صلاحيات إدارية');
-
-        $user->forceFill(['is_banned' => true])->save();
-
-        // Blocking future logins isn't enough on its own — without this, a
-        // banned user who's already logged in keeps full access on their
-        // existing token indefinitely. Revoking every token here forces
-        // them to re-authenticate immediately, which the login check then
-        // correctly rejects.
-        $user->tokens()->delete();
+        abort_unless($user->ban(), 422, 'لا يمكن حظر مستخدم يمتلك صلاحيات إدارية');
 
         return new UserResource($user);
     }
 
     public function unban(User $user)
     {
-        $user->forceFill(['is_banned' => false])->save();
+        $user->unban();
 
         return new UserResource($user);
     }
