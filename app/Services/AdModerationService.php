@@ -16,6 +16,8 @@ use App\Notifications\AdRejected;
 // owner). A refused decision changes nothing and returns false.
 class AdModerationService
 {
+    public const REJECTABLE = ['pending', 'approved', 'sold'];
+
     public function __construct(private readonly PushNotificationService $push) {}
 
     // Only from pending: a sold/expired ad comes back through relist, and a
@@ -38,11 +40,12 @@ class AdModerationService
         return $applied;
     }
 
-    // From pending (the review queue) or approved (taking a live ad down,
-    // e.g. after a report — docs/HOW_IT_WORKS.md § Reporting).
+    // From pending (the review queue), or approved/sold to take a publicly
+    // visible ad down — a sold ad is still shown on GET /ads/{id} and can
+    // be reported (docs/HOW_IT_WORKS.md § Reporting).
     public function reject(Ad $ad, User $reviewer, string $reason): bool
     {
-        $applied = $this->transition($ad, ['pending', 'approved'], [
+        $applied = $this->transition($ad, self::REJECTABLE, [
             'status' => 'rejected',
             'rejection_reason' => $reason,
             'reviewed_by' => $reviewer->id,

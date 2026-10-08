@@ -117,7 +117,7 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 | POST | `/admin/users/{id}/ban` \| `/unban` | ban revokes all tokens and device tokens; `422` for an admin account |
 | GET | `/admin/ads?status=pending` | review queue |
 | POST | `/admin/ads/{id}/approve` | `pending` ads only, else `422` |
-| POST | `/admin/ads/{id}/reject` | body: `{reason}`. `pending` or `approved` (takes a live ad down), else `422` |
+| POST | `/admin/ads/{id}/reject` | body: `{reason}`. `pending`, or `approved`/`sold` (takes a public ad down), else `422` |
 | GET | `/admin/reports?status=pending` | review queue (reason, reporter, and the reported ad/user) |
 | POST | `/admin/reports/{id}/resolve` \| `/dismiss` | triage marker only — doesn't itself ban/unlist anything |
 

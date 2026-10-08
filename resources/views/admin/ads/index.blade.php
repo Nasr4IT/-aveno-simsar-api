@@ -27,8 +27,8 @@
                         <td><span class="badge badge-{{ $ad->status }}">{{ $ad->status }}</span></td>
                         <td>{{ $ad->created_at->format('Y-m-d') }}</td>
                         <td>
-                            {{-- Approve only from the queue; reject also takes a live ad down (e.g. after a report). --}}
-                            @if (in_array($ad->status, ['pending', 'approved'], true))
+                            {{-- Approve only from the queue; reject also takes a publicly visible ad down (e.g. after a report). --}}
+                            @if (in_array($ad->status, \App\Services\AdModerationService::REJECTABLE, true))
                                 @if ($ad->status === 'pending')
                                     <form class="inline" method="POST" action="{{ route('admin.ads.approve', $ad) }}">
                                         @csrf

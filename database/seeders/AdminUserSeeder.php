@@ -21,7 +21,15 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $configured = config('admin.password');
-        $admin = User::where('phone', self::PHONE)->first();
+        $admin = User::withTrashed()->where('phone', self::PHONE)->first();
+
+        // Someone deleted the seeded admin on purpose — respect that, and
+        // don't crash every boot trying to re-create the phone number.
+        if ($admin?->trashed()) {
+            $this->command?->warn('The seeded admin account ('.self::PHONE.') was deleted — leaving it deleted.');
+
+            return;
+        }
 
         if ($configured) {
             if (! $admin) {

@@ -97,6 +97,18 @@ class AdminPanelEdgeCasesTest extends TestCase
         $this->post(route('admin.ads.reject', $ad), ['reason' => 'احتيال'])->assertSessionHasErrors('ad');
     }
 
+    public function test_a_reported_sold_ad_can_be_taken_down_from_the_sold_tab(): void
+    {
+        $admin = $this->adminUser();
+        $ad = Ad::factory()->create(['status' => 'sold']);
+
+        $this->actingAs($admin)->get(route('admin.ads.index', ['status' => 'sold']))
+            ->assertSee(route('admin.ads.reject', $ad));
+
+        $this->post(route('admin.ads.reject', $ad), ['reason' => 'احتيال'])->assertSessionHasNoErrors();
+        $this->assertSame('rejected', $ad->fresh()->status);
+    }
+
     public function test_approving_still_succeeds_when_push_delivery_fails(): void
     {
         Notification::fake();

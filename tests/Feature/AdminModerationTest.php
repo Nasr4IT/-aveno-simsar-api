@@ -84,6 +84,16 @@ class AdminModerationTest extends TestCase
         $this->assertSame('sold', $ad->fresh()->status);
     }
 
+    public function test_a_sold_ad_can_be_taken_down(): void
+    {
+        $ad = Ad::factory()->create(['status' => 'sold']);
+
+        Sanctum::actingAs($this->adminUser());
+        $this->postJson("/api/admin/ads/{$ad->id}/reject", ['reason' => 'احتيال'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'rejected');
+    }
+
     public function test_an_approved_ad_can_be_rejected_to_take_it_down_but_not_rejected_twice(): void
     {
         $ad = Ad::factory()->create(['status' => 'approved']);

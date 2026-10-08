@@ -608,12 +608,12 @@ The `403` also applies to an admin account that has been banned. A browser sessi
 **Errors:** `422` `{"message": "يمكن الموافقة فقط على إعلان بانتظار المراجعة"}` if the ad isn't `pending`.
 
 #### `POST /admin/ads/{id}/reject`
-**Does:** `pending` or `approved` → `rejected`: stores the reason, stamps `reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_rejected"`, plus a push). Rejecting an `approved` ad is how a live ad gets taken down, e.g. after a report. Atomic like approve.
+**Does:** `pending`, `approved` or `sold` → `rejected`: stores the reason, stamps `reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_rejected"`, plus a push). Rejecting an `approved` or `sold` ad (both are publicly viewable) is how it gets taken down, e.g. after a report. Atomic like approve.
 **Input:** `{"reason": "..."}` (required, max 500).
 **Output — `200`:** the updated `AdResource` (`status: "rejected"`).
 **Errors:**
 - `422` validation error if `reason` is missing.
-- `422` `{"message": "يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط"}` if the ad is already `rejected`, or is `sold`/`expired`.
+- `422` `{"message": "يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة أو المباعة فقط"}` if the ad is already `rejected`, or is `expired`.
 
 ### Admin ▸ Reports
 

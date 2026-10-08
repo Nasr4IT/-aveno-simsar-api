@@ -30,12 +30,12 @@ class AdminAdController extends Controller
         return new AdResource($ad);
     }
 
-    // A pending ad, or an approved one to take it down.
+    // A pending ad, or an approved/sold one to take it down.
     public function reject(Request $request, Ad $ad, AdModerationService $moderation)
     {
         $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        abort_unless($moderation->reject($ad, $request->user(), $data['reason']), 422, 'يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط');
+        abort_unless($moderation->reject($ad, $request->user(), $data['reason']), 422, 'يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة أو المباعة فقط');
 
         return new AdResource($ad);
     }

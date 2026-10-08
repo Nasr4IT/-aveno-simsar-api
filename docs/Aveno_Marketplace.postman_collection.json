@@ -591,7 +591,7 @@
             {
               "name": "Reject ad",
               "request": {
-                "description": "Pending ads, or approved ones (takes a live ad down). 422 {\"message\": \"يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط\"} for a rejected/sold/expired ad; 422 validation error without a reason.",
+                "description": "Pending ads, or approved/sold ones (takes a public ad down). 422 {\"message\": \"يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة أو المباعة فقط\"} for a rejected/expired ad; 422 validation error without a reason.",
                 "method": "POST",
                 "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
                 "body": { "mode": "raw", "raw": "{\n  \"reason\": \"الصور مطموسة ولا يمكن التمليز.\"\n}" },

@@ -68,6 +68,17 @@ class AdminUserSeederTest extends TestCase
         $this->assertFalse(Hash::check('change-me-now', User::where('phone', AdminUserSeeder::PHONE)->value('password')));
     }
 
+    public function test_a_deleted_seeded_admin_stays_deleted_instead_of_breaking_the_seeder(): void
+    {
+        User::factory()->create(['phone' => AdminUserSeeder::PHONE])->delete();
+
+        config(['admin.password' => 'long-secret']);
+        $this->seed(AdminUserSeeder::class);
+
+        $this->assertSame(0, User::where('phone', AdminUserSeeder::PHONE)->count());
+        $this->assertSame(1, User::withTrashed()->where('phone', AdminUserSeeder::PHONE)->count());
+    }
+
     public function test_an_admin_password_set_some_other_way_is_left_alone_when_none_is_configured(): void
     {
         User::factory()->create(['phone' => AdminUserSeeder::PHONE, 'password' => 'chosen-by-hand']);
