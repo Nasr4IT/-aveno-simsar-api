@@ -22,7 +22,9 @@ Every endpoint below has been exercised against a running instance of this API (
 - **Validation errors** → `422` with `{"message": "...", "errors": {"field": ["reason"]}}`.
 - **Unauthenticated** → `401` with `{"message": "Unauthenticated."}`.
 - **Forbidden** (wrong role / not the resource owner) → `403` with `{"message": "..."}`.
-- **Not found** → `404` with `{"message": "..."}` (also used deliberately for ads that exist but aren't `approved` yet, to a non-owner — see Ads below).
+- **Not found** → `404` with `{"message": "..."}` (also used deliberately for ads that exist but aren't publicly visible yet — see Ads below; that case returns an empty `message`).
+- **Not allowed in the current state** (e.g. marking a pending ad sold, approving an ad that isn't pending) → `422` with only `{"message": "..."}` — no `errors` key, unlike a validation failure.
+- **Conflict** → `409` with `{"message": "..."}` (deleting a category that still has ads).
 - A `UserResource` (used inside many responses below) always has this shape:
   ```json
   {
@@ -171,7 +173,17 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 ```json
 "attributes": [ { "key": "condition", "label_ar": "الحالة", "value": "مستعملة" }, { "key": "year", "label_ar": "سنة الصنع", "value": "2020" } ]
 ```
-**Errors:** `404` — either the ad genuinely doesn't exist, **or** it exists but isn't `approved` and the caller isn't looking at their own ad (deliberate: a pending/rejected ad is invisible to everyone except through `GET /my/ads`, even by direct ID).
+Also includes `favorites_count` and `conversations_count`.
+**Errors:** `404` (empty `message`) — either the ad genuinely doesn't exist, **or** its status isn't `approved` or `sold`. This applies to the owner too: a pending/rejected/expired ad is only visible to its owner through `GET /my/ads`.
+
+---
+
+### `GET /ads/{id}/similar`
+**Auth:** none.
+**Does:** A "you might also like" rail for the detail page: other `approved` ads in the same category. When the ad has a price, only ads priced within ±30% of it, closest price first; without a price, newest first. Never includes the ad itself.
+**Input:** `{id}` path param.
+**Output — `200`:** `{"data": [ ...AdResource ]}` — **unpaginated**, at most 10 items, each with `images`, `category`, `city`, `governorate`.
+**Errors:** `404` (empty `message`) under the same rule as `GET /ads/{id}`.
 
 ---
 
@@ -179,7 +191,23 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 **Auth:** required.
 **Does:** The caller's own ads, **any status** (pending/approved/rejected/etc.) — this is how a seller sees "my listing was rejected" or checks review status.
 **Input:** none.
-**Output — `200`:** paginated `AdResource` collection (20/page), same shape as the public feed items.
+**Output — `200`:** paginated `AdResource` collection (20/page), same shape as the public feed items plus `favorites_count` and `conversations_count`.
+
+---
+
+### `GET /my/ads/stats`
+**Auth:** required.
+**Does:** Aggregate numbers across all of the caller's ads, for a "your activity" card.
+**Output — `200`:**
+```json
+{
+  "data": {
+    "total_ads": 2,
+    "by_status": { "pending": 1, "approved": 1, "rejected": 0, "sold": 0, "expired": 0 },
+    "total_views": 0, "total_favorites": 0, "total_conversations": 0
+  }
+}
+```
 
 ---
 
@@ -249,6 +277,40 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 - `403` if the caller isn't the owner.
 - `404` if `{imageId}` doesn't belong to this ad.
 - `422` `{"message": "يجب أن يحتوي الإعلان على صورة واحدة على الأقل — احذف الإعلان بالكامل إذا أردت إزالته."}` if it's the ad's only remaining photo.
+
+---
+
+### `POST /ads/{id}/mark-sold`
+**Auth:** required, **must be the ad's owner**.
+**Does:** `approved` → `sold`. The ad leaves the public feed but `GET /ads/{id}` still shows it (with `status: "sold"`).
+**Input:** none.
+**Output — `200`:** the updated `AdResource` (`status: "sold"`).
+**Errors:**
+- `403` if not the owner.
+- `422` `{"message": "لا يمكن تحديد إعلان غير منشور كمباع"}` if the ad isn't `approved`.
+
+---
+
+### `POST /ads/{id}/relist`
+**Auth:** required, **must be the ad's owner**.
+**Does:** `sold`/`expired` → `pending`: sends the ad back through admin review rather than republishing it instantly (the listing may be stale). Clears any previous review/rejection info.
+**Input:** none.
+**Output — `200`:** the updated `AdResource` (`status: "pending"`).
+**Errors:**
+- `403` if not the owner.
+- `422` `{"message": "يمكن إعادة النشر فقط للإعلانات المباعة أو منتهية الصلاحية"}` for any other status.
+
+---
+
+### `POST /ads/{id}/report`
+**Auth:** required.
+**Does:** Flags the ad for admin review (Admin ▸ Reports). Takes no action by itself. Reporting the same ad again updates your existing report and reopens it (back to `pending`) instead of creating a duplicate.
+**Input:** `reason` (required, one of `spam|inappropriate|scam|other`), `details` (optional, max 1000).
+**Output — `200`:** `{"message": "تم إرسال البلاغ"}`.
+**Errors:**
+- `404` (empty `message`) if the ad isn't `approved` or `sold`.
+- `422` `{"message": "لا يمكنك الإبلاغ عن إعلانك الخاص"}` for your own ad.
+- `422` validation error for a missing/unknown `reason`.
 
 ---
 
@@ -330,6 +392,13 @@ One conversation exists per `(ad, buyer)` pair — starting it twice for the sam
 - `422` `{"message": "لا يمكنك تقييم نفسك"}` if `{id}` is your own user id.
 - `422` if `ad_id` is given but the ad isn't `approved`.
 
+### `POST /users/{id}/report`
+**Auth:** required.
+**Does:** Flags a user for admin review — same rules as `POST /ads/{id}/report` (re-reporting reopens your existing report).
+**Input:** `reason` (required, one of `spam|inappropriate|scam|other`), `details` (optional, max 1000).
+**Output — `200`:** `{"message": "تم إرسال البلاغ"}`.
+**Errors:** `422` `{"message": "لا يمكنك الإبلاغ عن نفسك"}` when `{id}` is you; `422` validation error for a missing/unknown `reason`.
+
 ---
 
 ## Notifications
@@ -367,6 +436,27 @@ Note `id` here is a UUID string, not an integer — pass it as-is to the two end
 **Auth:** required.
 **Does:** Marks every one of the caller's unread notifications as read.
 **Output — `200`:** `{"message": "تم التحديث"}`.
+
+---
+
+## Push notification device tokens
+
+Push is code-complete but inactive until `FIREBASE_CREDENTIALS_JSON` is set (see `App\Services\PushNotificationService`). Push delivery is best effort: if Firebase is down, the action that triggered it (an approval, a message, a rating) still succeeds.
+
+### `POST /device-tokens`
+**Auth:** required.
+**Does:** Registers this device's FCM token for the caller — call on app launch / after login. Keyed by token: if the same device was registered under another account, it moves to the caller.
+**Input:** `token` (required, max 255), `platform` (optional, one of `android|ios|web`).
+**Output — `200`:** `{"message": "تم التسجيل"}`.
+**Errors:** `422` validation error (e.g. unknown `platform`).
+
+### `DELETE /device-tokens`
+**Auth:** required.
+**Does:** Unregisters the token — call on logout, so the device stops receiving this account's pushes. Only affects the caller's own tokens; an unknown token is a silent no-op.
+**Input:** `token` (required).
+**Output — `200`:** `{"message": "تم الحذف"}`.
+
+Banning a user also deletes all of their device tokens (see Admin ▸ Users).
 
 ---
 
@@ -438,6 +528,8 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 
 ## Admin (requires the `admin` role in addition to auth — `403` `{"message": "Admins only."}` otherwise)
 
+The `403` also applies to an admin account that has been banned. A browser session from the `/admin-panel` is never accepted here — these endpoints take bearer tokens only, like the rest of the API.
+
 ### Admin ▸ Categories
 
 #### `GET /admin/categories`
@@ -445,8 +537,12 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 **Output — `200`:** `{"data": [ ...CategoryResource ]}` — **unpaginated**, full set every time.
 
 #### `POST /admin/categories`
-**Input:** `parent_id` (optional), `name_ar` (required), `name_en` (optional), `sort_order` (optional). `slug` is auto-generated from `name_en`/`name_ar` + a random suffix.
-**Output — `201`:** the new `CategoryResource`.
+**Input:** `parent_id` (optional, must exist), `name_ar` (required, max 100), `name_en` (optional, max 100), `sort_order` (optional integer ≥ 0, defaults to `0`). `slug` is auto-generated from `name_en`/`name_ar` + a random suffix.
+**Output — `201`:** the new `CategoryResource`, with the stored defaults filled in:
+```json
+{ "data": { "id": 3, "name_ar": "أثاث", "name_en": "Furniture", "slug": "furniture-Dsgq", "icon_url": null, "is_active": true } }
+```
+**Errors:** `422` validation error, e.g. `{"errors": {"sort_order": ["The sort order field must be at least 0."]}}`.
 
 #### `PUT/PATCH /admin/categories/{id}`
 **Input (all optional):** `name_ar`, `name_en`, `is_active`, `sort_order`.
@@ -458,8 +554,33 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 
 #### `POST /admin/categories/{id}/attributes`
 **Does:** Adds one dynamic spec field to the category.
-**Input:** `key` (required, e.g. `fuel_type`), `label_ar` (required), `label_en` (optional), `type` (required, one of `text|number|boolean|select|multiselect`), `options` (array, required in practice for `select`/`multiselect`), `is_required` (bool), `is_filterable` (bool — whether it's usable as a `GET /ads` query filter).
-**Output — `201`:** the raw `CategoryAttribute` row as JSON (not wrapped in `{"data": ...}` — this one endpoint returns the model directly).
+**Input:**
+| Field | Required | Notes |
+|---|---|---|
+| `key` | yes | max 60. Lowercase snake_case only (`^[a-z][a-z0-9_]*$`, e.g. `fuel_type`) — it becomes a `GET /ads` query param. Must be unique within the category, and can't be one of the feed's own params: `category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng`. |
+| `label_ar` | yes | max 100 |
+| `label_en` | no | max 100 |
+| `type` | yes | one of `text\|number\|boolean\|select\|multiselect` |
+| `options` | for `select`/`multiselect` | array of at least one distinct string (max 100 each). Ignored (stored as `null`) for the other types. |
+| `is_required` | no | bool, defaults to `false` |
+| `is_filterable` | no | bool, defaults to `true` — whether it's usable as a `GET /ads` query filter |
+
+**Output — `201`:** the stored `CategoryAttribute` row as JSON, defaults included (not wrapped in `{"data": ...}` — this one endpoint returns the model directly):
+```json
+{
+  "id": 1, "category_id": 1, "key": "material", "label_ar": "الخامة", "label_en": null,
+  "type": "select", "options": ["خشب", "معدن"], "is_required": false, "is_filterable": true,
+  "sort_order": 0, "created_at": "...", "updated_at": "..."
+}
+```
+**Errors** (all `422`, standard validation shape):
+| Problem | Field | Message |
+|---|---|---|
+| key already used in this category | `key` | `هذا المفتاح مستخدم مسبقًا في هذه الفئة.` |
+| key not lowercase snake_case | `key` | `المفتاح يجب أن يكون بأحرف إنجليزية صغيرة وأرقام و _ فقط، ويبدأ بحرف (مثل fuel_type).` |
+| key is a reserved feed param | `key` | `هذا المفتاح محجوز لفلاتر البحث العامة، اختر اسمًا آخر.` |
+| `select`/`multiselect` with no options | `options` | `أدخل خيارًا واحدًا على الأقل لحقل الاختيار.` |
+| the same option twice | `options.0`, `options.1`, ... | `الخيارات يجب ألا تتكرر.` |
 
 ### Admin ▸ Users
 
@@ -468,9 +589,9 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 **Output — `200`:** paginated `UserResource` collection (30/page).
 
 #### `POST /admin/users/{id}/ban`
-**Does:** Sets `is_banned = true` **and immediately revokes every one of the user's existing Sanctum tokens**, so a banned user is logged out everywhere right away, not just blocked from their *next* login. Admins can't ban other admins (including themselves) — there's no way to un-admin someone through this endpoint.
+**Does:** Sets `is_banned = true`, **immediately revokes every one of the user's existing Sanctum tokens** (so a banned user is logged out everywhere right away, not just blocked from their *next* login), and deletes their push device tokens (so they stop receiving pushes). Admins can't ban other admins (including themselves) — there's no way to un-admin someone through this endpoint.
 **Output — `200`:** the updated `UserResource` (`is_banned: true`).
-**Errors:** `422` if `{id}` has the `admin` role.
+**Errors:** `422` `{"message": "لا يمكن حظر مستخدم يمتلك صلاحيات إدارية"}` if `{id}` has the `admin` role.
 
 #### `POST /admin/users/{id}/unban`
 **Output — `200`:** the updated `UserResource` (`is_banned: false`).
@@ -482,11 +603,36 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 **Output — `200`:** paginated `AdResource` collection (30/page), each including `user` and `category`.
 
 #### `POST /admin/ads/{id}/approve`
-**Does:** Sets `status = approved`, stamps `published_at`/`reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_approved"`).
-**Output — `200`:** the updated `AdResource`.
+**Does:** `pending` → `approved`: stamps `published_at`/`reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_approved"`, plus a push). Only a pending ad can be approved: a sold/expired ad comes back through relist, a rejected one through an owner edit — both put it back to `pending` first. The status check is atomic, so a double-click or a second admin can't approve (and notify) twice.
+**Output — `200`:** the updated `AdResource` (`status: "approved"`).
+**Errors:** `422` `{"message": "يمكن الموافقة فقط على إعلان بانتظار المراجعة"}` if the ad isn't `pending`.
 
 #### `POST /admin/ads/{id}/reject`
-**Does:** Sets `status = rejected`, stores the reason, stamps `reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_rejected"`).
+**Does:** `pending` or `approved` → `rejected`: stores the reason, stamps `reviewed_by`/`reviewed_at`, and **notifies the owner** (`type: "ad_rejected"`, plus a push). Rejecting an `approved` ad is how a live ad gets taken down, e.g. after a report. Atomic like approve.
 **Input:** `{"reason": "..."}` (required, max 500).
-**Output — `200`:** the updated `AdResource`.
-**Errors:** `422` if `reason` is missing.
+**Output — `200`:** the updated `AdResource` (`status: "rejected"`).
+**Errors:**
+- `422` validation error if `reason` is missing.
+- `422` `{"message": "يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط"}` if the ad is already `rejected`, or is `sold`/`expired`.
+
+### Admin ▸ Reports
+
+Resolving or dismissing is only a triage marker — it never bans anyone or unlists anything. Follow up with `POST /admin/users/{id}/ban` or `POST /admin/ads/{id}/reject`.
+
+#### `GET /admin/reports?status=`
+**Does:** The report queue, newest first. `status` optional — `pending`/`resolved`/`dismissed`, or omit for everything.
+**Output — `200`:** paginated (30/page) `ReportResource` collection:
+```json
+{
+  "id": 2, "reason": "scam", "details": "يطلب تحويلاً مسبقاً", "status": "pending",
+  "reporter": { ...UserResource },
+  "reportable_type": "ad",
+  "reportable": { ...AdResource },
+  "created_at": "...", "reviewed_at": null
+}
+```
+`reportable_type` is `ad` or `user`; `reportable` is then an `AdResource` or a `UserResource`.
+
+#### `POST /admin/reports/{id}/resolve` / `POST /admin/reports/{id}/dismiss`
+**Does:** Sets `status` to `resolved` / `dismissed` and stamps `reviewed_at`.
+**Output — `200`:** the updated `ReportResource` (without `reporter`/`reportable`).

@@ -3,7 +3,7 @@
 Base URL (local dev): `http://localhost:8000/api`
 Auth: Laravel Sanctum bearer token. Register or log in once, store the `token`, then send `Authorization: Bearer <token>` on every authenticated call. There are no cookies/CSRF to deal with from Flutter.
 
-All responses are JSON. List endpoints are paginated (Laravel's default shape: `data`, `links`, `meta`). Errors follow Laravel's default validation shape: `{"message": "...", "errors": {"field": ["..."]}}` with HTTP 422, or `{"message": "..."}` with 401/403/404/501.
+All responses are JSON. List endpoints are paginated (Laravel's default shape: `data`, `links`, `meta`). Errors follow Laravel's default validation shape: `{"message": "...", "errors": {"field": ["..."]}}` with HTTP 422, or `{"message": "..."}` with 401/403/404/409/501. An action that isn't allowed in the resource's current state (e.g. marking a pending ad sold) is also a `422`, but with only `{"message": "..."}`. Exact messages per endpoint: [`API_REFERENCE.md`](API_REFERENCE.md).
 
 This file is the contract between the Laravel backend and the Flutter app. **A route, field, or status code doesn't change without this file changing in the same commit** — that's the rule that keeps two people building against each other without breaking each other daily.
 
@@ -107,10 +107,12 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 
 ## Admin (requires the `admin` role, in addition to auth)
 
+`403 {"message": "Admins only."}` for a non-admin **or a banned admin**. Bearer token only — the `/admin-panel` browser session is not accepted here.
+
 | Method | Path | Notes |
 |---|---|---|
-| GET/POST/PUT/DELETE | `/admin/categories[/{id}]` | category CRUD |
-| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field: `{key, label_ar, label_en?, type, options?, is_required?, is_filterable?}`. `key`: snake_case (`^[a-z][a-z0-9_]*$`), unique within the category, not a reserved feed param (`category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng`). `options`: required non-empty array for `select`/`multiselect`, ignored otherwise. `is_filterable` defaults to `true` |
+| GET/POST/PUT/DELETE | `/admin/categories[/{id}]` | category CRUD. POST: `sort_order` ≥ 0 (default 0), returns `201` with stored defaults (`is_active: true`). DELETE: `409` while ads still use the category |
+| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field: `{key, label_ar, label_en?, type, options?, is_required?, is_filterable?}`. `key`: snake_case (`^[a-z][a-z0-9_]*$`), unique within the category, not a reserved feed param (`category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng`). `options`: required non-empty array for `select`/`multiselect`, ignored otherwise. `is_filterable` defaults to `true`. Returns `201` with the stored row (not wrapped in `data`), defaults included |
 | GET | `/admin/users?q=` | search/list users |
 | POST | `/admin/users/{id}/ban` \| `/unban` | ban revokes all tokens and device tokens; `422` for an admin account |
 | GET | `/admin/ads?status=pending` | review queue |

@@ -502,6 +502,7 @@
             {
               "name": "Create category",
               "request": {
+                "description": "Optional: parent_id, name_en, sort_order (integer >= 0, default 0). 201 with the stored category (is_active: true).",
                 "method": "POST",
                 "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
                 "body": { "mode": "raw", "raw": "{\n  \"name_ar\": \"قطع غيار\",\n  \"name_en\": \"Auto Parts\"\n}" },
@@ -528,6 +529,7 @@
             {
               "name": "Add dynamic attribute",
               "request": {
+                "description": "key: lowercase snake_case, unique within the category, not a reserved feed param (category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng). options: required non-empty, distinct array for select/multiselect; ignored otherwise. is_required defaults to false, is_filterable to true. 201 with the stored row (not wrapped in data). 422 with errors.key / errors.options otherwise.",
                 "method": "POST",
                 "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
                 "body": { "mode": "raw", "raw": "{\n  \"key\": \"fuel_type\",\n  \"label_ar\": \"نوع الوقود\",\n  \"type\": \"select\",\n  \"options\": [\"بنزين\", \"ديزل\"],\n  \"is_required\": false,\n  \"is_filterable\": true\n}" },
@@ -550,6 +552,7 @@
             {
               "name": "Ban user",
               "request": {
+                "description": "Revokes all the user's tokens and push device tokens. 422 {\"message\": \"لا يمكن حظر مستخدم يمتلك صلاحيات إدارية\"} for an admin account.",
                 "method": "POST",
                 "header": [{ "key": "Accept", "value": "application/json" }],
                 "url": { "raw": "{{base_url}}/admin/users/{{user_id}}/ban", "host": ["{{base_url}}"], "path": ["admin", "users", "{{user_id}}", "ban"] }
@@ -579,6 +582,7 @@
             {
               "name": "Approve ad",
               "request": {
+                "description": "Pending ads only. 422 {\"message\": \"يمكن الموافقة فقط على إعلان بانتظار المراجعة\"} otherwise (already approved, rejected, sold or expired).",
                 "method": "POST",
                 "header": [{ "key": "Accept", "value": "application/json" }],
                 "url": { "raw": "{{base_url}}/admin/ads/{{ad_id}}/approve", "host": ["{{base_url}}"], "path": ["admin", "ads", "{{ad_id}}", "approve"] }
@@ -587,6 +591,7 @@
             {
               "name": "Reject ad",
               "request": {
+                "description": "Pending ads, or approved ones (takes a live ad down). 422 {\"message\": \"يمكن رفض الإعلانات بانتظار المراجعة أو المنشورة فقط\"} for a rejected/sold/expired ad; 422 validation error without a reason.",
                 "method": "POST",
                 "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "application/json" }],
                 "body": { "mode": "raw", "raw": "{\n  \"reason\": \"الصور مطموسة ولا يمكن التمليز.\"\n}" },

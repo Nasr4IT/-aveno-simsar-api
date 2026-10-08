@@ -20,7 +20,9 @@ class AdminCategoryController extends Controller
 
     public function store(StoreCategoryRequest $request)
     {
-        $category = Category::create($request->validated());
+        // refresh(): return the stored row, including column defaults
+        // (is_active) that create() alone leaves unset on the model.
+        $category = Category::create($request->validated())->refresh();
 
         return new CategoryResource($category);
     }
@@ -56,7 +58,7 @@ class AdminCategoryController extends Controller
     // POST /api/admin/categories/{category}/attributes — add a dynamic spec field.
     public function storeAttribute(StoreCategoryAttributeRequest $request, Category $category)
     {
-        $attribute = $category->attributes_()->create($request->validated());
+        $attribute = $category->attributes_()->create($request->validated())->refresh();
 
         return response()->json($attribute, 201);
     }

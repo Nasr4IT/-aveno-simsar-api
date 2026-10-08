@@ -12,7 +12,9 @@ use App\Notifications\AdApproved;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
+use Symfony\Component\HttpFoundation\Cookie;
 use Tests\Concerns\InteractsWithAdmin;
 use Tests\TestCase;
 
@@ -297,11 +299,28 @@ class AdminPanelEdgeCasesTest extends TestCase
         $this->getJson('/api/auth/me')->assertUnauthorized();
     }
 
+    public function test_the_session_cookie_is_secure_on_https_requests(): void
+    {
+        $response = $this->withHeader('X-Forwarded-Proto', 'https')->get(route('admin.login'));
+
+        $this->assertTrue($this->sessionCookie($response)->isSecure());
+    }
+
+    public function test_the_session_cookie_still_works_over_plain_http_for_local_dev(): void
+    {
+        $this->assertFalse($this->sessionCookie($this->get(route('admin.login')))->isSecure());
+    }
+
     public function test_urls_follow_the_proxys_https_scheme(): void
     {
         $this->withHeader('X-Forwarded-Proto', 'https')
             ->get(route('admin.login'))
             ->assertSee('action="https://', false);
+    }
+
+    private function sessionCookie(TestResponse $response): Cookie
+    {
+        return collect($response->headers->getCookies())->first(fn (Cookie $c) => $c->getName() === config('session.cookie'));
     }
 
     // The factory makes a fresh city per ad, and CityFactory's unique names
