@@ -4,18 +4,19 @@ namespace App\Http\Controllers\AdminPanel;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ad;
-use App\Notifications\AdApproved;
-use App\Notifications\AdRejected;
-use App\Services\PushNotificationService;
+use App\Services\AdModerationService;
 use Illuminate\Http\Request;
 
 class AdModerationController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->get('status', 'pending');
+        // "all" is an explicit value rather than a missing param: a missing
+        // ?status= means the default pending queue, and withQueryString()
+        // has to carry the choice onto page 2.
+        $status = $request->query('status') ?: 'pending';
 
-        $ads = Ad::when($status, fn ($q, $v) => $q->where('status', $v))
+        $ads = Ad::when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->with(['user', 'category', 'images'])
             ->latest()
             ->paginate(20)
@@ -24,34 +25,22 @@ class AdModerationController extends Controller
         return view('admin.ads.index', ['ads' => $ads, 'status' => $status]);
     }
 
-    public function approve(Ad $ad, PushNotificationService $push)
+    public function approve(Request $request, Ad $ad, AdModerationService $moderation)
     {
-        $ad->update([
-            'status' => 'approved',
-            'published_at' => now(),
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
-
-        $ad->user->notify(new AdApproved($ad));
-        $push->sendToUser($ad->user, 'تمت الموافقة على إعلانك', $ad->title, ['type' => 'ad_approved', 'ad_id' => $ad->id]);
+        if (! $moderation->approve($ad, $request->user())) {
+            return back()->withErrors(['ad' => "لم يعد \"{$ad->title}\" بانتظار المراجعة (حالته الآن: {$ad->status})."]);
+        }
 
         return back()->with('status', "تمت الموافقة على \"{$ad->title}\".");
     }
 
-    public function reject(Request $request, Ad $ad, PushNotificationService $push)
+    public function reject(Request $request, Ad $ad, AdModerationService $moderation)
     {
         $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
-        $ad->update([
-            'status' => 'rejected',
-            'rejection_reason' => $data['reason'],
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
-
-        $ad->user->notify(new AdRejected($ad));
-        $push->sendToUser($ad->user, 'تم رفض إعلانك', $ad->title, ['type' => 'ad_rejected', 'ad_id' => $ad->id]);
+        if (! $moderation->reject($ad, $request->user(), $data['reason'])) {
+            return back()->withErrors(['ad' => "لا يمكن رفض \"{$ad->title}\" وهو بحالة {$ad->status}."]);
+        }
 
         return back()->with('status', "تم رفض \"{$ad->title}\".");
     }

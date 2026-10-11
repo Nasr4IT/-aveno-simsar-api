@@ -20,7 +20,7 @@ Route::get('/', fn () => response()->json([
 
 Route::prefix('admin-panel')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt'); // rate-limited inside
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
     Route::middleware(['auth', 'admin'])->group(function () {
@@ -41,7 +41,7 @@ Route::prefix('admin-panel')->name('admin.')->group(function () {
 
         Route::get('/banners', [BannerManagementController::class, 'index'])->name('banners.index');
         Route::post('/banners', [BannerManagementController::class, 'store'])->name('banners.store');
-        Route::post('/banners/{banner}/toggle', [BannerManagementController::class, 'toggle'])->name('banners.toggle');
+        Route::post('/banners/{banner}/active', [BannerManagementController::class, 'setActive'])->name('banners.active');
         Route::post('/banners/{banner}/delete', [BannerManagementController::class, 'destroy'])->name('banners.destroy');
 
         Route::get('/reports', [ReportManagementController::class, 'index'])->name('reports.index');

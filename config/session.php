@@ -15,6 +15,8 @@ return [
     'cookie' => env('SESSION_COOKIE', Str::slug(env('APP_NAME', 'laravel'), '_').'_session'),
     'path' => env('SESSION_PATH', '/'),
     'domain' => env('SESSION_DOMAIN'),
+    // Unset = decided per request: Secure whenever the request came in over
+    // https (App\Http\Middleware\SecureSessionCookieOverHttps).
     'secure' => env('SESSION_SECURE_COOKIE'),
     'http_only' => env('SESSION_HTTP_ONLY', true),
     'same_site' => env('SESSION_SAME_SITE', 'lax'),

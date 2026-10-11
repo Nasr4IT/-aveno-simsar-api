@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\AdminPanel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCategoryAttributeRequest;
+use App\Http\Requests\Admin\StoreCategoryRequest;
 use App\Models\Category;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class CategoryManagementController extends Controller
 {
@@ -17,41 +17,18 @@ class CategoryManagementController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $data = $request->validate([
-            'parent_id' => ['nullable', 'exists:categories,id'],
-            'name_ar' => ['required', 'string', 'max:100'],
-            'name_en' => ['nullable', 'string', 'max:100'],
-        ]);
-
-        Category::create([...$data, 'slug' => Str::slug($data['name_en'] ?? $data['name_ar']).'-'.Str::random(4)]);
+        Category::create($request->validated());
 
         return back()->with('status', 'تمت إضافة الفئة.');
     }
 
-    // A select/multiselect's choices come in as a comma-separated string
-    // from the plain HTML form field — split into the array the attribute
-    // model actually stores (same shape the API's storeAttribute() takes
-    // as a JSON array).
-    public function storeAttribute(Request $request, Category $category)
+    // Same request class as the API's storeAttribute(), which also turns
+    // the form's comma-separated options string into an array.
+    public function storeAttribute(StoreCategoryAttributeRequest $request, Category $category)
     {
-        $data = $request->validate([
-            'key' => ['required', 'string', 'max:60'],
-            'label_ar' => ['required', 'string', 'max:100'],
-            'label_en' => ['nullable', 'string', 'max:100'],
-            'type' => ['required', 'in:text,number,boolean,select,multiselect'],
-            'options' => ['nullable', 'string'],
-            'is_required' => ['nullable', 'boolean'],
-            'is_filterable' => ['nullable', 'boolean'],
-        ]);
-
-        $category->attributes_()->create([
-            ...$data,
-            'options' => $data['options'] ? array_map('trim', explode(',', $data['options'])) : null,
-            'is_required' => $request->boolean('is_required'),
-            'is_filterable' => $request->boolean('is_filterable'),
-        ]);
+        $category->attributes_()->create($request->validated());
 
         return back()->with('status', 'تمت إضافة الخاصية.');
     }

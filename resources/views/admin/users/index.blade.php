@@ -53,5 +53,5 @@
         </table>
     </div>
 
-    <div class="pagination">{{ $users->links() }}</div>
+    {{ $users->links('admin.partials.pagination') }}
 @endsection

@@ -23,21 +23,20 @@ class UserManagementController extends Controller
         return view('admin.users.index', ['users' => $users, 'q' => $q]);
     }
 
-    // Same rule as Api\Admin\AdminUserController@ban: admins can't ban
-    // other admins, and banning revokes every existing token immediately.
+    // The rules themselves (admins can't be banned, tokens revoked) live
+    // in User::ban(), shared with Api\Admin\AdminUserController@ban.
     public function ban(User $user)
     {
-        abort_if($user->hasRole('admin'), 422, 'لا يمكن حظر مستخدم يمتلك صلاحيات إدارية');
-
-        $user->forceFill(['is_banned' => true])->save();
-        $user->tokens()->delete();
+        if (! $user->ban()) {
+            return back()->withErrors(['user' => 'لا يمكن حظر مستخدم يمتلك صلاحيات إدارية.']);
+        }
 
         return back()->with('status', "تم حظر {$user->name}.");
     }
 
     public function unban(User $user)
     {
-        $user->forceFill(['is_banned' => false])->save();
+        $user->unban();
 
         return back()->with('status', "تم إلغاء حظر {$user->name}.");
     }

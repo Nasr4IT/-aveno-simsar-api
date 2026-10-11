@@ -53,7 +53,8 @@
         label { font-size: 12.5px; color: var(--muted); display: block; margin-bottom: 3px; margin-top: 10px; }
         form.inline { display: inline; }
         .pagination { margin-top: 16px; font-size: 13px; }
-        .pagination a, .pagination span { margin-left: 8px; }
+        .pagination a, .pagination span { margin-left: 12px; }
+        .pagination .disabled { color: #9ca3af; }
         details.reject-box summary { cursor: pointer; color: var(--danger); font-size: 13px; }
         details.reject-box .card { margin-top: 8px; padding: 10px; }
         img.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; }

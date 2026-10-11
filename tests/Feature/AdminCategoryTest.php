@@ -26,7 +26,7 @@ class AdminCategoryTest extends TestCase
         Sanctum::actingAs($this->adminUser());
 
         $create = $this->postJson('/api/admin/categories', ['name_ar' => 'فئة اختبار', 'name_en' => 'Test Category']);
-        $create->assertSuccessful();
+        $create->assertCreated()->assertJsonPath('data.is_active', true);
         $categoryId = $create->json('data.id');
         $this->assertDatabaseHas('categories', ['id' => $categoryId, 'name_ar' => 'فئة اختبار']);
 
@@ -69,5 +69,34 @@ class AdminCategoryTest extends TestCase
 
         $response->assertStatus(409);
         $this->assertDatabaseHas('categories', ['id' => $category->id]);
+    }
+
+    public function test_a_new_attribute_is_returned_with_its_stored_defaults(): void
+    {
+        Sanctum::actingAs($this->adminUser());
+        $category = Category::factory()->create();
+
+        $this->postJson("/api/admin/categories/{$category->id}/attributes", [
+            'key' => 'notes', 'label_ar' => 'ملاحظات', 'type' => 'text',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('is_filterable', true)
+            ->assertJsonPath('is_required', false);
+    }
+
+    // Same request class as the /admin-panel form (AdminPanelEdgeCasesTest).
+    public function test_attribute_validation_rejects_duplicate_keys_and_choice_types_without_options(): void
+    {
+        Sanctum::actingAs($this->adminUser());
+        $category = Category::factory()->create();
+        $category->attributes_()->create(['key' => 'color', 'label_ar' => 'اللون', 'type' => 'text']);
+
+        $this->postJson("/api/admin/categories/{$category->id}/attributes", [
+            'key' => 'color', 'label_ar' => 'اللون', 'type' => 'text',
+        ])->assertStatus(422)->assertJsonValidationErrors('key');
+
+        $this->postJson("/api/admin/categories/{$category->id}/attributes", [
+            'key' => 'material', 'label_ar' => 'الخامة', 'type' => 'select', 'options' => [],
+        ])->assertStatus(422)->assertJsonValidationErrors('options');
     }
 }

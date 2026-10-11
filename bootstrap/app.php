@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\SecureSessionCookieOverHttps;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Http\Request;
 use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,8 +16,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
-            EnsureFrontendRequestsAreStateful::class,
+        // Sanctum's cookie mode (EnsureFrontendRequestsAreStateful) is
+        // deliberately not on the api group — see 'guard' in config/sanctum.php.
+
+        // Render (see Dockerfile) terminates TLS at its proxy and forwards
+        // plain http, which is the only way to reach the app. Trusting the
+        // proxy's X-Forwarded-Proto keeps every route() the admin panel
+        // builds (form actions, redirects, pagination) on https. Host isn't
+        // trusted, so a client-supplied X-Forwarded-Host can't change URLs.
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO,
+        );
+
+        $middleware->web(prepend: [
+            SecureSessionCookieOverHttps::class,
         ]);
 
         $middleware->alias([

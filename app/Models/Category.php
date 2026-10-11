@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Category extends Model
 {
@@ -18,6 +19,15 @@ class Category extends Model
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];
+    }
+
+    // Random suffix: the slug is derived from the name, and two categories
+    // (e.g. "Other" under two different parents) can share a name.
+    protected static function booted(): void
+    {
+        static::creating(function (Category $category) {
+            $category->slug ??= Str::slug($category->name_en ?? $category->name_ar).'-'.Str::random(4);
+        });
     }
 
     public function parent(): BelongsTo

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreBannerRequest;
 use App\Http\Resources\BannerResource;
 use App\Models\Banner;
 use App\Services\ImageService;
@@ -16,8 +17,6 @@ use Illuminate\Support\Facades\Storage;
 // transfer happened before creating one.
 class AdminBannerController extends Controller
 {
-    private const LINK_URL_RULE = 'regex:/^(https?:\/\/|tel:).+/';
-
     // GET /admin/banners — every banner regardless of active window, for
     // the admin's own management view (unlike the public /banners feed).
     public function index()
@@ -26,16 +25,9 @@ class AdminBannerController extends Controller
     }
 
     // POST /admin/banners — multipart (carries the banner image).
-    public function store(Request $request, ImageService $imageService)
+    public function store(StoreBannerRequest $request, ImageService $imageService)
     {
-        $data = $request->validate([
-            'image' => ['required', 'image', 'max:5120'],
-            'title' => ['nullable', 'string', 'max:150'],
-            'link_url' => ['nullable', 'string', 'max:500', self::LINK_URL_RULE],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after_or_equal:starts_at'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-        ]);
+        $data = $request->validated();
 
         $banner = Banner::create([
             ...$data,
@@ -55,7 +47,7 @@ class AdminBannerController extends Controller
     {
         $data = $request->validate([
             'title' => ['sometimes', 'nullable', 'string', 'max:150'],
-            'link_url' => ['sometimes', 'nullable', 'string', 'max:500', self::LINK_URL_RULE],
+            'link_url' => ['sometimes', 'nullable', 'string', 'max:500', StoreBannerRequest::LINK_URL_RULE],
             'starts_at' => ['sometimes', 'date'],
             'ends_at' => ['sometimes', 'date'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],

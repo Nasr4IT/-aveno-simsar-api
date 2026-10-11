@@ -28,7 +28,7 @@ php artisan storage:link
 php artisan serve
 ```
 
-The seeders create: the `admin` role, Syria's 14 governorates with sample cities, the 15/30/60-day ad packages, three seed categories (سيارات / عقارات / دراجات نارية) with their dynamic spec fields, and one admin login (`phone: 0999999999`, see `database/seeders/AdminUserSeeder.php` — **change that password before this ever touches a real server**).
+The seeders create: the `admin` role, Syria's 14 governorates with sample cities, the 15/30/60-day ad packages, three seed categories (سيارات / عقارات / دراجات نارية) with their dynamic spec fields, and one admin login (`phone: 0999999999`). Its password is whatever `ADMIN_PASSWORD` is set to in `.env` (or the server's environment) — set it before seeding; with it empty the account exists but no password works. The seeders run on every boot in Docker, so changing `ADMIN_PASSWORD` and redeploying is how the admin password is changed. See `database/seeders/AdminUserSeeder.php`.
 
 Run the test suite:
 

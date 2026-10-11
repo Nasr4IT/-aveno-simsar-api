@@ -38,8 +38,9 @@
                             @endif
                         </td>
                         <td>
-                            <form class="inline" method="POST" action="{{ route('admin.banners.toggle', $banner) }}">
+                            <form class="inline" method="POST" action="{{ route('admin.banners.active', $banner) }}">
                                 @csrf
+                                <input type="hidden" name="is_active" value="{{ $banner->is_active ? 0 : 1 }}">
                                 <button class="btn btn-muted" type="submit">{{ $banner->is_active ? 'إيقاف' : 'تفعيل' }}</button>
                             </form>
                             <form class="inline" method="POST" action="{{ route('admin.banners.destroy', $banner) }}" onsubmit="return confirm('حذف هذا البانر؟');">
@@ -55,5 +56,5 @@
         </table>
     </div>
 
-    <div class="pagination">{{ $banners->links() }}</div>
+    {{ $banners->links('admin.partials.pagination') }}
 @endsection
