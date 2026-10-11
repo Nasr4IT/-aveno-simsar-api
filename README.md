@@ -6,7 +6,7 @@ Two clients use it: the Flutter app (built separately), through the JSON API und
 
 ## Stack
 
-- PHP 8.2+, Laravel 11
+- PHP 8.2+, Laravel 12
 - MySQL locally, PostgreSQL in production (Render), SQLite for tests/CI
 - Laravel Sanctum — token auth for the mobile app; session login for the admin panel
 - spatie/laravel-permission — the `admin` role that gates the admin API and panel

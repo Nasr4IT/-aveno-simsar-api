@@ -85,7 +85,31 @@ class AdManagementTest extends TestCase
     // Regression test: Laravel's 'image' validation rule accepts formats GD
     // can't decode (e.g. SVG) — ImageService used to let that crash through
     // as an unhandled 500 instead of a normal validation error.
+    public function test_an_svg_upload_is_rejected_by_validation(): void
+    {
+        $response = $this->postAdWithImage(UploadedFile::fake()->createWithContent(
+            'evil.svg',
+            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+        ));
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('images.0');
+    }
+
+    // Passes the 'image' rule (the content sniffs as JPEG) but GD can't
+    // decode it — ImageService must turn that into a 422, not a 500.
     public function test_an_undecodable_image_upload_fails_validation_instead_of_crashing(): void
+    {
+        $response = $this->postAdWithImage(UploadedFile::fake()->createWithContent(
+            'broken.jpg',
+            "\xFF\xD8\xFF\xE0".str_repeat('not really a jpeg', 20)
+        ));
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('images');
+    }
+
+    private function postAdWithImage(UploadedFile $image)
     {
         Storage::fake('public');
 
@@ -96,22 +120,14 @@ class AdManagementTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $svg = UploadedFile::fake()->createWithContent(
-            'evil.svg',
-            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
-        );
-
-        $response = $this->postJson('/api/ads', [
+        return $this->postJson('/api/ads', [
             'category_id' => $category->id,
             'governorate_id' => $governorate->id,
             'city_id' => $city->id,
-            'title' => 'SVG test',
+            'title' => 'Image test',
             'description' => 'test',
-            'images' => [$svg],
+            'images' => [$image],
         ]);
-
-        $response->assertUnprocessable();
-        $response->assertJsonValidationErrors('images');
     }
 
     public function test_only_the_owner_can_update_their_ad(): void

@@ -33,9 +33,10 @@ class ImageService
     {
         $disk ??= config('filesystems.default');
 
-        // Laravel's 'image' validation rule accepts formats GD can't decode
-        // (e.g. SVG) — without this, such an upload crashes with an
-        // unhandled 500 instead of a normal validation error.
+        // Laravel's 'image' rule only sniffs the file type, so a file that
+        // looks like a JPEG/PNG but is corrupt or truncated still reaches
+        // here — without this, such an upload crashes with an unhandled
+        // 500 instead of a normal validation error.
         try {
             $image = $this->manager->read($file->getRealPath());
         } catch (InterventionRuntimeException $e) {
