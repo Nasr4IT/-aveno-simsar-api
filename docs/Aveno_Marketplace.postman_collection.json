@@ -156,6 +156,24 @@
           }
         },
         {
+          "name": "Browse ads in a map area",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/ads?min_lat=33.3&max_lat=33.7&min_lng=36.1&max_lng=36.5",
+              "host": ["{{base_url}}"], "path": ["ads"],
+              "query": [
+                { "key": "min_lat", "value": "33.3", "description": "map viewport south edge — all four bounds or none" },
+                { "key": "max_lat", "value": "33.7", "description": "north edge" },
+                { "key": "min_lng", "value": "36.1", "description": "west edge" },
+                { "key": "max_lng", "value": "36.5", "description": "east edge (example values: roughly Damascus)" }
+              ]
+            }
+          }
+        },
+        {
           "name": "Show ad detail",
           "request": {
             "auth": { "type": "noauth" },

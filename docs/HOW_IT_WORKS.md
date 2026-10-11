@@ -9,10 +9,11 @@ flowchart LR
     App[Flutter App<br/>Android / iOS / Web] -- HTTPS + Bearer token --> API[Laravel API<br/>this repo, hosted on Render]
     API --> DB[(PostgreSQL)]
     API -. "images (resized to disk)" .-> Storage[(File storage)]
-    Admin[Admin / moderator<br/>Postman or a future admin UI] -- HTTPS + Bearer token + admin role --> API
+    Admin[Admin / moderator<br/>browser] -- HTTPS + session cookie + admin role --> Panel[Admin panel<br/>/admin-panel, this repo]
+    Panel --> DB
 ```
 
-There is **no server-rendered website and no built admin dashboard** — this repo is a pure JSON API. Every screen, including the admin side, is just a client sending HTTP requests and rendering the response. Right now the only client is the Flutter app (and Postman, for testing); an admin panel is a separate possible future client, not something this repo serves.
+The Flutter app talks to a pure JSON API — every app screen is just a client sending HTTP requests and rendering the response. The one exception is the **admin panel** at `/admin-panel`: a small server-rendered web UI in this same repo, for moderators working from a browser (see §14). The `/admin/*` JSON endpoints still exist alongside it for Postman/automation.
 
 One account type, two roles: every person is a `User` row. Nothing structurally separates "buyer" from "seller" — anyone can browse, post an ad, message, and rate. The only special role is **`admin`** (granted via Spatie permissions), which unlocks the moderation endpoints under `/admin/*`.
 
@@ -64,9 +65,12 @@ This is the one endpoint in the whole API that's deliberately simple with no par
 | `min_price`, `max_price` | range slider |
 | `sort` | the "Sort" dropdown: `newest` (default — featured first, then newest), `price_asc`, `price_desc`, `popular` (most-viewed first), or `nearest` (needs `lat`/`lng` — see below) |
 | `lat`, `lng` | the device's current coordinates — required only when `sort=nearest`; this is also the building block for a "Popular near you" home-screen section (e.g. call `GET /ads?sort=popular&city_id=<the user's city>`, or `sort=nearest` with real GPS coordinates for true proximity) |
+| `min_lat`, `max_lat`, `min_lng`, `max_lng` | the map view: the visible rectangle's south/north/west/east edges — see "Map view" below |
 | any dynamic attribute key (e.g. `fuel_type=بنزين`) | category-specific filter chips — see §6 for where these keys come from |
 
 There's no separate "search" endpoint — search is just `GET /ads` with `q` set, same pagination and same response shape as browsing. The Flutter app can reuse one feed widget for "home," "search results," "filtered browse," and a "popular near you" rail.
+
+**Map view:** the map screen is the same `GET /ads` call with the visible map rectangle added — on every pan/zoom (debounced), send the viewport's south-west and north-east corners as `min_lat`/`min_lng` and `max_lat`/`max_lng` (in `google_maps_flutter` that's `controller.getVisibleRegion()` → `southwest`/`northeast`), and drop a pin for each ad in `data` using its `latitude`/`longitude`. All four bounds go together — sending only some is a `422`. Ads the seller posted without a location never appear on the map. Results are still paginated 20 at a time, so the pins are the current page; it combines with every other filter (category, price, `q`, attributes), so the map and the list can share one filter state.
 
 One thing to get right in the UI: picking a `sort` value other than `newest` **replaces** the normal featured-first ordering, it doesn't add to it — e.g. `sort=price_asc` is a flat price-ascending list, a featured ad doesn't get pinned to the top of it.
 
@@ -219,6 +223,7 @@ A few smaller pieces that round out the seller experience, all added onto existi
 ## Known gaps (so nobody builds against something that isn't there)
 
 - **Sham Cash payments are stubbed** (§13) — `501` on checkout, no real money flow yet.
+- **No email notifications** — notifications arrive in-app (§12) and by push only. The `MAIL_*` settings exist in `.env.example` but nothing sends mail yet.
 - **Push notifications and S3/R2 image storage are code-complete but need an external account to actually turn on** — both silently no-op without credentials (the same pattern as Sham Cash), so nothing breaks by leaving them off, but nothing happens either until `FIREBASE_CREDENTIALS_JSON` (push) or `FILESYSTEM_DISK=s3` + `AWS_*` (persistent image storage, e.g. Cloudflare R2) are actually set. Until then, in-app/polling notifications (§12) and local-disk images both still work exactly as before.
 - **Sentry error tracking is wired in but inactive** without a `SENTRY_LARAVEL_DSN` — free to sign up for when you want it.
 - **The queue worker has no supervisor** — it's a second process backgrounded inside the same container as the web server (Render's free tier has no separate worker-service type), so it dies silently with the container rather than being restarted on its own if it crashes. Acceptable for this scale; revisit before relying on it for anything time-sensitive.

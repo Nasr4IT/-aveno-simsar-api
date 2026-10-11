@@ -27,7 +27,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
+| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`), `min_lat, max_lat, min_lng, max_lng` (map viewport — all four or none; excludes ads without coordinates) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
 | GET | `/ads/{id}` | – | full detail, increments `views_count`; visible for `approved` and `sold` |
 | GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
@@ -112,7 +112,7 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 | Method | Path | Notes |
 |---|---|---|
 | GET/POST/PUT/DELETE | `/admin/categories[/{id}]` | category CRUD. POST: `sort_order` ≥ 0 (default 0), returns `201` with stored defaults (`is_active: true`). DELETE: `409` while ads still use the category |
-| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field: `{key, label_ar, label_en?, type, options?, is_required?, is_filterable?}`. `key`: snake_case (`^[a-z][a-z0-9_]*$`), unique within the category, not a reserved feed param (`category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng`). `options`: required non-empty array for `select`/`multiselect`, ignored otherwise. `is_filterable` defaults to `true`. Returns `201` with the stored row (not wrapped in `data`), defaults included |
+| POST | `/admin/categories/{id}/attributes` | add a dynamic spec field: `{key, label_ar, label_en?, type, options?, is_required?, is_filterable?}`. `key`: snake_case (`^[a-z][a-z0-9_]*$`), unique within the category, not a reserved feed param (`category_id, governorate_id, city_id, min_price, max_price, q, page, sort, lat, lng, min_lat, max_lat, min_lng, max_lng`). `options`: required non-empty array for `select`/`multiselect`, ignored otherwise. `is_filterable` defaults to `true`. Returns `201` with the stored row (not wrapped in `data`), defaults included |
 | GET | `/admin/users?q=` | search/list users |
 | POST | `/admin/users/{id}/ban` \| `/unban` | ban revokes all tokens and device tokens; `422` for an admin account |
 | GET | `/admin/ads?status=pending` | review queue |

@@ -24,9 +24,9 @@ use Illuminate\Validation\ValidationException;
 class AdController extends Controller
 {
     // GET /api/ads — public feed with filters: category_id, governorate_id, city_id,
-    // min_price, max_price, q (title search), sort, plus one query param per
-    // filterable category_attribute (e.g. ?fuel_type=بنزين). Only status=approved
-    // is returned.
+    // min_price, max_price, q (title search), sort, min_lat/max_lat/min_lng/max_lng
+    // (map viewport), plus one query param per filterable category_attribute
+    // (e.g. ?fuel_type=بنزين). Only status=approved is returned.
     public function index(Request $request)
     {
         $filters = $request->validate([
@@ -41,6 +41,13 @@ class AdController extends Controller
             'sort' => ['nullable', 'in:newest,price_asc,price_desc,popular,nearest'],
             'lat' => ['required_if:sort,nearest', 'numeric', 'between:-90,90'],
             'lng' => ['required_if:sort,nearest', 'numeric', 'between:-180,180'],
+            // The map screen's visible rectangle — all four or none. A
+            // viewport crossing the 180° meridian (min_lng > max_lng) is
+            // rejected rather than wrapped; Syria is nowhere near it.
+            'min_lat' => ['nullable', 'required_with:max_lat,min_lng,max_lng', 'numeric', 'between:-90,90'],
+            'max_lat' => ['nullable', 'required_with:min_lat,min_lng,max_lng', 'numeric', 'between:-90,90', 'gte:min_lat'],
+            'min_lng' => ['nullable', 'required_with:min_lat,max_lat,max_lng', 'numeric', 'between:-180,180'],
+            'max_lng' => ['nullable', 'required_with:min_lat,max_lat,min_lng', 'numeric', 'between:-180,180', 'gte:min_lng'],
         ]);
 
         $query = Ad::approved()
@@ -49,6 +56,13 @@ class AdController extends Controller
             ->when($filters['city_id'] ?? null, fn ($q, $v) => $q->where('city_id', $v))
             ->when($filters['min_price'] ?? null, fn ($q, $v) => $q->where('price', '>=', $v))
             ->when($filters['max_price'] ?? null, fn ($q, $v) => $q->where('price', '<=', $v))
+            // isset rather than `?? null`: 0 is a real latitude/longitude,
+            // and when() would treat it as "no filter". Ads without
+            // coordinates never match (NULL fails BETWEEN), which is right —
+            // they can't be pinned on a map.
+            ->when(isset($filters['min_lat']), fn ($q) => $q
+                ->whereBetween('latitude', [$filters['min_lat'], $filters['max_lat']])
+                ->whereBetween('longitude', [$filters['min_lng'], $filters['max_lng']]))
             ->tap(fn ($q) => $this->applyAttributeFilters($q, $request, $filters['category_id'] ?? null));
 
         if ($filters['q'] ?? null) {

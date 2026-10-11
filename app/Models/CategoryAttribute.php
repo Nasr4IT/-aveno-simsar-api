@@ -12,6 +12,7 @@ class CategoryAttribute extends Model
     // never be filtered on, since applyAttributeFilters() strips them first.
     public const RESERVED_FILTER_KEYS = [
         'category_id', 'governorate_id', 'city_id', 'min_price', 'max_price', 'q', 'page', 'sort', 'lat', 'lng',
+        'min_lat', 'max_lat', 'min_lng', 'max_lng',
     ];
 
     protected $fillable = [

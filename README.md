@@ -2,15 +2,16 @@
 
 Laravel backend for the classifieds app (cars / real estate / motorcycles) described in the Aveno Code proposal to Mr. Hosam Wardah — buy/sell ads, category-specific dynamic specs, geo search, in-app chat, ratings, admin review, and Sham Cash-powered featured-ad packages.
 
-This backend is API-only. The Flutter app (built separately) is the only client — see [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) for every route it depends on, and [`docs/ERD.md`](docs/ERD.md) for the data model.
+Two clients use it: the Flutter app (built separately), through the JSON API under `/api`, and human moderators, through the admin panel web UI at `/admin-panel`. See [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) for every route the app depends on, and [`docs/ERD.md`](docs/ERD.md) for the data model.
 
 ## Stack
 
 - PHP 8.2+, Laravel 11
-- MySQL (SQLite for local/testing)
-- Laravel Sanctum — token auth for the mobile app
-- spatie/laravel-permission — the `admin` role that gates the admin API
-- spatie/laravel-query-builder — filtering/sorting on `GET /ads`
+- MySQL locally, PostgreSQL in production (Render), SQLite for tests/CI
+- Laravel Sanctum — token auth for the mobile app; session login for the admin panel
+- spatie/laravel-permission — the `admin` role that gates the admin API and panel
+- intervention/image — resizes uploaded ad photos
+- Optional, off until credentials are set: Firebase push (FCM), S3-compatible image storage (e.g. Cloudflare R2), Sentry error tracking — see `.env.example`
 
 ## Local setup
 
@@ -36,18 +37,29 @@ Run the test suite:
 php artisan test
 ```
 
-## What's scaffolded vs. what's left to build
+## What's built and what isn't
 
-Everything below is in place and lints clean (`php -l` was run on every file): the full database schema (18 migrations), all 14 Eloquent models with their relationships, Sanctum auth, every route in `docs/API_CONTRACT.md`, request validation, API resources, and the admin-role middleware.
+Built and covered by the test suite: auth, categories with dynamic spec fields, ads (create/edit with photo upload + resize, search with a typo-tolerant fallback, filters, sorting, map-area bounds, similar ads, mark-sold/relist), favorites, chat, ratings, reporting, in-app + push notifications, home-screen banners, seller stats, the `/admin/*` moderation API, and the `/admin-panel` web UI (log in at `/admin-panel/login`).
 
-Two pieces are intentionally left as `501` stubs for you to implement first, since they're the meatiest business logic in the MVP:
+Not built yet:
 
-1. **`AdController@store` / `@update`** — validated in `StoreAdRequest`/`UpdateAdRequest` already; what's missing is creating the `Ad` + looping the `attributes[]` payload into `AdAttributeValue` rows + storing uploaded images into `AdImage` (disk: `public`, see `config/filesystems.php`).
-2. **`PaymentController@checkout` / `@webhook`** and `app/Services/ShamCash/ShamCashClient.php` — wire these against Sham Cash's real API docs once you have them; the webhook signature-verification skeleton and the `payments` table are ready.
+1. **Sham Cash payments** — `PaymentController@checkout` / `@webhook` still return `501`. `app/Services/ShamCash/ShamCashClient.php`, the webhook signature-check skeleton and the `payments` table are ready; the HTTP calls wait on Sham Cash's real API docs.
+2. **Email notifications** — notifications are delivered in-app (`GET /notifications`) and by push only. The `MAIL_*` settings in `.env.example` aren't used by anything yet.
 
-Everything else (`Auth`, `Categories`, `Favorites`, `Chat`, `Ratings`, `Notifications` reads, all three `Admin` controllers) is fully implemented, not just stubbed.
+[`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) § Known gaps has the full list, including what needs an external account to switch on.
 
-This scaffold was generated without network access in the build environment, so `vendor/` isn't included and migrations haven't been run against a real database yet — do that first via `composer install && php artisan migrate --seed` and fix forward from whatever composer/PHP reports, though the code was written and lint-checked directly against Laravel 11 / Sanctum 4 / spatie/laravel-permission 6 conventions.
+## Deployment
+
+The `Dockerfile` runs on Render: on every boot it migrates, seeds (idempotent), starts a queue worker in the background and serves on `$PORT`. The Postman collection in `docs/` points at the live deployment.
+
+## Docs
+
+- [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) — screen-by-screen walkthrough; start here
+- [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) — every endpoint's fields, responses and errors (PDF copy alongside)
+- [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) — the short route list the Flutter app builds against
+- [`docs/ERD.md`](docs/ERD.md) — data model
+- [`docs/Aveno_Marketplace.postman_collection.json`](docs/Aveno_Marketplace.postman_collection.json) — click-to-test requests
+- [`docs/GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md) — branching and commits
 
 ## Project conventions
 

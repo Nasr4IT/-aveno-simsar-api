@@ -171,6 +171,46 @@ class AdFilteringTest extends TestCase
             ->assertJsonValidationErrors(['lat', 'lng']);
     }
 
+    public function test_feed_can_be_limited_to_a_map_area(): void
+    {
+        $damascus = Ad::factory()->create(['latitude' => 33.51, 'longitude' => 36.29, 'status' => 'approved']);
+        Ad::factory()->create(['latitude' => 36.20, 'longitude' => 37.16, 'status' => 'approved']); // Aleppo
+        Ad::factory()->create(['latitude' => null, 'longitude' => null, 'status' => 'approved']); // no location at all
+
+        // Roughly the Damascus area as a map viewport.
+        $response = $this->getJson('/api/ads?min_lat=33.3&max_lat=33.7&min_lng=36.1&max_lng=36.5');
+
+        $response->assertOk();
+        $this->assertSame([$damascus->id], $response->json('data.*.id'));
+    }
+
+    // Guards the isset() check: a bound of exactly 0 is a real coordinate,
+    // not "no filter".
+    public function test_map_area_bounds_of_zero_still_filter(): void
+    {
+        $inside = Ad::factory()->create(['latitude' => 0.5, 'longitude' => 0.5, 'status' => 'approved']);
+        Ad::factory()->create(['latitude' => 33.51, 'longitude' => 36.29, 'status' => 'approved']);
+
+        $response = $this->getJson('/api/ads?min_lat=0&max_lat=1&min_lng=0&max_lng=1');
+
+        $response->assertOk();
+        $this->assertSame([$inside->id], $response->json('data.*.id'));
+    }
+
+    public function test_map_area_needs_all_four_bounds(): void
+    {
+        $this->getJson('/api/ads?min_lat=33.3&max_lat=33.7')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['min_lng', 'max_lng']);
+    }
+
+    public function test_map_area_rejects_inverted_bounds(): void
+    {
+        $this->getJson('/api/ads?min_lat=33.7&max_lat=33.3&min_lng=36.1&max_lng=36.5')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['max_lat']);
+    }
+
     public function test_search_falls_back_to_a_typo_tolerant_match_when_no_exact_match_exists(): void
     {
         $toyota = Ad::factory()->create(['title' => 'Toyota Corolla 2019', 'status' => 'approved']);
