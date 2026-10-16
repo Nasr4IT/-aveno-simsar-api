@@ -19,8 +19,11 @@ return new class extends Migration
             $table->string('title')->nullable();
             // https://... or tel:... — whatever tapping the banner should open.
             $table->string('link_url')->nullable();
-            $table->timestamp('starts_at');
-            $table->timestamp('ends_at');
+            // dateTime, not timestamp: a NOT NULL timestamp column with no
+            // explicit default trips a MySQL strict-mode "Invalid default
+            // value" error on the second such column in a table.
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
             $table->unsignedInteger('sort_order')->default(0);
             // Separate from the starts_at/ends_at window so an admin can
             // pause a banner early without losing/recalculating its dates.
