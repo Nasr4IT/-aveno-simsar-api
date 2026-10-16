@@ -21,7 +21,7 @@
                             @endif
                             {{ $ad->title }}
                         </td>
-                        <td>{{ $ad->user->name }}<br><span style="color:#9ca3af">{{ $ad->user->phone }}</span></td>
+                        <td>{{ $ad->user->name }}<br><span style="color:var(--muted)">{{ $ad->user->phone }}</span></td>
                         <td>{{ $ad->category->name_ar ?? '—' }}</td>
                         <td>{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : '—' }}</td>
                         <td><span class="badge badge-{{ $ad->status }}">{{ $ad->status }}</span></td>
@@ -44,12 +44,12 @@
                                     </div>
                                 </details>
                             @else
-                                <span style="color:#9ca3af">—</span>
+                                <span style="color:var(--muted)">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" style="color:#9ca3af">لا توجد إعلانات.</td></tr>
+                    <tr><td colspan="7" style="color:var(--muted)">لا توجد إعلانات.</td></tr>
                 @endforelse
             </tbody>
         </table>

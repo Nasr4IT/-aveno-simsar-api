@@ -25,9 +25,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <strong>{{ $category->name_ar }}</strong>
-                    <span style="color:#9ca3af">({{ $category->slug }})</span>
+                    <span style="color:var(--muted)">({{ $category->slug }})</span>
                     @if ($category->children->isNotEmpty())
-                        <div style="color:#9ca3af; font-size:12.5px; margin-top:4px;">
+                        <div style="color:var(--muted); font-size:12.5px; margin-top:4px;">
                             فئات فرعية: {{ $category->children->pluck('name_ar')->join('، ') }}
                         </div>
                     @endif

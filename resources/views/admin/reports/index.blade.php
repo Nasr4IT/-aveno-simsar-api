@@ -37,12 +37,12 @@
                                     <button class="btn btn-muted" type="submit">تجاهل</button>
                                 </form>
                             @else
-                                <span style="color:#9ca3af">—</span>
+                                <span style="color:var(--muted)">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="color:#9ca3af">لا توجد بلاغات.</td></tr>
+                    <tr><td colspan="6" style="color:var(--muted)">لا توجد بلاغات.</td></tr>
                 @endforelse
             </tbody>
         </table>

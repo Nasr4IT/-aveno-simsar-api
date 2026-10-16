@@ -32,7 +32,7 @@
                         </td>
                         <td>
                             @if ($user->hasRole('admin'))
-                                <span style="color:#9ca3af">—</span>
+                                <span style="color:var(--muted)">—</span>
                             @elseif ($user->is_banned)
                                 <form class="inline" method="POST" action="{{ route('admin.users.unban', $user) }}">
                                     @csrf
@@ -47,7 +47,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="color:#9ca3af">لا يوجد مستخدمون.</td></tr>
+                    <tr><td colspan="6" style="color:var(--muted)">لا يوجد مستخدمون.</td></tr>
                 @endforelse
             </tbody>
         </table>

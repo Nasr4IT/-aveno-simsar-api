@@ -49,7 +49,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" style="color:#9ca3af">لا توجد بانرات.</td></tr>
+                    <tr><td colspan="5" style="color:var(--muted)">لا توجد بانرات.</td></tr>
                 @endforelse
             </tbody>
         </table>
