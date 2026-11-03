@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تصفح الإعلانات — سمسار</title>
+  <meta name="description" content="ابحث في إعلانات السيارات والعقارات والدراجات النارية في سوريا وفلتر حسب المحافظة والسعر والمواصفات.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <div class="page-head">
+    <div class="container">
+      <h1 id="page-title">تصفح الإعلانات</h1>
+      <div class="chips" id="cat-chips"></div>
+    </div>
+  </div>
+
+  <main class="container browse">
+    <aside class="filters" id="filters">
+      <h3>الفلاتر <button class="btn btn-ghost btn-sm filters-toggle" id="filters-close" type="button">إغلاق ×</button></h3>
+      <form id="filter-form">
+        <div class="field">
+          <label for="f-q">بحث</label>
+          <input id="f-q" name="q" type="search" placeholder="مثال: كيا، شقة…">
+        </div>
+        <div class="field">
+          <label for="f-cat">الفئة</label>
+          <select id="f-cat" name="category_id"><option value="">كل الفئات</option></select>
+        </div>
+        <div class="field">
+          <label for="f-gov">المحافظة</label>
+          <select id="f-gov" name="governorate_id"><option value="">كل المحافظات</option></select>
+        </div>
+        <div class="field">
+          <label>السعر</label>
+          <div class="row2">
+            <input name="min_price" type="number" min="0" placeholder="من" inputmode="numeric">
+            <input name="max_price" type="number" min="0" placeholder="إلى" inputmode="numeric">
+          </div>
+        </div>
+        <div id="attr-filters"></div>
+        <button class="btn btn-primary btn-block" type="submit">تطبيق الفلاتر</button>
+        <button class="btn btn-ghost btn-block" type="button" id="reset">مسح الكل</button>
+      </form>
+    </aside>
+
+    <div>
+      <div class="toolbar">
+        <div>
+          <button class="btn btn-outline btn-sm filters-toggle" id="filters-open" type="button"></button>
+          <span class="muted" id="count"></span>
+        </div>
+        <select id="sort" aria-label="الترتيب">
+          <option value="">الأحدث (المميزة أولاً)</option>
+          <option value="price_asc">السعر: من الأقل</option>
+          <option value="price_desc">السعر: من الأعلى</option>
+          <option value="popular">الأكثر مشاهدة</option>
+          <option value="nearest">الأقرب إليّ</option>
+        </select>
+      </div>
+      <div class="chips" id="active-chips" style="margin-bottom:14px"></div>
+      <div class="grid" id="results"></div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/ads.js"></script>
+</body>
+</html>
