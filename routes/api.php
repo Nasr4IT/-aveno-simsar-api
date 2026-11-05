@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\GovernorateController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RatingController;
@@ -35,10 +36,12 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 Route::get('/ads', [AdController::class, 'index']);
-Route::get('/ads/{ad}', [AdController::class, 'show']);
+Route::get('/ads/{ad}', [AdController::class, 'show'])->name('ads.show'); // name is what makes AdResource include `description`
 Route::get('/ads/{ad}/similar', [AdController::class, 'similar']);
 
 Route::get('/banners', [BannerController::class, 'index']);
+
+Route::get('/governorates', [GovernorateController::class, 'index']);
 
 Route::get('/ad-packages', [PaymentController::class, 'packages']);
 Route::post('/payments/shamcash/webhook', [PaymentController::class, 'webhook']);
