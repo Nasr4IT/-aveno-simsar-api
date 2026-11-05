@@ -23,12 +23,18 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | GET | `/categories` | – | top-level categories + `children`, for the home screen |
 | GET | `/categories/{id}` | – | one category + `attributes` (the dynamic spec fields to render for "post an ad") |
 
+## Locations
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/governorates` | – | active governorates with their `cities`, ordered by id — unpaginated. For location pickers and the `governorate_id` / `city_id` filters on `GET /ads` |
+
 ## Ads
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
-| GET | `/ads/{id}` | – | full detail, increments `views_count`; visible for `approved` and `sold` |
+| GET | `/ads/{id}` | – | full detail (the only endpoint that includes `description`, `attributes` and `user`), increments `views_count`; visible for `approved` and `sold` |
 | GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
 | GET | `/my/ads/stats` | ✓ | aggregate counts across the caller's ads: by status, total views, favorites, conversations |
