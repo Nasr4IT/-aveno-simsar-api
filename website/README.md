@@ -7,7 +7,7 @@ A browse-only website for Simsar. It reads from the same Laravel API the Flutter
 | Page | File | Uses |
 |---|---|---|
 | الرئيسية — بحث، فئات، بانرات ممولة، إعلانات مميزة وأحدث الإعلانات، مميزات التطبيق، تحميل التطبيق | `index.html` | `GET /categories`, `/banners`, `/ads` |
-| تصفح وبحث مع فلاتر (فئة، محافظة، سعر، مواصفات الفئة) وترتيب (الأحدث، السعر، الأكثر مشاهدة، الأقرب) | `ads.html` | `GET /ads`, `/categories/{id}` |
+| تصفح وبحث مع فلاتر (فئة، محافظة، مدينة، سعر، مواصفات الفئة) وترتيب (الأحدث، السعر، الأكثر مشاهدة، الأقرب) | `ads.html` | `GET /ads`, `/categories/{id}`, `/governorates` |
 | تفاصيل الإعلان — صور، مواصفات، وصف، البائع وتقييماته، إعلانات مشابهة | `ad.html?id=…` | `GET /ads/{id}`, `/ads/{id}/similar`, `/users/{id}/ratings` |
 
 Actions that need an account (messaging, favorites, reporting, posting) open a "download the app" popup.
@@ -18,7 +18,7 @@ Edit **`assets/js/config.js`** only:
 - `API_BASE_URL` — the live API address ending in `/api`, e.g. `https://api.example.com/api`
 - `APP_LINKS` — Google Play / App Store links (they show "قريباً" until filled)
 - `CONTACT` — phone, WhatsApp, email, social links for the footer
-- `GOVERNORATES` — must match the ids in the server's `governorates` table (the API has no endpoint for them)
+- `GOVERNORATES` — fallback only. The site loads governorates and cities from `GET /governorates` (added in PR #1) and uses this list only if that endpoint isn't deployed yet
 
 Colors are at the top of `assets/css/style.css` (`--primary`, `--accent`).
 

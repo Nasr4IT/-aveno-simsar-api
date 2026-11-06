@@ -20,6 +20,18 @@
     return res.json();
   }
 
+  // Governorates (+ cities) from GET /governorates; falls back to config.js
+  // if the server doesn't have that endpoint yet.
+  let govPromise = null;
+  function governorates() {
+    if (!govPromise) {
+      govPromise = api("/governorates")
+        .then(({ data }) => data.map((g) => ({ id: g.id, name: g.name_ar, cities: (g.cities || []).map((c) => ({ id: c.id, name: c.name_ar })) })))
+        .catch(() => CFG.GOVERNORATES.map((g) => ({ ...g, cities: [] })));
+    }
+    return govPromise;
+  }
+
   // ---------- Safety ----------
   function esc(s) {
     return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -219,5 +231,5 @@
     if (t) { e.preventDefault(); appPrompt(t.getAttribute("data-app-only")); }
   });
 
-  window.Simsar = { CFG, api, esc, safeUrl, price, ago, location: location_, cover, icon, categoryVisual, adCard, skeletonCards, storeButtons, renderHeader, renderFooter, errorBox, emptyBox, appPrompt, stars };
+  window.Simsar = { CFG, api, governorates, esc, safeUrl, price, ago, location: location_, cover, icon, categoryVisual, adCard, skeletonCards, storeButtons, renderHeader, renderFooter, errorBox, emptyBox, appPrompt, stars };
 })();

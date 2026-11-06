@@ -28,9 +28,9 @@ window.SIMSAR_CONFIG = {
     instagram: ""
   },
 
-  // The API has no endpoint that lists governorates, so they are listed here.
-  // The ids MUST match the `governorates` table on your server
-  // (these are the ids produced by GeoSeeder on a fresh database).
+  // Fallback only: the site loads governorates + cities from GET /governorates.
+  // This list is used only if the server doesn't have that endpoint yet.
+  // The ids must match the `governorates` table (GeoSeeder ids on a fresh DB).
   GOVERNORATES: [
     { id: 1, name: "دمشق" },
     { id: 2, name: "ريف دمشق" },

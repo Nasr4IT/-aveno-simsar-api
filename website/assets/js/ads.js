@@ -3,7 +3,7 @@
   S.renderHeader("ads");
   S.renderFooter();
 
-  const BASE_KEYS = ["q", "category_id", "governorate_id", "min_price", "max_price", "sort", "page", "lat", "lng"];
+  const BASE_KEYS = ["q", "category_id", "governorate_id", "city_id", "min_price", "max_price", "sort", "page", "lat", "lng"];
   const form = document.getElementById("filter-form");
   const results = document.getElementById("results");
   const pager = document.getElementById("pager");
@@ -11,11 +11,19 @@
   const filtersEl = document.getElementById("filters");
   let categories = [];
   let attrDefs = []; // filterable attributes of the selected category
+  let govs = [];
 
   document.getElementById("filters-open").innerHTML = S.icon("filter") + " الفلاتر";
   document.getElementById("filters-open").onclick = () => filtersEl.classList.add("open");
   document.getElementById("filters-close").onclick = () => filtersEl.classList.remove("open");
-  C.GOVERNORATES.forEach((g) => document.getElementById("f-gov").add(new Option(g.name, g.id)));
+  const govSel = document.getElementById("f-gov"), citySel = document.getElementById("f-city");
+  function fillCities(govId) {
+    const cities = govs.find((g) => String(g.id) === String(govId))?.cities || [];
+    citySel.length = 1;
+    cities.forEach((c) => citySel.add(new Option(c.name, c.id)));
+    document.getElementById("city-field").hidden = cities.length === 0;
+  }
+  govSel.addEventListener("change", () => fillCities(govSel.value));
 
   const params = () => new URLSearchParams(location.search);
 
@@ -23,6 +31,8 @@
     form.q.value = p.get("q") || "";
     form.category_id.value = p.get("category_id") || "";
     form.governorate_id.value = p.get("governorate_id") || "";
+    fillCities(form.governorate_id.value);
+    citySel.value = p.get("city_id") || "";
     form.min_price.value = p.get("min_price") || "";
     form.max_price.value = p.get("max_price") || "";
     sortSel.value = p.get("sort") || "";
@@ -53,7 +63,7 @@
 
   function formToParams() {
     const p = new URLSearchParams();
-    ["q", "category_id", "governorate_id", "min_price", "max_price"].forEach((k) => { const v = form[k].value.trim(); if (v) p.set(k, v); });
+    ["q", "category_id", "governorate_id", "city_id", "min_price", "max_price"].forEach((k) => { const v = form[k].value.trim(); if (v) p.set(k, v); });
     attrDefs.forEach((a) => { const v = form.elements["attr_" + a.key]?.value; if (v) p.set(a.key, v); });
     const cur = params();
     if (sortSel.value) p.set("sort", sortSel.value);
@@ -97,15 +107,18 @@
   function renderActiveChips(p) {
     const labels = [];
     const catName = categories.find((c) => String(c.id) === p.get("category_id"))?.name_ar;
-    const govName = C.GOVERNORATES.find((g) => String(g.id) === p.get("governorate_id"))?.name;
+    const gov = govs.find((g) => String(g.id) === p.get("governorate_id"));
+    const govName = gov?.name;
+    const cityName = gov?.cities.find((c) => String(c.id) === p.get("city_id"))?.name;
     if (p.get("q")) labels.push(["q", `"${p.get("q")}"`]);
     if (govName) labels.push(["governorate_id", govName]);
+    if (cityName) labels.push(["city_id", cityName]);
     if (p.get("min_price")) labels.push(["min_price", "من " + p.get("min_price")]);
     if (p.get("max_price")) labels.push(["max_price", "إلى " + p.get("max_price")]);
     attrDefs.forEach((a) => { if (p.get(a.key)) labels.push([a.key, `${a.label_ar}: ${p.get(a.key)}`]); });
     const el = document.getElementById("active-chips");
     el.innerHTML = labels.map(([k, l]) => `<button class="chip" data-k="${S.esc(k)}">${S.esc(l)} ×</button>`).join("");
-    el.querySelectorAll("button").forEach((b) => b.onclick = () => { const q = params(); q.delete(b.dataset.k); q.delete("page"); navigate(q); });
+    el.querySelectorAll("button").forEach((b) => b.onclick = () => { const q = params(); q.delete(b.dataset.k); if (b.dataset.k === "governorate_id") q.delete("city_id"); q.delete("page"); navigate(q); });
     document.getElementById("page-title").textContent = catName ? `إعلانات ${catName}` : "تصفح الإعلانات";
     document.title = (catName ? `إعلانات ${catName}` : "تصفح الإعلانات") + " — " + C.SITE_NAME;
   }
@@ -162,9 +175,12 @@
 
   window.addEventListener("popstate", run);
 
-  S.api("/categories").then(({ data }) => {
-    categories = data || [];
-    const sel = document.getElementById("f-cat");
-    categories.forEach((c) => sel.add(new Option(c.name_ar, c.id)));
-  }).catch(() => {}).finally(run);
+  Promise.all([
+    S.api("/categories").then(({ data }) => {
+      categories = data || [];
+      const sel = document.getElementById("f-cat");
+      categories.forEach((c) => sel.add(new Option(c.name_ar, c.id)));
+    }).catch(() => {}),
+    S.governorates().then((list) => { govs = list; list.forEach((g) => govSel.add(new Option(g.name, g.id))); })
+  ]).finally(run);
 })();

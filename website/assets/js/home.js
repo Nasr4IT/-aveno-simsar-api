@@ -10,7 +10,7 @@
   document.getElementById("download-buttons").innerHTML = S.storeButtons();
 
   const gov = document.getElementById("hero-gov");
-  C.GOVERNORATES.forEach((g) => gov.add(new Option(g.name, g.id)));
+  S.governorates().then((list) => list.forEach((g) => gov.add(new Option(g.name, g.id))));
 
   // Drop empty params so the browse URL stays clean
   document.getElementById("hero-search").addEventListener("submit", (e) => {
