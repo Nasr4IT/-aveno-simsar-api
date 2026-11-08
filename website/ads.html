@@ -2,81 +2,74 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>تصفح الإعلانات — سمسار</title>
-  <meta name="description" content="ابحث في إعلانات السيارات والعقارات والدراجات النارية في سوريا وفلتر حسب المحافظة والسعر والمواصفات.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0C373D">
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <meta property="og:site_name" content="Semsar">
+  <title>Semsar</title>
 </head>
 <body>
   <header id="site-header"></header>
 
-  <div class="page-head">
-    <div class="container">
-      <h1 id="page-title">تصفح الإعلانات</h1>
-      <div class="chips" id="cat-chips"></div>
-    </div>
-  </div>
-
-  <main class="container browse">
-    <aside class="filters" id="filters">
-      <h3>الفلاتر <button class="btn btn-ghost btn-sm filters-toggle" id="filters-close" type="button">إغلاق ×</button></h3>
-      <form id="filter-form">
-        <div class="field">
-          <label for="f-q">بحث</label>
-          <input id="f-q" name="q" type="search" placeholder="مثال: كيا، شقة…">
-        </div>
-        <div class="field">
-          <label for="f-cat">الفئة</label>
-          <select id="f-cat" name="category_id"><option value="">كل الفئات</option></select>
-        </div>
-        <div class="field">
-          <label for="f-gov">المحافظة</label>
-          <select id="f-gov" name="governorate_id"><option value="">كل المحافظات</option></select>
-        </div>
-        <div class="field" id="city-field" hidden>
-          <label for="f-city">المدينة</label>
-          <select id="f-city" name="city_id"><option value="">كل المدن</option></select>
-        </div>
-        <div class="field">
-          <label>السعر</label>
-          <div class="row2">
-            <input name="min_price" type="number" min="0" placeholder="من" inputmode="numeric">
-            <input name="max_price" type="number" min="0" placeholder="إلى" inputmode="numeric">
-          </div>
-        </div>
-        <div id="attr-filters"></div>
-        <button class="btn btn-primary btn-block" type="submit">تطبيق الفلاتر</button>
-        <button class="btn btn-ghost btn-block" type="button" id="reset">مسح الكل</button>
-      </form>
-    </aside>
-
-    <div>
-      <div class="toolbar">
-        <div>
-          <button class="btn btn-outline btn-sm filters-toggle" id="filters-open" type="button"></button>
-          <span class="muted" id="count"></span>
-        </div>
-        <select id="sort" aria-label="الترتيب">
-          <option value="">الأحدث (المميزة أولاً)</option>
-          <option value="price_asc">السعر: من الأقل</option>
-          <option value="price_desc">السعر: من الأعلى</option>
-          <option value="popular">الأكثر مشاهدة</option>
-          <option value="nearest">الأقرب إليّ</option>
-        </select>
+  <main class="container">
+    <div class="explore-head">
+      <div class="explore-title">
+        <h1 id="page-title" data-i18n="explore"></h1>
+        <button class="icon-btn filters-open" id="filters-open" type="button" data-i18n-aria="filters"></button>
       </div>
-      <div class="chips" id="active-chips" style="margin-bottom:14px"></div>
-      <div class="grid" id="results"></div>
-      <div class="pager" id="pager"></div>
+      <label class="loc-pick"><span id="pin-ico"></span><select id="loc" data-i18n-aria="f_gov"><option value="" data-i18n="all_locations"></option></select><span id="chev-ico"></span></label>
+      <div class="chip-row" id="cat-chips"></div>
+    </div>
+
+    <div class="browse">
+      <div class="sheet-backdrop" id="backdrop" hidden></div>
+      <aside class="filters" id="filters">
+        <div class="filters-head">
+          <h3 data-i18n="filters"></h3>
+          <button class="btn btn-ghost btn-sm" id="reset" type="button" data-i18n="clear_all"></button>
+        </div>
+        <form id="filter-form">
+          <div class="field"><label for="f-q" data-i18n="f_keyword"></label><input id="f-q" name="q" type="search" data-i18n-ph="f_keyword_ph"></div>
+          <div class="field"><label for="f-cat" data-i18n="f_category"></label><select id="f-cat" name="category_id"><option value="" data-i18n="all_categories"></option></select></div>
+          <div class="field"><label for="f-gov" data-i18n="f_gov"></label><select id="f-gov" name="governorate_id"><option value="" data-i18n="all_locations"></option></select></div>
+          <div class="field" id="city-field" hidden><label for="f-city" data-i18n="f_city"></label><select id="f-city" name="city_id"><option value="" data-i18n="all_cities"></option></select></div>
+          <div class="field"><label data-i18n="f_price"></label>
+            <div class="row2"><input name="min_price" type="number" min="0" inputmode="numeric" data-i18n-ph="from"><input name="max_price" type="number" min="0" inputmode="numeric" data-i18n-ph="to"></div>
+          </div>
+          <div id="attr-filters"></div>
+          <button class="btn btn-primary btn-block" type="submit" data-i18n="apply"></button>
+          <button class="btn btn-ghost btn-block filters-close" type="button" id="filters-close" data-i18n="close"></button>
+        </form>
+      </aside>
+
+      <div>
+        <div class="toolbar">
+          <span class="muted" id="count"></span>
+          <select class="select-pill" id="sort" data-i18n-aria="sort_newest">
+            <option value="" data-i18n="sort_newest"></option>
+            <option value="price_asc" data-i18n="sort_price_asc"></option>
+            <option value="price_desc" data-i18n="sort_price_desc"></option>
+            <option value="popular" data-i18n="sort_popular"></option>
+            <option value="nearest" data-i18n="sort_nearest"></option>
+          </select>
+        </div>
+        <div class="chip-row" id="active-chips" style="margin-bottom:14px"></div>
+        <div class="grid" id="results"></div>
+        <div class="pager" id="pager"></div>
+      </div>
     </div>
   </main>
 
   <footer id="site-footer"></footer>
 
-  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/ads.js"></script>
 </body>

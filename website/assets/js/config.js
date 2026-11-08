@@ -1,6 +1,6 @@
 /*
  * ====================================================================
- *  إعدادات موقع سمسار — Simsar website settings
+ *  Semsar website settings — إعدادات موقع Semsar
  *  This is the ONLY file you normally need to edit before uploading.
  * ====================================================================
  */
@@ -9,8 +9,12 @@ window.SIMSAR_CONFIG = {
   // Example: "https://api.simsar.sy/api"
   API_BASE_URL: "http://localhost:8000/api",
 
-  SITE_NAME: "سمسار",
-  SITE_TAGLINE: "بيع واشترِ واستأجر سيارات وعقارات ودراجات بسهولة",
+  // The brand name is always shown in English, in both languages.
+  SITE_NAME: "Semsar",
+
+  // Language the site opens in the first time: "ar" or "en".
+  // Visitors can switch with the AR/EN button; their choice is remembered.
+  DEFAULT_LANG: "ar",
 
   // Download links for the mobile app. Leave "" to show "قريباً" (coming soon).
   APP_LINKS: {

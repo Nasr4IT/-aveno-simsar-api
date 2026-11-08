@@ -1,7 +1,14 @@
-# موقع سمسار — Simsar Website
+# Semsar Website — موقع Semsar
 
-موقع عرض (تصفح فقط) لإعلانات سمسار، يقرأ البيانات من نفس الـ API الذي يستخدمه تطبيق Flutter **دون أي تعديل على الباك إند**.
-A browse-only website for Simsar. It reads from the same Laravel API the Flutter app uses and changes nothing in the backend.
+موقع عرض (تصفح فقط) لإعلانات Semsar، يقرأ البيانات من نفس الـ API الذي يستخدمه تطبيق Flutter **دون أي تعديل على الباك إند**.
+A browse-only website for Semsar. It reads from the same Laravel API the Flutter app uses and changes nothing in the backend.
+
+## Design
+- Same look as the Semsar app: **light and dark mode** (follows the device setting; the sun/moon button switches and remembers it).
+- **Arabic / English** (AR/EN button, remembered). The name **Semsar** is always shown in English.
+- Brand colors are CSS variables at the top of `assets/css/style.css` (Deep Teal `#0C373D`, Turquoise `#27F5F2`, Mist `#E8F2F2`, Ink `#102326`). Fonts: Manrope (Latin) + Cairo (Arabic).
+- Logo: `assets/img/logo-256.png` (light) and `logo-dark-256.png` (dark, navy/white swapped so it stays visible). To change the logo, replace these two files, `favicon.png` and `apple-touch-icon.png`.
+- English names: the server stores categories, specs and places in Arabic only (the seeders leave `name_en` / `label_en` empty). `assets/js/i18n.js` has an English fallback list (`SIMSAR_EN_FALLBACK`). English names entered in the admin panel take priority.
 
 ## الصفحات / Pages
 | Page | File | Uses |
@@ -18,6 +25,7 @@ Edit **`assets/js/config.js`** only:
 - `API_BASE_URL` — the live API address ending in `/api`, e.g. `https://api.example.com/api`
 - `APP_LINKS` — Google Play / App Store links (they show "قريباً" until filled)
 - `CONTACT` — phone, WhatsApp, email, social links for the footer
+- `DEFAULT_LANG` — the language first-time visitors see (`ar` or `en`)
 - `GOVERNORATES` — fallback only. The site loads governorates and cities from `GET /governorates` (added in PR #1) and uses this list only if that endpoint isn't deployed yet
 
 Colors are at the top of `assets/css/style.css` (`--primary`, `--accent`).

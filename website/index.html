@@ -2,83 +2,78 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>سمسار — سيارات، عقارات ودراجات للبيع والإيجار في سوريا</title>
-  <meta name="description" content="سمسار: تصفح آلاف الإعلانات لبيع وشراء واستئجار السيارات والعقارات والدراجات النارية في كل المحافظات السورية.">
-  <meta property="og:title" content="سمسار — سوق الإعلانات المبوبة">
-  <meta property="og:description" content="بيع واشترِ واستأجر سيارات وعقارات ودراجات بسهولة.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0C373D">
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/boot.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <meta property="og:site_name" content="Semsar">
+  <title>Semsar</title>
 </head>
 <body>
   <header id="site-header"></header>
 
   <main>
     <section class="hero">
-      <div class="container">
-        <h1 id="hero-title">كل ما تبحث عنه… في مكان واحد</h1>
-        <p id="hero-tagline"></p>
-        <form class="search-bar" id="hero-search" action="ads.html">
-          <input type="search" name="q" placeholder="ابحث عن سيارة، شقة، دراجة…" aria-label="بحث">
-          <select name="category_id" id="hero-cat" aria-label="الفئة"><option value="">كل الفئات</option></select>
-          <select name="governorate_id" id="hero-gov" aria-label="المحافظة"><option value="">كل المحافظات</option></select>
-          <button class="btn btn-accent" type="submit" id="hero-search-btn"></button>
-        </form>
-        <div class="hero-stats">
-          <div><b id="stat-ads">—</b><span>إعلان منشور</span></div>
-          <div><b>14</b><span>محافظة</span></div>
-          <div><b>مجاني</b><span>نشر الإعلانات</span></div>
+      <div class="container hero-grid">
+        <div>
+          <h1 class="greet" id="greet"></h1>
+          <p class="hero-sub" data-i18n="tagline"></p>
+          <form class="search-pill" id="hero-search" action="ads.html" role="search">
+            <span id="search-ico"></span>
+            <input type="search" name="q" data-i18n-ph="search_ph" data-i18n-aria="search_btn" autocomplete="off">
+            <button class="btn btn-primary" type="submit" data-i18n="search_btn"></button>
+          </form>
+          <div class="cats" id="cats"></div>
         </div>
+        <div class="hero-logo-wrap" id="hero-logo"></div>
       </div>
     </section>
 
-    <div class="container">
-      <div class="cats" id="cats"></div>
-    </div>
-
     <section id="banners-section" hidden>
-      <div class="container">
-        <div class="banners" id="banners"></div>
-      </div>
+      <div class="container"><div class="banners" id="banners"></div></div>
     </section>
 
     <section id="featured-section" hidden>
       <div class="container">
-        <div class="section-head">
-          <h2>إعلانات مميزة</h2>
-          <a href="ads.html">عرض الكل <span id="arrow1"></span></a>
-        </div>
-        <div class="grid" id="featured"></div>
+        <div class="section-head"><h2 data-i18n="featured"></h2><a class="see-all" href="ads.html" data-i18n="see_all"></a></div>
+        <div class="rail" id="featured"></div>
+      </div>
+    </section>
+
+    <section id="popular-section" hidden>
+      <div class="container">
+        <div class="section-head"><h2 data-i18n="popular"></h2><a class="see-all" href="ads.html?sort=popular" data-i18n="see_all"></a></div>
+        <div class="rail mini" id="popular"></div>
       </div>
     </section>
 
     <section>
       <div class="container">
-        <div class="section-head">
-          <h2>أحدث الإعلانات</h2>
-          <a href="ads.html">عرض الكل <span id="arrow2"></span></a>
-        </div>
+        <div class="section-head"><h2 data-i18n="latest"></h2><a class="see-all" href="ads.html" data-i18n="see_all"></a></div>
         <div class="grid" id="latest"></div>
       </div>
     </section>
 
     <section id="features">
       <div class="container">
-        <div class="section-head"><h2>كل مميزات تطبيق سمسار</h2></div>
+        <div class="section-head"><h2 data-i18n="features_title"></h2></div>
         <div class="features" id="features-grid"></div>
       </div>
     </section>
 
     <section>
       <div class="container">
-        <div class="section-head"><h2>انشر إعلانك بثلاث خطوات</h2></div>
+        <div class="section-head"><h2 data-i18n="steps_title"></h2></div>
         <div class="steps">
-          <div class="step"><h3>حمّل التطبيق وسجّل</h3><p>أنشئ حسابك برقم هاتفك خلال أقل من دقيقة.</p></div>
-          <div class="step"><h3>أضف إعلانك</h3><p>اختر الفئة، أضف الصور والمواصفات والسعر والموقع.</p></div>
-          <div class="step"><h3>استقبل العروض</h3><p>بعد مراجعة الإعلان يظهر للجميع، وتصلك الرسائل مباشرة.</p></div>
+          <div class="step"><h3 data-i18n="s1"></h3><p data-i18n="s1_d"></p></div>
+          <div class="step"><h3 data-i18n="s2"></h3><p data-i18n="s2_d"></p></div>
+          <div class="step"><h3 data-i18n="s3"></h3><p data-i18n="s3_d"></p></div>
         </div>
       </div>
     </section>
@@ -87,17 +82,11 @@
       <div class="container">
         <div class="download">
           <div>
-            <h2>حمّل تطبيق سمسار الآن</h2>
-            <p>راسل البائعين، احفظ إعلاناتك المفضلة، انشر إعلاناتك مجاناً، وتلقَّ إشعاراً فور وصول رسالة أو موافقة على إعلانك.</p>
+            <h2 data-i18n="dl_title"></h2>
+            <p data-i18n="dl_text"></p>
             <div class="store-row" id="download-buttons"></div>
           </div>
-          <div class="phone-mock" aria-hidden="true">
-            <div class="pm-bar"></div>
-            <div class="pm-wide"></div>
-            <div class="pm-row"><div class="pm-card"></div><div class="pm-card"></div></div>
-            <div class="pm-row"><div class="pm-card"></div><div class="pm-card"></div></div>
-            <div class="pm-row"><div class="pm-card"></div><div class="pm-card"></div></div>
-          </div>
+          <img class="download-logo" src="assets/img/logo-dark-256.png" alt="">
         </div>
       </div>
     </section>
@@ -105,7 +94,7 @@
 
   <footer id="site-footer"></footer>
 
-  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/home.js"></script>
 </body>
