@@ -1,7 +1,7 @@
 /* Shared helpers: API, language, theme, header/footer, listing cards. */
 (function () {
   const CFG = window.SIMSAR_CONFIG;
-  const BRAND = CFG.SITE_NAME || "Semsar"; // always English
+  const BRAND = CFG.SITE_NAME || "Simsar"; // always English
   const LANG = document.documentElement.lang === "en" ? "en" : "ar";
   const DICT = window.SIMSAR_I18N[LANG];
   const base = CFG.API_BASE_URL.replace(/\/+$/, "");
@@ -11,7 +11,7 @@
   function t(key, vars) {
     let s = DICT[key] ?? window.SIMSAR_I18N.en[key] ?? key;
     if (vars) Object.entries(vars).forEach(([k, v]) => { s = s.split("{" + k + "}").join(v); });
-    return s.split("Semsar").join(BRAND);
+    return s.split("Simsar").join(BRAND);
   }
   // English mode: use the API's English name, else our fallback, else the Arabic text
   const FB = window.SIMSAR_EN_FALLBACK || {};
@@ -24,11 +24,11 @@
     root.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
     root.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
   }
-  function setLang(l) { try { localStorage.setItem("semsar_lang", l); } catch {} location.reload(); }
+  function setLang(l) { try { localStorage.setItem("simsar_lang", l); } catch {} location.reload(); }
   function toggleTheme() {
     const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("semsar_theme", next); } catch {}
+    try { localStorage.setItem("simsar_theme", next); } catch {}
   }
 
   // ---------- API ----------

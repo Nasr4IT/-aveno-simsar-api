@@ -1,12 +1,12 @@
-# Semsar Website — موقع Semsar
+# Simsar Website — موقع Simsar
 
-موقع عرض (تصفح فقط) لإعلانات Semsar، يقرأ البيانات من نفس الـ API الذي يستخدمه تطبيق Flutter **دون أي تعديل على الباك إند**.
-A browse-only website for Semsar. It reads from the same Laravel API the Flutter app uses and changes nothing in the backend.
+موقع عرض (تصفح فقط) لإعلانات Simsar، يقرأ البيانات من نفس الـ API الذي يستخدمه تطبيق Flutter **دون أي تعديل على الباك إند**.
+A browse-only website for Simsar. It reads from the same Laravel API the Flutter app uses and changes nothing in the backend.
 
 ## Design
-- Same look as the Semsar app: **light and dark mode** (follows the device setting; the sun/moon button switches and remembers it).
-- **Arabic / English** (AR/EN button, remembered). The name **Semsar** is always shown in English.
-- Brand colors are CSS variables at the top of `assets/css/style.css` (Deep Teal `#0C373D`, Turquoise `#27F5F2`, Mist `#E8F2F2`, Ink `#102326`). Fonts: Manrope (Latin) + Cairo (Arabic).
+- Same look as the Simsar app: **light and dark mode** (follows the device setting; the sun/moon button switches and remembers it).
+- **Arabic / English** (AR/EN button, remembered). The name **Simsar** is always shown in English.
+- Brand colors are CSS variables at the top of `assets/css/style.css` (Deep Teal `#0C373D`, Turquoise `#27F5F2`, Mist `#E8F2F2`, Ink `#102326`). Fonts are self-hosted in `assets/fonts/` (no Google Fonts): Manrope for Latin, Alexandria for Arabic (both free, SIL OFL). To use **Montserrat Arabic** instead, put your licensed `.woff2` files in `assets/fonts/` (file names in `assets/css/montserrat-arabic.css`) and set `USE_MONTSERRAT_ARABIC: true` in `config.js`.
 - Logo: `assets/img/logo-256.png` (light) and `logo-dark-256.png` (dark, navy/white swapped so it stays visible). To change the logo, replace these two files, `favicon.png` and `apple-touch-icon.png`.
 - English names: the server stores categories, specs and places in Arabic only (the seeders leave `name_en` / `label_en` empty). `assets/js/i18n.js` has an English fallback list (`SIMSAR_EN_FALLBACK`). English names entered in the admin panel take priority.
 

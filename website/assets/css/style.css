@@ -1,6 +1,6 @@
 /* =====================================================================
-   Semsar website — matches the Semsar app (light + dark)
-   Brand: Deep Teal #0C373D · Semsar Turquoise #27F5F2 · White #FFFFFF
+   Simsar website — matches the Simsar app (light + dark)
+   Brand: Deep Teal #0C373D · Simsar Turquoise #27F5F2 · White #FFFFFF
           Marketplace Mist #E8F2F2 · Ink #102326 · Success Green #22B573
    ===================================================================== */
 :root {
@@ -56,11 +56,14 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  margin: 0; font-family: "Manrope", "Cairo", system-ui, sans-serif;
+  margin: 0; font-family: "Manrope", "Montserrat Arabic", "Alexandria", system-ui, sans-serif;
   color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased;
   transition: background-color .2s, color .2s;
 }
-html[lang="ar"] body { font-family: "Cairo", "Manrope", system-ui, sans-serif; }
+/* Arabic: slightly lighter headings and more line height read better */
+html[lang="ar"] body { line-height: 1.75; }
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3 { font-weight: 700; }
+html[lang="ar"] .btn, html[lang="ar"] .chip, html[lang="ar"] .ad-price { font-weight: 700; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; }
@@ -74,7 +77,7 @@ h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 .5em; font-weight: 800; }
 
 /* ---------- Brand ---------- */
 .brand { display: inline-flex; align-items: center; gap: 10px; }
-.brand-name { font-family: "Manrope", sans-serif; font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; direction: ltr; color: var(--ink); }
+.brand-name { font-family: "Manrope", "Alexandria", sans-serif; font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; direction: ltr; color: var(--ink); }
 :root[data-theme="dark"] .brand-name { color: var(--turquoise); }
 .logo { width: 40px; height: 40px; object-fit: contain; }
 .logo-dark { display: none; }
@@ -258,7 +261,7 @@ section { padding: 30px 0; }
 .feature p { margin: 0; color: var(--muted); font-size: .95rem; }
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; counter-reset: step; }
 .step { padding: 22px; border-radius: var(--radius); background: var(--surface); border: 1px dashed var(--line); }
-.step::before { counter-increment: step; content: counter(step); width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 800; margin-bottom: 10px; font-family: "Manrope", sans-serif; }
+.step::before { counter-increment: step; content: counter(step); width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 800; margin-bottom: 10px; font-family: "Manrope", "Alexandria", sans-serif; }
 .step h3 { font-size: 1.05rem; }
 .step p { margin: 0; color: var(--muted); }
 .download {
@@ -318,7 +321,7 @@ html[dir="rtl"] .select-pill { padding: .5em 1em .5em 2.2em; }
 }
 @media (min-width: 1001px) { .filters-close, .sheet-backdrop { display: none !important; } }
 .pager { display: flex; justify-content: center; gap: 6px; margin-top: 26px; flex-wrap: wrap; }
-.pager button { min-width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 800; cursor: pointer; font-family: "Manrope", sans-serif; }
+.pager button { min-width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 800; cursor: pointer; font-family: "Manrope", "Alexandria", sans-serif; }
 .pager button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .pager button:disabled { opacity: .4; cursor: default; }
 html[dir="rtl"] .pager .flip .ico { transform: scaleX(-1); }
@@ -342,7 +345,7 @@ html[dir="rtl"] .round-btn.back .ico { transform: scaleX(-1); }
 .gal-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
 .gal-prev { inset-inline-start: 12px; } .gal-next { inset-inline-end: 12px; }
 html[dir="rtl"] .gal-nav .ico { transform: scaleX(-1); }
-.gal-count { position: absolute; bottom: 12px; inset-inline-end: 12px; background: rgba(0, 0, 0, .55); color: #fff; padding: 3px 12px; border-radius: 10px; font-size: .85rem; font-weight: 700; font-family: "Manrope", sans-serif; direction: ltr; }
+.gal-count { position: absolute; bottom: 12px; inset-inline-end: 12px; background: rgba(0, 0, 0, .55); color: #fff; padding: 3px 12px; border-radius: 10px; font-size: .85rem; font-weight: 700; font-family: "Manrope", "Alexandria", sans-serif; direction: ltr; }
 @media (max-width: 960px) { .gallery-main { border-radius: 0; margin-inline: -16px; } }
 .thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px; }
 .thumbs button { flex: none; width: 88px; height: 66px; border-radius: 12px; overflow: hidden; border: 2.5px solid transparent; padding: 0; cursor: pointer; background: var(--surface-2); }

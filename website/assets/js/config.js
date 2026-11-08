@@ -1,6 +1,6 @@
 /*
  * ====================================================================
- *  Semsar website settings — إعدادات موقع Semsar
+ *  Simsar website settings — إعدادات موقع Simsar
  *  This is the ONLY file you normally need to edit before uploading.
  * ====================================================================
  */
@@ -10,11 +10,16 @@ window.SIMSAR_CONFIG = {
   API_BASE_URL: "http://localhost:8000/api",
 
   // The brand name is always shown in English, in both languages.
-  SITE_NAME: "Semsar",
+  SITE_NAME: "Simsar",
 
   // Language the site opens in the first time: "ar" or "en".
   // Visitors can switch with the AR/EN button; their choice is remembered.
   DEFAULT_LANG: "ar",
+
+  // Arabic font. Default: Alexandria (bundled, free). Set to true only after
+  // putting licensed Montserrat Arabic .woff2 files in assets/fonts/
+  // (names listed in assets/css/montserrat-arabic.css).
+  USE_MONTSERRAT_ARABIC: false,
 
   // Download links for the mobile app. Leave "" to show "قريباً" (coming soon).
   APP_LINKS: {

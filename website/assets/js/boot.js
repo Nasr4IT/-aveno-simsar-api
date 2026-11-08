@@ -2,7 +2,7 @@
    light/dark theme so there is no flash of the wrong one. */
 (function () {
   var d = document.documentElement, lang, theme;
-  try { lang = localStorage.getItem("semsar_lang"); theme = localStorage.getItem("semsar_theme"); } catch (e) {}
+  try { lang = localStorage.getItem("simsar_lang"); theme = localStorage.getItem("simsar_theme"); } catch (e) {}
   lang = lang === "en" || lang === "ar" ? lang : ((window.SIMSAR_CONFIG && window.SIMSAR_CONFIG.DEFAULT_LANG) || "ar");
   d.lang = lang;
   d.dir = lang === "ar" ? "rtl" : "ltr";
@@ -12,6 +12,10 @@
     d.setAttribute("data-theme", t);
   };
   apply();
+  if (window.SIMSAR_CONFIG && window.SIMSAR_CONFIG.USE_MONTSERRAT_ARABIC) {
+    var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "assets/css/montserrat-arabic.css";
+    document.head.appendChild(l);
+  }
   // follow the device setting until the visitor picks a theme themselves
   if (mq && mq.addEventListener) mq.addEventListener("change", function () { if (!theme) apply(); });
 })();

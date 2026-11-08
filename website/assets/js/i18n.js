@@ -1,8 +1,8 @@
-/* All website text in Arabic and English. "Semsar" is never translated. */
+/* All website text in Arabic and English. "Simsar" is never translated. */
 window.SIMSAR_I18N = {
   ar: {
     tagline: "اعثر على أفضل العروض بالقرب منك.",
-    meta_desc: "Semsar: بيع واشترِ واستأجر السيارات والعقارات والدراجات وكل الأشياء في سوريا.",
+    meta_desc: "Simsar: بيع واشترِ واستأجر السيارات والعقارات والدراجات وكل الأشياء في سوريا.",
     nav_home: "الرئيسية", nav_explore: "استكشف", nav_features: "المميزات", nav_sell: "بيع", nav_messages: "الرسائل", nav_profile: "حسابي",
     get_app: "حمّل التطبيق", theme_toggle: "تبديل الوضع الليلي", lang_switch: "English", lang_short: "EN",
     greet_morning: "صباح الخير 👋", greet_afternoon: "مساء الخير 👋", greet_evening: "مساء الخير 👋",
@@ -10,7 +10,7 @@ window.SIMSAR_I18N = {
     all_categories: "كل الفئات", all: "الكل", all_ads: "كل الإعلانات", listings_n: "{n} إعلان",
     featured: "إعلانات مميزة", featured_badge: "مميز", popular: "الأكثر رواجاً", latest: "أحدث الإعلانات", see_all: "عرض الكل",
     sponsored: "إعلان ممول", no_ads: "لا توجد إعلانات بعد", no_ads_sub: "كن أول من ينشر إعلاناً عبر التطبيق!",
-    features_title: "كل ما في تطبيق Semsar",
+    features_title: "كل ما في تطبيق Simsar",
     f_search: "بحث ذكي وفلاتر", f_search_d: "ابحث حتى لو أخطأت في الكتابة، وفلتر حسب الفئة والموقع والسعر والمواصفات.",
     f_near: "الأقرب إليك", f_near_d: "رتّب الإعلانات حسب المسافة لتجد ما تريده في منطقتك.",
     f_chat: "مراسلة مباشرة", f_chat_d: "راسل البائع داخل التطبيق واتفق على كل التفاصيل.",
@@ -24,10 +24,10 @@ window.SIMSAR_I18N = {
     s1: "اختر الفئة", s1_d: "سيارات، عقارات، دراجات أو أي شيء آخر.",
     s2: "أضف الصور", s2_d: "حتى 12 صورة تُضغط تلقائياً لتحميل سريع.",
     s3: "انشر واستقبل العروض", s3_d: "بعد المراجعة يظهر إعلانك للجميع وتصلك الرسائل مباشرة.",
-    dl_title: "حمّل تطبيق Semsar", dl_text: "راسل البائعين، احفظ المفضلة، انشر إعلاناتك مجاناً وتلقَّ الإشعارات فوراً.",
+    dl_title: "حمّل تطبيق Simsar", dl_text: "راسل البائعين، احفظ المفضلة، انشر إعلاناتك مجاناً وتلقَّ الإشعارات فوراً.",
     get_on: "حمّله من", soon_on: "قريباً على", direct: "تحميل مباشر", apk: "ملف APK",
     footer_links: "روابط", footer_contact: "تواصل معنا", footer_app: "التطبيق", rights: "جميع الحقوق محفوظة", whatsapp: "واتساب", facebook: "فيسبوك", instagram: "إنستغرام",
-    app_only_text: "هذه الميزة متاحة في تطبيق Semsar. حمّله مجاناً للمراسلة وحفظ الإعلانات ونشر إعلاناتك.",
+    app_only_text: "هذه الميزة متاحة في تطبيق Simsar. حمّله مجاناً للمراسلة وحفظ الإعلانات ونشر إعلاناتك.",
     app_chat: "راسل البائع عبر التطبيق", app_save: "احفظ الإعلان عبر التطبيق", app_report: "الإبلاغ متاح عبر التطبيق",
     app_sell: "انشر إعلانك عبر التطبيق", app_messages: "رسائلك في التطبيق", app_profile: "حسابك في التطبيق", close: "إغلاق",
     error: "تعذّر تحميل البيانات. تأكد من اتصالك ثم أعد المحاولة.", retry: "إعادة المحاولة",
@@ -44,12 +44,12 @@ window.SIMSAR_I18N = {
     safety: "نصائح الأمان: عاين المنتج بنفسك، التقِ بالبائع في مكان عام، ولا ترسل أي مبلغ مقدماً.",
     better_in_app: "تجربة أفضل على التطبيق", better_in_app_d: "مراسلة، مفضلة، إشعارات ونشر إعلاناتك مجاناً.",
     similar: "إعلانات مشابهة", not_found: "هذا الإعلان غير متوفر", not_found_sub: "ربما بيع أو حُذف أو ما زال قيد المراجعة.", browse_others: "تصفح إعلانات أخرى", no_id: "لم يتم تحديد إعلان",
-    link_copied: "تم نسخ الرابط", copy_link: "انسخ الرابط:", wa_msg: "مرحباً، بخصوص إعلانك على Semsar: {t} {u}", now: "الآن",
-    title_home: "Semsar — بيع واشترِ واستأجر بسهولة", title_explore: "استكشف الإعلانات", title_cat: "إعلانات {c}"
+    link_copied: "تم نسخ الرابط", copy_link: "انسخ الرابط:", wa_msg: "مرحباً، بخصوص إعلانك على Simsar: {t} {u}", now: "الآن",
+    title_home: "Simsar — بيع واشترِ واستأجر بسهولة", title_explore: "استكشف الإعلانات", title_cat: "إعلانات {c}"
   },
   en: {
     tagline: "Find great deals near you.",
-    meta_desc: "Semsar: buy, sell and rent cars, homes, bikes and everything else in Syria.",
+    meta_desc: "Simsar: buy, sell and rent cars, homes, bikes and everything else in Syria.",
     nav_home: "Home", nav_explore: "Explore", nav_features: "Features", nav_sell: "Sell", nav_messages: "Messages", nav_profile: "Profile",
     get_app: "Get the app", theme_toggle: "Toggle dark mode", lang_switch: "العربية", lang_short: "ع",
     greet_morning: "Good morning 👋", greet_afternoon: "Good afternoon 👋", greet_evening: "Good evening 👋",
@@ -57,7 +57,7 @@ window.SIMSAR_I18N = {
     all_categories: "All categories", all: "All", all_ads: "All listings", listings_n: "{n} listings",
     featured: "Featured listings", featured_badge: "Featured", popular: "Popular now", latest: "Latest listings", see_all: "See all",
     sponsored: "Sponsored", no_ads: "No listings yet", no_ads_sub: "Be the first to post one from the app!",
-    features_title: "Everything in the Semsar app",
+    features_title: "Everything in the Simsar app",
     f_search: "Smart search & filters", f_search_d: "Finds results even with typos. Filter by category, location, price and specs.",
     f_near: "Nearest to you", f_near_d: "Sort listings by distance to find what's around you.",
     f_chat: "Direct messaging", f_chat_d: "Chat with sellers in the app and agree on every detail.",
@@ -71,10 +71,10 @@ window.SIMSAR_I18N = {
     s1: "Choose a category", s1_d: "Cars, homes, bikes or anything else.",
     s2: "Add photos", s2_d: "Up to 12 photos, compressed automatically for fast loading.",
     s3: "Publish & get offers", s3_d: "Once reviewed, your listing goes live and buyers message you directly.",
-    dl_title: "Get the Semsar app", dl_text: "Message sellers, save favorites, post listings for free and get instant notifications.",
+    dl_title: "Get the Simsar app", dl_text: "Message sellers, save favorites, post listings for free and get instant notifications.",
     get_on: "Get it on", soon_on: "Coming soon on", direct: "Direct download", apk: "APK file",
     footer_links: "Links", footer_contact: "Contact us", footer_app: "The app", rights: "All rights reserved", whatsapp: "WhatsApp", facebook: "Facebook", instagram: "Instagram",
-    app_only_text: "This is available in the Semsar app. Download it free to message sellers, save listings and post your own.",
+    app_only_text: "This is available in the Simsar app. Download it free to message sellers, save listings and post your own.",
     app_chat: "Message the seller in the app", app_save: "Save listings in the app", app_report: "Reporting is available in the app",
     app_sell: "Post your listing from the app", app_messages: "Your messages are in the app", app_profile: "Your account is in the app", close: "Close",
     error: "Couldn't load data. Check your connection and try again.", retry: "Try again",
@@ -91,8 +91,8 @@ window.SIMSAR_I18N = {
     safety: "Safety tips: inspect the item yourself, meet in a public place, and never pay in advance.",
     better_in_app: "Better in the app", better_in_app_d: "Messaging, favorites, notifications and free posting.",
     similar: "Similar listings", not_found: "This listing isn't available", not_found_sub: "It may have been sold, removed, or still under review.", browse_others: "Browse other listings", no_id: "No listing selected",
-    link_copied: "Link copied", copy_link: "Copy the link:", wa_msg: "Hi, about your listing on Semsar: {t} {u}", now: "just now",
-    title_home: "Semsar — Buy, sell and rent with ease", title_explore: "Explore listings", title_cat: "{c} listings"
+    link_copied: "Link copied", copy_link: "Copy the link:", wa_msg: "Hi, about your listing on Simsar: {t} {u}", now: "just now",
+    title_home: "Simsar — Buy, sell and rent with ease", title_explore: "Explore listings", title_cat: "{c} listings"
   }
 };
 
