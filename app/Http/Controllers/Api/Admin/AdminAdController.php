@@ -26,6 +26,8 @@ class AdminAdController extends Controller
 
     public function approve(Request $request, Ad $ad, PushNotificationService $push)
     {
+        $this->assertReviewable($ad);
+
         $ad->update([
             'status' => 'approved',
             'published_at' => now(),
@@ -41,6 +43,8 @@ class AdminAdController extends Controller
 
     public function reject(Request $request, Ad $ad, PushNotificationService $push)
     {
+        $this->assertReviewable($ad);
+
         $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $ad->update([
@@ -54,5 +58,18 @@ class AdminAdController extends Controller
         $push->sendToUser($ad->user, 'تم رفض إعلانك', $ad->title, ['type' => 'ad_rejected', 'ad_id' => $ad->id]);
 
         return new AdResource($ad);
+    }
+
+    // Sold/expired ads are outside the review workflow — the owner would
+    // relist() one back to pending before it's reviewable again. Without
+    // this, an admin could e.g. "reject" an ad that already sold, firing a
+    // confusing "your ad was rejected" notification at its owner.
+    private function assertReviewable(Ad $ad): void
+    {
+        abort_unless(
+            in_array($ad->status, ['pending', 'approved', 'rejected'], true),
+            422,
+            'لا يمكن تغيير حالة مراجعة إعلان مُباع أو منتهي الصلاحية.'
+        );
     }
 }

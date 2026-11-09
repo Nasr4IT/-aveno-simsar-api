@@ -330,6 +330,7 @@ class AdController extends Controller
     public function update(UpdateAdRequest $request, Ad $ad)
     {
         $this->authorizeOwner($ad);
+        $this->assertEditable($ad);
 
         $data = $request->validated();
         $category = $ad->category()->with('attributes_')->firstOrFail();
@@ -373,6 +374,7 @@ class AdController extends Controller
     public function addImages(Request $request, Ad $ad, ImageService $imageService)
     {
         $this->authorizeOwner($ad);
+        $this->assertEditable($ad);
 
         $existingCount = $ad->images()->count();
 
@@ -398,6 +400,7 @@ class AdController extends Controller
     public function removeImage(Request $request, Ad $ad, AdImage $image)
     {
         $this->authorizeOwner($ad);
+        $this->assertEditable($ad);
 
         abort_unless($image->ad_id === $ad->id, 404);
         abort_if($ad->images()->count() <= 1, 422, 'يجب أن يحتوي الإعلان على صورة واحدة على الأقل — احذف الإعلان بالكامل إذا أردت إزالته.');
@@ -473,6 +476,20 @@ class AdController extends Controller
     private function authorizeOwner(Ad $ad): void
     {
         abort_unless($ad->user_id === request()->user()->id, 403);
+    }
+
+    // update()/addImages()/removeImage() all reset the ad to pending for
+    // re-review — but a sold/expired ad is meant to be frozen until the
+    // owner explicitly relist()s it (which has its own validated
+    // sold/expired-only guard). Without this, editing e.g. just the title
+    // of a sold ad would silently un-sell it as a side effect.
+    private function assertEditable(Ad $ad): void
+    {
+        abort_unless(
+            in_array($ad->status, ['pending', 'approved', 'rejected'], true),
+            422,
+            'لا يمكن تعديل إعلان مُباع أو منتهي الصلاحية — استخدم خاصية إعادة النشر أولاً.'
+        );
     }
 
     // Checks required-ness, and value types/options, for a category's dynamic

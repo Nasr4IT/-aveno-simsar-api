@@ -46,6 +46,23 @@
                                 @csrf
                                 <button class="btn btn-danger" type="submit">حذف</button>
                             </form>
+                            <details style="margin-top:8px">
+                                <summary style="cursor:pointer; color:var(--teal-dark); font-size:13px;">تعديل</summary>
+                                <form method="POST" action="{{ route('admin.banners.update', $banner) }}" style="margin-top:10px; min-width:220px;">
+                                    @csrf
+                                    <label>العنوان (اختياري)</label>
+                                    <input type="text" name="title" value="{{ $banner->title }}">
+                                    <label>الرابط عند الضغط (اختياري — https:// أو tel:)</label>
+                                    <input type="text" name="link_url" value="{{ $banner->link_url }}">
+                                    <label>تاريخ البدء</label>
+                                    <input type="datetime-local" name="starts_at" value="{{ $banner->starts_at->format('Y-m-d\TH:i') }}" required>
+                                    <label>تاريخ الانتهاء</label>
+                                    <input type="datetime-local" name="ends_at" value="{{ $banner->ends_at->format('Y-m-d\TH:i') }}" required>
+                                    <label>ترتيب العرض</label>
+                                    <input type="number" name="sort_order" min="0" value="{{ $banner->sort_order }}">
+                                    <button class="btn btn-primary" type="submit" style="margin-top:10px">حفظ التعديلات</button>
+                                </form>
+                            </details>
                         </td>
                     </tr>
                 @empty

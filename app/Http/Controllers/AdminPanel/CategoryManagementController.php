@@ -30,6 +30,25 @@ class CategoryManagementController extends Controller
         return back()->with('status', 'تمت إضافة الفئة.');
     }
 
+    // Mirrors Api\Admin\AdminCategoryController@update's field set — note
+    // parent_id isn't editable there either (only set at creation), so this
+    // intentionally doesn't expose re-parenting.
+    public function update(Request $request, Category $category)
+    {
+        $data = $request->validate([
+            'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
+            'sort_order' => ['nullable', 'integer'],
+        ]);
+
+        // Plain HTML checkboxes are simply absent from the request when
+        // unchecked, not sent as false — read it explicitly rather than via
+        // the validated() array, same as is_required/is_filterable above.
+        $category->update([...$data, 'is_active' => $request->boolean('is_active')]);
+
+        return back()->with('status', 'تم تعديل الفئة.');
+    }
+
     // A select/multiselect's choices come in as a comma-separated string
     // from the plain HTML form field — split into the array the attribute
     // model actually stores (same shape the API's storeAttribute() takes

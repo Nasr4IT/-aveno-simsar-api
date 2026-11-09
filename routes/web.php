@@ -36,11 +36,13 @@ Route::prefix('admin-panel')->name('admin.')->group(function () {
 
         Route::get('/categories', [CategoryManagementController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryManagementController::class, 'store'])->name('categories.store');
+        Route::post('/categories/{category}/update', [CategoryManagementController::class, 'update'])->name('categories.update');
         Route::post('/categories/{category}/attributes', [CategoryManagementController::class, 'storeAttribute'])->name('categories.attributes.store');
         Route::post('/categories/{category}/delete', [CategoryManagementController::class, 'destroy'])->name('categories.destroy');
 
         Route::get('/banners', [BannerManagementController::class, 'index'])->name('banners.index');
         Route::post('/banners', [BannerManagementController::class, 'store'])->name('banners.store');
+        Route::post('/banners/{banner}/update', [BannerManagementController::class, 'update'])->name('banners.update');
         Route::post('/banners/{banner}/toggle', [BannerManagementController::class, 'toggle'])->name('banners.toggle');
         Route::post('/banners/{banner}/delete', [BannerManagementController::class, 'destroy'])->name('banners.destroy');
 

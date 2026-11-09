@@ -26,6 +26,11 @@
                 <div>
                     <strong>{{ $category->name_ar }}</strong>
                     <span style="color:var(--muted)">({{ $category->slug }})</span>
+                    @if ($category->is_active)
+                        <span class="badge badge-approved">مفعّلة</span>
+                    @else
+                        <span class="badge badge-rejected">متوقفة</span>
+                    @endif
                     @if ($category->children->isNotEmpty())
                         <div style="color:var(--muted); font-size:12.5px; margin-top:4px;">
                             فئات فرعية: {{ $category->children->pluck('name_ar')->join('، ') }}
@@ -37,6 +42,21 @@
                     <button class="btn btn-danger" type="submit">حذف</button>
                 </form>
             </div>
+
+            <details style="margin-top:10px">
+                <summary style="cursor:pointer; color:var(--teal-dark); font-size:13px;">تعديل</summary>
+                <form method="POST" action="{{ route('admin.categories.update', $category) }}" style="margin-top:10px">
+                    @csrf
+                    <label>الاسم بالعربية</label>
+                    <input type="text" name="name_ar" value="{{ $category->name_ar }}" required>
+                    <label>الاسم بالإنجليزية (اختياري)</label>
+                    <input type="text" name="name_en" value="{{ $category->name_en }}">
+                    <label>ترتيب العرض</label>
+                    <input type="number" name="sort_order" value="{{ $category->sort_order }}">
+                    <label><input type="checkbox" name="is_active" value="1" style="width:auto" {{ $category->is_active ? 'checked' : '' }}> مفعّلة (تظهر للمستخدمين ويمكن نشر إعلانات جديدة فيها)</label>
+                    <button class="btn btn-primary" type="submit" style="margin-top:10px">حفظ التعديلات</button>
+                </form>
+            </details>
 
             @if ($category->attributes_->isNotEmpty())
                 <table style="margin-top:12px">
@@ -57,7 +77,7 @@
             @endif
 
             <details style="margin-top:10px">
-                <summary style="cursor:pointer; color:var(--primary); font-size:13px;">+ إضافة خاصية ديناميكية</summary>
+                <summary style="cursor:pointer; color:var(--teal-dark); font-size:13px;">+ إضافة خاصية ديناميكية</summary>
                 <form method="POST" action="{{ route('admin.categories.attributes.store', $category) }}" style="margin-top:10px">
                     @csrf
                     <label>المفتاح (بالإنجليزية، بدون مسافات)</label>

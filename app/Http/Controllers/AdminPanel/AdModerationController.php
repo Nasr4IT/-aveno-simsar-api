@@ -26,6 +26,8 @@ class AdModerationController extends Controller
 
     public function approve(Ad $ad, PushNotificationService $push)
     {
+        $this->assertReviewable($ad);
+
         $ad->update([
             'status' => 'approved',
             'published_at' => now(),
@@ -41,6 +43,8 @@ class AdModerationController extends Controller
 
     public function reject(Request $request, Ad $ad, PushNotificationService $push)
     {
+        $this->assertReviewable($ad);
+
         $data = $request->validate(['reason' => ['required', 'string', 'max:500']]);
 
         $ad->update([
@@ -54,5 +58,18 @@ class AdModerationController extends Controller
         $push->sendToUser($ad->user, 'تم رفض إعلانك', $ad->title, ['type' => 'ad_rejected', 'ad_id' => $ad->id]);
 
         return back()->with('status', "تم رفض \"{$ad->title}\".");
+    }
+
+    // Sold/expired ads are outside the review workflow — see the matching
+    // guard and comment in Api\Admin\AdminAdController. abort_unless (not
+    // back()->withErrors()) matches this panel's existing convention for a
+    // hard business-rule stop — see UserManagementController::ban().
+    private function assertReviewable(Ad $ad): void
+    {
+        abort_unless(
+            in_array($ad->status, ['pending', 'approved', 'rejected'], true),
+            422,
+            'لا يمكن تغيير حالة مراجعة إعلان مُباع أو منتهي الصلاحية.'
+        );
     }
 }

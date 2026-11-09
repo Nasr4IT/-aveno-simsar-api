@@ -82,6 +82,33 @@ class AdManagementTest extends TestCase
         $response->assertJsonValidationErrors('attributes');
     }
 
+    // Regression test: deactivating a category (CategoryManagementController
+    // / AdminCategoryController) is meant to stop new ads from being filed
+    // into it, not just hide it from browsing — StoreAdRequest used to only
+    // check the category existed, not whether it was active.
+    public function test_an_ad_cannot_be_created_in_an_inactive_category(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $category = Category::factory()->create(['is_active' => false]);
+        $governorate = Governorate::factory()->create();
+        $city = City::factory()->create(['governorate_id' => $governorate->id]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/ads', [
+            'category_id' => $category->id,
+            'governorate_id' => $governorate->id,
+            'city_id' => $city->id,
+            'title' => 'Should not be allowed',
+            'description' => 'This category is deactivated.',
+            'images' => [UploadedFile::fake()->image('x.jpg')],
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('category_id');
+    }
+
     // Regression test: Laravel's 'image' validation rule accepts formats GD
     // can't decode (e.g. SVG) — ImageService used to let that crash through
     // as an unhandled 500 instead of a normal validation error.
@@ -140,6 +167,22 @@ class AdManagementTest extends TestCase
         $this->assertSame('pending', $ad->fresh()->status);
     }
 
+    // Regression test: update() used to have no status guard at all, so
+    // editing e.g. just the title of a sold ad would silently flip it back
+    // to pending via resetToPending() — un-selling it as a side effect,
+    // bypassing relist()'s explicit sold/expired-only rule entirely.
+    public function test_a_sold_ad_cannot_be_edited_via_the_generic_update_endpoint(): void
+    {
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'sold']);
+
+        Sanctum::actingAs($owner);
+        $this->putJson("/api/ads/{$ad->id}", ['title' => 'Still sold, right?'])
+            ->assertStatus(422);
+
+        $this->assertSame('sold', $ad->fresh()->status);
+    }
+
     public function test_only_the_owner_can_delete_their_ad(): void
     {
         $owner = User::factory()->create();
@@ -186,6 +229,19 @@ class AdManagementTest extends TestCase
         // Adding a photo is an edit, so it goes back to pending like any
         // other change to an already-reviewed ad.
         $this->assertSame('pending', $ad->fresh()->status);
+    }
+
+    public function test_photos_cannot_be_added_to_a_sold_ad(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $ad = Ad::factory()->create(['user_id' => $owner->id, 'status' => 'sold']);
+        $ad->images()->create(['path' => 'ads/1/a.jpg', 'is_cover' => true, 'sort_order' => 0]);
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/api/ads/{$ad->id}/images", [
+            'images' => [UploadedFile::fake()->image('b.jpg')],
+        ])->assertStatus(422);
     }
 
     public function test_a_stranger_cannot_add_photos_to_someone_elses_ad(): void

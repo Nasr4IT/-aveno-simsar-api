@@ -104,6 +104,45 @@ class BannerTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('ends_at');
     }
 
+    // Regression test: update() used to validate ends_at as just a plain
+    // date with no after_or_equal:starts_at check (store() has one, update()
+    // dropped it) — an admin could silently leave a banner's window
+    // impossible (ends before it starts), which just never goes active
+    // (scopeActive requires starts_at <= now <= ends_at) with no error
+    // telling them why.
+    public function test_updating_a_banner_rejects_an_end_date_before_the_start_date(): void
+    {
+        $banner = Banner::create([
+            'image_path' => 'banners/a.jpg', 'starts_at' => now(), 'ends_at' => now()->addDays(10),
+        ]);
+        Sanctum::actingAs($this->adminUser());
+
+        $this->putJson("/api/admin/banners/{$banner->id}", [
+            'starts_at' => now()->toDateTimeString(),
+            'ends_at' => now()->subDay()->toDateTimeString(),
+        ])->assertJsonValidationErrors('ends_at');
+    }
+
+    // Same check, but exercising the fallback-to-existing-value path: only
+    // ends_at is sent (a partial update), so the comparison must fall back
+    // to the banner's current starts_at rather than skipping the check.
+    public function test_updating_only_the_end_date_still_validates_against_the_existing_start_date(): void
+    {
+        $banner = Banner::create([
+            'image_path' => 'banners/a.jpg', 'starts_at' => now(), 'ends_at' => now()->addDays(10),
+        ]);
+        Sanctum::actingAs($this->adminUser());
+
+        $this->putJson("/api/admin/banners/{$banner->id}", [
+            'ends_at' => now()->subDay()->toDateTimeString(),
+        ])->assertJsonValidationErrors('ends_at');
+
+        $this->assertSame(
+            now()->addDays(10)->toDateTimeString(),
+            $banner->fresh()->ends_at->toDateTimeString()
+        );
+    }
+
     public function test_admin_can_pause_a_banner_early_without_changing_its_dates(): void
     {
         $banner = Banner::create([

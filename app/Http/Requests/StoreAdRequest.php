@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAdRequest extends FormRequest
 {
@@ -14,7 +15,11 @@ class StoreAdRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => ['required', 'exists:categories,id'],
+            // Scoped to is_active categories only — an admin deactivating a
+            // category (CategoryManagementController/AdminCategoryController)
+            // is meant to stop new ads from being filed into it, not just
+            // hide it from browsing.
+            'category_id' => ['required', Rule::exists('categories', 'id')->where('is_active', true)],
             'governorate_id' => ['required', 'exists:governorates,id'],
             'city_id' => ['required', 'exists:cities,id'],
             'title' => ['required', 'string', 'max:150'],

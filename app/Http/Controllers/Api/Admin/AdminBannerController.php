@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BannerResource;
 use App\Models\Banner;
 use App\Services\ImageService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 // See docs/HOW_IT_WORKS.md § Sponsored Banners. A business pays the admin
 // directly (outside the ad-posting / Sham Cash flow entirely) and the
@@ -61,6 +63,21 @@ class AdminBannerController extends Controller
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
+
+        // A plain after_or_equal:starts_at rule can't be used here: this is a
+        // partial update, so starts_at/ends_at may each be absent from the
+        // request, in which case the comparison must fall back to the
+        // banner's existing value rather than silently skipping the check
+        // (which previously let an update leave ends_at before starts_at —
+        // a window that can never go active, with no error shown).
+        $effectiveStartsAt = Carbon::parse($data['starts_at'] ?? $banner->starts_at);
+        $effectiveEndsAt = Carbon::parse($data['ends_at'] ?? $banner->ends_at);
+
+        if ($effectiveEndsAt->lt($effectiveStartsAt)) {
+            throw ValidationException::withMessages([
+                'ends_at' => 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء أو يساويه.',
+            ]);
+        }
 
         $banner->update($data);
 

@@ -73,4 +73,20 @@ class AdminModerationTest extends TestCase
         Sanctum::actingAs($this->adminUser());
         $this->postJson("/api/admin/ads/{$ad->id}/reject", [])->assertStatus(422);
     }
+
+    // Regression test: approve()/reject() used to have no status guard, so
+    // an admin could "reject" an ad that had already sold — firing a
+    // confusing "your ad was rejected" notification at an owner whose item
+    // already sold. Sold/expired ads are outside the review workflow.
+    public function test_a_sold_ad_cannot_be_approved_or_rejected(): void
+    {
+        $admin = $this->adminUser();
+        $ad = Ad::factory()->create(['status' => 'sold']);
+
+        Sanctum::actingAs($admin);
+        $this->postJson("/api/admin/ads/{$ad->id}/approve")->assertStatus(422);
+        $this->postJson("/api/admin/ads/{$ad->id}/reject", ['reason' => 'test'])->assertStatus(422);
+
+        $this->assertSame('sold', $ad->fresh()->status);
+    }
 }

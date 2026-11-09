@@ -38,6 +38,24 @@ class BannerManagementController extends Controller
         return back()->with('status', 'تمت إضافة البانر.');
     }
 
+    // The edit form always submits starts_at/ends_at together (unlike the
+    // API's partial PUT), so a plain after_or_equal:starts_at rule is safe
+    // here — no fallback to the existing model value needed.
+    public function update(Request $request, Banner $banner)
+    {
+        $data = $request->validate([
+            'title' => ['nullable', 'string', 'max:150'],
+            'link_url' => ['nullable', 'string', 'max:500', self::LINK_URL_RULE],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['required', 'date', 'after_or_equal:starts_at'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $banner->update([...$data, 'sort_order' => $data['sort_order'] ?? 0]);
+
+        return back()->with('status', 'تم تعديل البانر.');
+    }
+
     // The on/off switch separate from the ad-boost's date window — same
     // single field Api\Admin\AdminBannerController@update exposes as
     // is_active, just toggled from its current value instead of taking an

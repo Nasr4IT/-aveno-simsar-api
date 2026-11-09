@@ -80,6 +80,17 @@ class AdminPanelTest extends TestCase
         $this->assertSame('صور غير واضحة', $ad->rejection_reason);
     }
 
+    public function test_a_sold_ad_cannot_be_approved_or_rejected_from_the_panel(): void
+    {
+        $admin = $this->adminUser();
+        $ad = Ad::factory()->create(['status' => 'sold']);
+
+        $this->actingAs($admin)->post(route('admin.ads.approve', $ad))->assertStatus(422);
+        $this->actingAs($admin)->post(route('admin.ads.reject', $ad), ['reason' => 'test'])->assertStatus(422);
+
+        $this->assertSame('sold', $ad->fresh()->status);
+    }
+
     public function test_admin_can_ban_and_unban_a_user_from_the_panel(): void
     {
         $admin = $this->adminUser();
@@ -120,6 +131,28 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseHas('category_attributes', ['category_id' => $category->id, 'key' => 'material']);
     }
 
+    // Regression test: the website previously had no way to edit a category
+    // at all (create/delete only) despite the API supporting it — see
+    // AdminCategoryController@update.
+    public function test_admin_can_edit_a_category_from_the_panel(): void
+    {
+        $admin = $this->adminUser();
+        $category = Category::factory()->create(['name_ar' => 'قديم', 'is_active' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.categories.update', $category), [
+                'name_ar' => 'جديد', 'name_en' => 'New', 'sort_order' => 5,
+                // is_active omitted — a plain checkbox left unchecked, so
+                // this should deactivate the category.
+            ])
+            ->assertRedirect();
+
+        $category->refresh();
+        $this->assertSame('جديد', $category->name_ar);
+        $this->assertSame(5, $category->sort_order);
+        $this->assertFalse($category->is_active);
+    }
+
     public function test_admin_can_create_toggle_and_delete_a_banner_from_the_panel(): void
     {
         Storage::fake('public');
@@ -139,6 +172,51 @@ class AdminPanelTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.banners.destroy', $banner))->assertRedirect();
         $this->assertDatabaseMissing('banners', ['id' => $banner->id]);
+    }
+
+    // Regression test: the website previously had no way to edit a banner's
+    // fields at all (create/toggle/delete only) despite the API supporting
+    // it — see AdminBannerController@update.
+    public function test_admin_can_edit_a_banner_from_the_panel(): void
+    {
+        Storage::fake('public');
+        $admin = $this->adminUser();
+        $banner = Banner::create([
+            'image_path' => 'banners/a.jpg', 'title' => 'Old title',
+            'starts_at' => now()->subDay(), 'ends_at' => now()->addDays(10),
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.banners.update', $banner), [
+                'title' => 'New title',
+                'starts_at' => now()->toDateTimeString(),
+                'ends_at' => now()->addDays(5)->toDateTimeString(),
+                'sort_order' => 3,
+            ])
+            ->assertRedirect();
+
+        $banner->refresh();
+        $this->assertSame('New title', $banner->title);
+        $this->assertSame(3, $banner->sort_order);
+    }
+
+    // Regression test: AdminBannerController@update (API) used to validate
+    // ends_at as just a date with no after_or_equal:starts_at check,
+    // silently allowing a window that can never go active. Same bug could
+    // exist on this panel's form; confirm it's actually blocked here too.
+    public function test_editing_a_banner_rejects_an_end_date_before_the_start_date(): void
+    {
+        $admin = $this->adminUser();
+        $banner = Banner::create([
+            'image_path' => 'banners/a.jpg', 'starts_at' => now()->subDay(), 'ends_at' => now()->addDays(10),
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.banners.update', $banner), [
+                'starts_at' => now()->toDateTimeString(),
+                'ends_at' => now()->subDay()->toDateTimeString(),
+            ])
+            ->assertSessionHasErrors('ends_at');
     }
 
     public function test_admin_can_resolve_and_dismiss_reports_from_the_panel(): void
