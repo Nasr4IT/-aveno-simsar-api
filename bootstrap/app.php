@@ -23,15 +23,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
-        // This is a JSON API for every route except the small server-rendered
-        // admin panel (routes/web.php, 'admin-panel/*') — so unauthenticated
-        // API requests get a plain 401, while a guest hitting the admin
-        // panel gets redirected to its real login page. Without this
-        // override entirely, ApplicationBuilder::withMiddleware()'s default
-        // `redirectGuestsTo(fn () => route('login'))` crashes the API path
-        // with "RouteNotFoundException: Route [login] not defined." — there
-        // is no route literally named 'login', only 'admin.login'.
-        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : route('admin.login'));
+        // Three surfaces, three guest behaviours: the JSON API gets a plain
+        // 401 (no redirect), a guest hitting the admin panel goes to its own
+        // login, and a guest hitting a members-only page on the public
+        // website (routes/site.php) goes to the site's login. Without this
+        // override, the framework default `route('login')` would also be
+        // wrong for the admin panel and for api/* (JSON clients must never
+        // be redirected).
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            return $request->is('admin-panel*') ? route('admin.login') : route('site.login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Second half of the same fix: Handler::unauthenticated() does

@@ -9,14 +9,17 @@ use App\Http\Controllers\AdminPanel\ReportManagementController;
 use App\Http\Controllers\AdminPanel\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
-// This backend is API-only for the Flutter app (see routes/api.php) except
-// for this one piece: a small server-rendered admin panel, since
-// moderation was previously Postman-only. Session-based auth (the 'web'
-// guard), entirely separate from the API's Sanctum bearer tokens.
-Route::get('/', fn () => response()->json([
+// Two server-rendered surfaces share this file's session-based 'web'
+// guard (entirely separate from the API's Sanctum bearer tokens):
+//   - the public website (routes/site.php) — the same features as the
+//     Flutter app, for a browser;
+//   - the admin panel below, role-gated by the 'admin' middleware.
+Route::get('/healthz', fn () => response()->json([
     'app' => config('app.name'),
     'status' => 'ok',
 ]));
+
+require __DIR__.'/site.php';
 
 Route::prefix('admin-panel')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
