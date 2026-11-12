@@ -131,16 +131,14 @@ class BannerTest extends TestCase
         $banner = Banner::create([
             'image_path' => 'banners/a.jpg', 'starts_at' => now(), 'ends_at' => now()->addDays(10),
         ]);
+        $originalEndsAt = $banner->ends_at->toDateTimeString();
         Sanctum::actingAs($this->adminUser());
 
         $this->putJson("/api/admin/banners/{$banner->id}", [
             'ends_at' => now()->subDay()->toDateTimeString(),
         ])->assertJsonValidationErrors('ends_at');
 
-        $this->assertSame(
-            now()->addDays(10)->toDateTimeString(),
-            $banner->fresh()->ends_at->toDateTimeString()
-        );
+        $this->assertSame($originalEndsAt, $banner->fresh()->ends_at->toDateTimeString());
     }
 
     public function test_admin_can_pause_a_banner_early_without_changing_its_dates(): void

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Ad;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -51,5 +52,25 @@ class ImageService
         Storage::disk($disk)->put($path, (string) $image->toJpeg(self::JPEG_QUALITY));
 
         return $path;
+    }
+
+    // Stores each uploaded image under ads/{ad id}/, appended after any
+    // images the ad already has (sort_order continues from the current
+    // count) — used both on creation and when adding photos to an existing
+    // ad. The very first image the ad ever gets is flagged as the cover;
+    // later batches never touch an already-set cover.
+    public function storeAdImages(Ad $ad, array $files): void
+    {
+        $existingCount = $ad->images()->count();
+
+        foreach (array_values($files) as $index => $file) {
+            $path = $this->storeResized($file, "ads/{$ad->id}");
+
+            $ad->images()->create([
+                'path' => $path,
+                'is_cover' => $existingCount === 0 && $index === 0,
+                'sort_order' => $existingCount + $index,
+            ]);
+        }
     }
 }
