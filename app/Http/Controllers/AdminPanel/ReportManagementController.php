@@ -29,13 +29,13 @@ class ReportManagementController extends Controller
     {
         $report->update(['status' => 'resolved', 'reviewed_by' => auth()->id(), 'reviewed_at' => now()]);
 
-        return back()->with('status', 'تم وضع علامة "تمت المعالجة".');
+        return back()->with('status', __('تم وضع علامة "تمت المعالجة".'));
     }
 
     public function dismiss(Report $report)
     {
         $report->update(['status' => 'dismissed', 'reviewed_by' => auth()->id(), 'reviewed_at' => now()]);
 
-        return back()->with('status', 'تم تجاهل البلاغ.');
+        return back()->with('status', __('تم تجاهل البلاغ.'));
     }
 }

@@ -272,6 +272,23 @@ class AdminPanelTest extends TestCase
         $this->actingAs($user, 'sanctum')->getJson('/api/admin/ads')->assertForbidden();
     }
 
+    // Regression: the options hint shows the Arabic comma ("بنزين، ديزل")
+    // but only the Latin comma was split, so following the hint created a
+    // single option containing the whole list.
+    public function test_attribute_options_split_on_the_arabic_comma_too(): void
+    {
+        $admin = $this->adminUser();
+        $category = Category::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.categories.attributes.store', $category), [
+            'key' => 'fuel', 'label_ar' => 'الوقود', 'label_en' => 'Fuel', 'type' => 'select', 'options' => 'بنزين، ديزل ,كهربائي',
+        ])->assertRedirect();
+
+        $attr = $category->attributes_()->sole();
+        $this->assertSame(['بنزين', 'ديزل', 'كهربائي'], $attr->options);
+        $this->assertSame('Fuel', $attr->label_en);
+    }
+
     // The tests above only ever POST to the mutating actions (which just
     // redirect) — none of them actually render the index Blade templates,
     // which is exactly where an undefined variable or a bad relation call
@@ -296,7 +313,8 @@ class AdminPanelTest extends TestCase
         $this->get(route('admin.users.index'))->assertOk()->assertSee($admin->name);
         $this->get(route('admin.categories.index'))->assertOk()->assertSee('اللون');
         $this->get(route('admin.banners.index'))->assertOk();
-        $this->get(route('admin.reports.index'))->assertOk()->assertSee('spam');
+        // Shown as its readable label, not the raw "spam" code.
+        $this->get(route('admin.reports.index'))->assertOk()->assertSee('إعلان مكرر / سبام');
         $this->get(route('admin.reports.index', ['status' => '']))->assertOk();
     }
 }

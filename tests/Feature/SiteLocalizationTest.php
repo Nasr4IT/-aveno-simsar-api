@@ -99,14 +99,39 @@ class SiteLocalizationTest extends TestCase
         $this->withCookie('locale', 'en')->get('/register')->assertSee('The name field is required.');
     }
 
-    public function test_the_admin_panel_stays_arabic_even_with_the_english_cookie(): void
+    public function test_the_admin_panel_follows_the_same_language_choice(): void
     {
-        $this->actingAs($this->adminUser())->withCookie('locale', 'en')
-            ->get(route('admin.dashboard'))
+        $admin = $this->adminUser();
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
+            ->assertSee('<html lang="ar" dir="rtl">', false)
             ->assertSee('لوحة التحكم');
 
-        $this->assertSame('ar', app()->getLocale());
+        $this->actingAs($admin)->withCookie('locale', 'en')->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('<html lang="en" dir="ltr">', false)
+            ->assertSee('Control panel')
+            ->assertSee('Ads pending review')
+            ->assertSee('data-theme-toggle', false);
+
+        $this->withCookie('locale', 'en')->get(route('admin.ads.index'))->assertOk()->assertSee('Review ads');
+    }
+
+    public function test_the_admin_login_page_has_the_language_and_theme_toggles(): void
+    {
+        $this->get(route('admin.login'))
+            ->assertOk()
+            ->assertSee('data-theme-toggle', false)
+            ->assertSee(route('site.locale', 'en'), false);
+    }
+
+    public function test_push_notifications_to_sellers_stay_arabic_when_the_admin_uses_english(): void
+    {
+        $this->assertStringContainsString(
+            "'تمت الموافقة على إعلانك'",
+            file_get_contents(app_path('Http/Controllers/AdminPanel/AdModerationController.php')),
+        );
     }
 
     // Guard against untranslated text: every __('…') / trans_choice('…') key
@@ -118,7 +143,9 @@ class SiteLocalizationTest extends TestCase
 
         $files = array_merge(
             $this->filesIn(resource_path('views/site'), '.blade.php'),
+            $this->filesIn(resource_path('views/admin'), '.blade.php'),
             $this->filesIn(app_path('Http/Controllers/Site'), '.php'),
+            $this->filesIn(app_path('Http/Controllers/AdminPanel'), '.php'),
             $this->filesIn(app_path('Services'), '.php'),
         );
 

@@ -39,11 +39,11 @@ class AdminAuthController extends Controller
         $user = User::where('phone', $data['phone'])->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password) || ! $user->hasRole('admin')) {
-            return back()->withErrors(['phone' => 'بيانات الدخول غير صحيحة أو لا تملك صلاحيات إدارية.'])->onlyInput('phone');
+            return back()->withErrors(['phone' => __('بيانات الدخول غير صحيحة أو لا تملك صلاحيات إدارية.')])->onlyInput('phone');
         }
 
         if ($user->is_banned) {
-            return back()->withErrors(['phone' => 'تم إيقاف هذا الحساب.']);
+            return back()->withErrors(['phone' => __('تم إيقاف هذا الحساب.')]);
         }
 
         Auth::login($user, $request->boolean('remember'));

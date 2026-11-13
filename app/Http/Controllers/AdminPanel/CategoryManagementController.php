@@ -27,7 +27,7 @@ class CategoryManagementController extends Controller
 
         Category::create([...$data, 'slug' => Str::slug($data['name_en'] ?? $data['name_ar']).'-'.Str::random(4)]);
 
-        return back()->with('status', 'تمت إضافة الفئة.');
+        return back()->with('status', __('تمت إضافة الفئة.'));
     }
 
     // Mirrors Api\Admin\AdminCategoryController@update's field set — note
@@ -46,7 +46,7 @@ class CategoryManagementController extends Controller
         // the validated() array, same as is_required/is_filterable above.
         $category->update([...$data, 'is_active' => $request->boolean('is_active')]);
 
-        return back()->with('status', 'تم تعديل الفئة.');
+        return back()->with('status', __('تم تعديل الفئة.'));
     }
 
     // A select/multiselect's choices come in as a comma-separated string
@@ -67,12 +67,16 @@ class CategoryManagementController extends Controller
 
         $category->attributes_()->create([
             ...$data,
-            'options' => $data['options'] ? array_map('trim', explode(',', $data['options'])) : null,
+            // Split on the Latin comma and the Arabic comma "،" — the form's
+            // own example uses the Arabic one.
+            'options' => $data['options']
+                ? array_values(array_filter(array_map('trim', preg_split('/[,،]/u', $data['options'])), 'strlen'))
+                : null,
             'is_required' => $request->boolean('is_required'),
             'is_filterable' => $request->boolean('is_filterable'),
         ]);
 
-        return back()->with('status', 'تمت إضافة الخاصية.');
+        return back()->with('status', __('تمت إضافة الخاصية.'));
     }
 
     public function destroy(Category $category)
@@ -80,9 +84,9 @@ class CategoryManagementController extends Controller
         try {
             $category->delete();
         } catch (QueryException $e) {
-            return back()->withErrors(['category' => 'لا يمكن حذف هذه الفئة لوجود إعلانات مرتبطة بها أو بإحدى فئاتها الفرعية.']);
+            return back()->withErrors(['category' => __('لا يمكن حذف هذه الفئة لوجود إعلانات مرتبطة بها أو بإحدى فئاتها الفرعية.')]);
         }
 
-        return back()->with('status', 'تم الحذف.');
+        return back()->with('status', __('تم الحذف.'));
     }
 }

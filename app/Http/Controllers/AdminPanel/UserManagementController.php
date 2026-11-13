@@ -27,18 +27,18 @@ class UserManagementController extends Controller
     // other admins, and banning revokes every existing token immediately.
     public function ban(User $user)
     {
-        abort_if($user->hasRole('admin'), 422, 'لا يمكن حظر مستخدم يمتلك صلاحيات إدارية');
+        abort_if($user->hasRole('admin'), 422, __('لا يمكن حظر مستخدم يمتلك صلاحيات إدارية'));
 
         $user->forceFill(['is_banned' => true])->save();
         $user->tokens()->delete();
 
-        return back()->with('status', "تم حظر {$user->name}.");
+        return back()->with('status', __('تم حظر :name.', ['name' => $user->name]));
     }
 
     public function unban(User $user)
     {
         $user->forceFill(['is_banned' => false])->save();
 
-        return back()->with('status', "تم إلغاء حظر {$user->name}.");
+        return back()->with('status', __('تم إلغاء حظر :name.', ['name' => $user->name]));
     }
 }

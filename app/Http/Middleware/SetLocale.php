@@ -15,8 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
  * survives logging out (logout invalidates the session). Arabic is the
  * default (config/app.php 'locale').
  *
- * The admin panel is Arabic-only, so it is always pinned to Arabic
- * regardless of what the visitor picked on the website.
+ * The admin panel follows the same choice (one switch, one cookie for
+ * both). Push notifications to users' phones are not affected — they're
+ * sent in Arabic regardless.
  */
 class SetLocale
 {
@@ -26,9 +27,7 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->is('admin-panel*')
-            ? 'ar'
-            : $request->cookie(self::COOKIE, config('app.locale'));
+        $locale = $request->cookie(self::COOKIE, config('app.locale'));
 
         if (! in_array($locale, self::SUPPORTED, true)) {
             $locale = config('app.locale');

@@ -35,7 +35,7 @@ class BannerManagementController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('status', 'تمت إضافة البانر.');
+        return back()->with('status', __('تمت إضافة البانر.'));
     }
 
     // The edit form always submits starts_at/ends_at together (unlike the
@@ -53,7 +53,7 @@ class BannerManagementController extends Controller
 
         $banner->update([...$data, 'sort_order' => $data['sort_order'] ?? 0]);
 
-        return back()->with('status', 'تم تعديل البانر.');
+        return back()->with('status', __('تم تعديل البانر.'));
     }
 
     // The on/off switch separate from the ad-boost's date window — same
@@ -64,7 +64,7 @@ class BannerManagementController extends Controller
     {
         $banner->update(['is_active' => ! $banner->is_active]);
 
-        return back()->with('status', $banner->is_active ? 'تم تفعيل البانر.' : 'تم إيقاف البانر.');
+        return back()->with('status', $banner->is_active ? __('تم تفعيل البانر.') : __('تم إيقاف البانر.'));
     }
 
     public function destroy(Banner $banner)
@@ -72,6 +72,6 @@ class BannerManagementController extends Controller
         Storage::disk(config('filesystems.default'))->delete($banner->image_path);
         $banner->delete();
 
-        return back()->with('status', 'تم الحذف.');
+        return back()->with('status', __('تم الحذف.'));
     }
 }

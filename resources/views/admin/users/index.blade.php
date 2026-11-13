@@ -1,57 +1,57 @@
 @extends('admin.layout')
-@section('title', 'المستخدمون')
+@section('title', __('المستخدمون'))
 @section('content')
     <div class="card">
         <form method="GET" action="{{ route('admin.users.index') }}" style="display:flex; gap:8px;">
-            <input type="text" name="q" value="{{ $q }}" placeholder="بحث بالاسم أو رقم الهاتف">
-            <button class="btn btn-primary" type="submit">بحث</button>
+            <input type="text" name="q" value="{{ $q }}" placeholder="{{ __('بحث بالاسم أو رقم الهاتف') }}">
+            <button class="btn btn-primary" type="submit">{{ __('بحث') }}</button>
         </form>
     </div>
 
-    <div class="card">
+    <div class="card table-wrap">
         <table>
             <thead>
-                <tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>التقييم</th><th>الحالة</th><th>إجراء</th></tr>
+                <tr><th>{{ __('الاسم') }}</th><th>{{ __('الهاتف') }}</th><th>{{ __('البريد') }}</th><th>{{ __('التقييم') }}</th><th>{{ __('الحالة') }}</th><th>{{ __('إجراء') }}</th></tr>
             </thead>
             <tbody>
                 @forelse ($users as $user)
                     <tr>
                         <td>{{ $user->name }}</td>
-                        <td>{{ $user->phone }}</td>
+                        <td dir="ltr" style="text-align:start">{{ $user->phone }}</td>
                         <td>{{ $user->email ?? '—' }}</td>
                         <td>{{ $user->rating_average ?? 0 }} ({{ $user->rating_count ?? 0 }})</td>
                         <td>
                             @if ($user->is_banned)
-                                <span class="badge badge-rejected">محظور</span>
+                                <span class="badge badge-rejected">{{ __('محظور') }}</span>
                             @else
-                                <span class="badge badge-approved">نشط</span>
+                                <span class="badge badge-approved">{{ __('نشط') }}</span>
                             @endif
                             @if ($user->hasRole('admin'))
-                                <span class="badge badge-sold">مسؤول</span>
+                                <span class="badge badge-sold">{{ __('مسؤول') }}</span>
                             @endif
                         </td>
                         <td>
                             @if ($user->hasRole('admin'))
-                                <span style="color:var(--muted)">—</span>
+                                <span class="muted">—</span>
                             @elseif ($user->is_banned)
                                 <form class="inline" method="POST" action="{{ route('admin.users.unban', $user) }}">
                                     @csrf
-                                    <button class="btn btn-primary" type="submit">إلغاء الحظر</button>
+                                    <button class="btn btn-primary" type="submit">{{ __('إلغاء الحظر') }}</button>
                                 </form>
                             @else
                                 <form class="inline" method="POST" action="{{ route('admin.users.ban', $user) }}">
                                     @csrf
-                                    <button class="btn btn-danger" type="submit">حظر</button>
+                                    <button class="btn btn-danger" type="submit">{{ __('حظر') }}</button>
                                 </form>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="color:var(--muted)">لا يوجد مستخدمون.</td></tr>
+                    <tr><td colspan="6" class="muted">{{ __('لا يوجد مستخدمون.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    <div class="pagination">{{ $users->links() }}</div>
+    @include('site.partials.pagination', ['paginator' => $users])
 @endsection

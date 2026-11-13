@@ -1,35 +1,22 @@
 @extends('admin.layout')
-@section('title', 'الرئيسية')
+@section('title', __('الرئيسية'))
 @section('content')
     <div class="stat-grid">
-        <div class="card">
-            <div class="icon-badge">@include('admin.partials.icon', ['name' => 'ads'])</div>
-            <div class="num">{{ $pendingAds }}</div>
-            <div class="label">إعلانات بانتظار المراجعة</div>
-            <a href="{{ route('admin.ads.index') }}">عرض ›</a>
-        </div>
-        <div class="card">
-            <div class="icon-badge">@include('admin.partials.icon', ['name' => 'users'])</div>
-            <div class="num">{{ $totalUsers }}</div>
-            <div class="label">إجمالي المستخدمين</div>
-            <a href="{{ route('admin.users.index') }}">عرض ›</a>
-        </div>
-        <div class="card">
-            <div class="icon-badge">@include('admin.partials.icon', ['name' => 'users'])</div>
-            <div class="num">{{ $bannedUsers }}</div>
-            <div class="label">مستخدمون محظورون</div>
-        </div>
-        <div class="card">
-            <div class="icon-badge">@include('admin.partials.icon', ['name' => 'flag'])</div>
-            <div class="num">{{ $pendingReports }}</div>
-            <div class="label">بلاغات بانتظار المعالجة</div>
-            <a href="{{ route('admin.reports.index') }}">عرض ›</a>
-        </div>
-        <div class="card">
-            <div class="icon-badge">@include('admin.partials.icon', ['name' => 'image'])</div>
-            <div class="num">{{ $activeBanners }}</div>
-            <div class="label">بانرات نشطة حالياً</div>
-            <a href="{{ route('admin.banners.index') }}">عرض ›</a>
-        </div>
+        @foreach ([
+            ['ads', $pendingAds, __('إعلانات بانتظار المراجعة'), route('admin.ads.index')],
+            ['users', $totalUsers, __('إجمالي المستخدمين'), route('admin.users.index')],
+            ['users', $bannedUsers, __('مستخدمون محظورون'), null],
+            ['flag', $pendingReports, __('بلاغات بانتظار المعالجة'), route('admin.reports.index')],
+            ['image', $activeBanners, __('بانرات نشطة حالياً'), route('admin.banners.index')],
+        ] as [$icon, $num, $label, $link])
+            <div class="card">
+                <div class="icon-badge">@include('admin.partials.icon', ['name' => $icon])</div>
+                <div class="num" data-count="{{ $num }}">{{ number_format($num) }}</div>
+                <div class="label">{{ $label }}</div>
+                @if ($link)
+                    <a href="{{ $link }}">{{ __('عرض') }} {{ app()->getLocale() === 'ar' ? '‹' : '›' }}</a>
+                @endif
+            </div>
+        @endforeach
     </div>
 @endsection

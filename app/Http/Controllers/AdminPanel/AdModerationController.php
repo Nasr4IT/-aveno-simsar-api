@@ -36,9 +36,10 @@ class AdModerationController extends Controller
         ]);
 
         $ad->user->notify(new AdApproved($ad));
+        // The push goes to the seller's phone — stays Arabic whatever language the admin uses.
         $push->sendToUser($ad->user, 'تمت الموافقة على إعلانك', $ad->title, ['type' => 'ad_approved', 'ad_id' => $ad->id]);
 
-        return back()->with('status', "تمت الموافقة على \"{$ad->title}\".");
+        return back()->with('status', __('تمت الموافقة على ":title".', ['title' => $ad->title]));
     }
 
     public function reject(Request $request, Ad $ad, PushNotificationService $push)
@@ -57,7 +58,7 @@ class AdModerationController extends Controller
         $ad->user->notify(new AdRejected($ad));
         $push->sendToUser($ad->user, 'تم رفض إعلانك', $ad->title, ['type' => 'ad_rejected', 'ad_id' => $ad->id]);
 
-        return back()->with('status', "تم رفض \"{$ad->title}\".");
+        return back()->with('status', __('تم رفض ":title".', ['title' => $ad->title]));
     }
 
     // Sold/expired ads are outside the review workflow — see the matching
@@ -69,7 +70,7 @@ class AdModerationController extends Controller
         abort_unless(
             in_array($ad->status, ['pending', 'approved', 'rejected'], true),
             422,
-            'لا يمكن تغيير حالة مراجعة إعلان مُباع أو منتهي الصلاحية.'
+            __('لا يمكن تغيير حالة مراجعة إعلان مُباع أو منتهي الصلاحية.')
         );
     }
 }
