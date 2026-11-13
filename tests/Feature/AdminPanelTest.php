@@ -240,7 +240,36 @@ class AdminPanelTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get(route('admin.dashboard'))->assertForbidden();
+        // Still kept out — but sent to the admin login instead of a dead-end 403.
+        $this->actingAs($user)->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
+        $this->actingAs($user)->post(route('admin.users.ban', $user))->assertRedirect(route('admin.login'));
+        $this->assertFalse($user->fresh()->is_banned);
+    }
+
+    // Regression: a member signed in on the public website (same session)
+    // used to be bounced from /admin-panel/login into the panel and get a
+    // bare "403 Admins only." with no way to sign in as the admin.
+    public function test_a_website_member_sees_the_admin_login_form_and_can_switch_to_the_admin_account(): void
+    {
+        $member = User::factory()->create(['name' => 'Website Member']);
+        $admin = $this->adminUser();
+
+        $this->actingAs($member)->get(route('admin.login'))
+            ->assertOk()
+            ->assertSee('Website Member')
+            ->assertSee('ليس حساب مدير');
+
+        $this->post(route('admin.login.attempt'), ['phone' => $admin->phone, 'password' => 'password'])
+            ->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticatedAs($admin);
+        $this->get(route('admin.dashboard'))->assertOk();
+    }
+
+    public function test_the_admin_api_still_answers_403_json_for_a_non_admin(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user, 'sanctum')->getJson('/api/admin/ads')->assertForbidden();
     }
 
     // The tests above only ever POST to the mutating actions (which just

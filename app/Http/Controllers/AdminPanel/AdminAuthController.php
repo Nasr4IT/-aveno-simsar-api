@@ -14,13 +14,16 @@ use Illuminate\Support\Facades\Hash;
 // API's token auth isn't a fit for that.
 class AdminAuthController extends Controller
 {
-    public function showLogin()
+    public function showLogin(Request $request)
     {
-        if (Auth::check()) {
+        // Only an admin skips the form. A member signed in on the public
+        // website (same session) sees the form plus a notice, instead of
+        // being bounced into the panel and hitting the admin gate.
+        if ($request->user()?->hasRole('admin')) {
             return redirect()->route('admin.dashboard');
         }
 
-        return view('admin.login');
+        return view('admin.login', ['signedInMember' => $request->user()]);
     }
 
     public function login(Request $request)

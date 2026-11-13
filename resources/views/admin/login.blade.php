@@ -23,6 +23,7 @@
         input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(12,167,181,.15); }
         button { width: 100%; margin-top: 22px; background: var(--teal); color: #fff; border: none; border-radius: 999px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer; }
         button:hover { background: var(--teal-dark); }
+        .notice { background: #E3FAFB; color: var(--navy); border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
         .errors { background: #fee2e2; color: #991b1b; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 10px; }
     </style>
 </head>
@@ -31,6 +32,13 @@
         <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar"></div>
         <h1>Semsar Admin Panel</h1>
         <p class="sub">تسجيل دخول المسؤولين فقط</p>
+
+        @if ($signedInMember ?? null)
+            <div class="notice">
+                أنت مسجّل الدخول في الموقع باسم <strong>{{ $signedInMember->name }}</strong>، وهذا ليس حساب مدير.
+                سجّل الدخول بحساب المدير أدناه للمتابعة.
+            </div>
+        @endif
 
         @if ($errors->any())
             <div class="errors">
