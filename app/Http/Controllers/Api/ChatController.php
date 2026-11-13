@@ -21,9 +21,11 @@ class ChatController extends Controller
     // GET /api/conversations — the current user's conversations (as buyer or seller).
     public function index(Request $request)
     {
-        $conversations = Conversation::where('buyer_id', $request->user()->id)
-            ->orWhere('seller_id', $request->user()->id)
-            ->with(['ad.images', 'buyer', 'seller'])
+        $me = $request->user()->id;
+
+        $conversations = Conversation::where(fn ($q) => $q->where('buyer_id', $me)->orWhere('seller_id', $me))
+            ->with(['ad.images', 'buyer', 'seller', 'latestMessage'])
+            ->withCount(['messages as unread_count' => fn ($q) => $q->where('sender_id', '!=', $me)->whereNull('read_at')])
             ->latest('last_message_at')
             ->paginate(20);
 
@@ -50,11 +52,46 @@ class ChatController extends Controller
     }
 
     // GET /api/conversations/{conversation}/messages
+    // Three ways to read a thread:
+    //   (default)       oldest first, 50 per page — unchanged;
+    //   ?order=desc     newest first, 50 per page — page 1 is the latest;
+    //   ?after_id=<id>  only messages newer than <id>, oldest first,
+    //                   unpaginated (max 200) — for polling every few seconds.
+    // Reading does not mark anything read; call POST .../read for that.
     public function messages(Request $request, Conversation $conversation)
     {
         $this->authorizeParticipant($request, $conversation);
 
-        return MessageResource::collection($conversation->messages()->with('sender')->paginate(50));
+        $params = $request->validate([
+            'after_id' => ['nullable', 'integer', 'min:0'],
+            'order' => ['nullable', 'in:asc,desc'],
+        ]);
+
+        $query = $conversation->messages()->with('sender');
+
+        if (isset($params['after_id'])) {
+            return MessageResource::collection($query->where('id', '>', $params['after_id'])->limit(200)->get());
+        }
+
+        if (($params['order'] ?? 'asc') === 'desc') {
+            $query->reorder()->orderByDesc('created_at')->orderByDesc('id');
+        }
+
+        return MessageResource::collection($query->paginate(50)->withQueryString());
+    }
+
+    // POST /api/conversations/{conversation}/read — marks the other person's
+    // messages in this conversation as read.
+    public function markRead(Request $request, Conversation $conversation)
+    {
+        $this->authorizeParticipant($request, $conversation);
+
+        $marked = $conversation->messages()
+            ->where('sender_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json(['data' => ['marked' => $marked]]);
     }
 
     // POST /api/conversations/{conversation}/messages
@@ -64,6 +101,9 @@ class ChatController extends Controller
 
         $data = $request->validate(['body' => ['required', 'string', 'max:2000']]);
 
+        $recipient = $conversation->otherParticipant($request->user()->id);
+        abort_if($recipient->trashed(), 422, __('هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة.'));
+
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->id,
             'body' => $data['body'],
@@ -71,7 +111,6 @@ class ChatController extends Controller
 
         $conversation->update(['last_message_at' => now()]);
 
-        $recipient = $conversation->buyer_id === $request->user()->id ? $conversation->seller : $conversation->buyer;
         $recipient->notify(new NewMessageReceived($message));
         $push->sendToUser($recipient, "رسالة جديدة من {$request->user()->name}", $data['body'], ['type' => 'new_message', 'conversation_id' => $conversation->id]);
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Conversation extends Model
 {
@@ -34,6 +35,19 @@ class Conversation extends Model
 
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class)->orderBy('created_at');
+        // id as tie-breaker: two messages in the same second keep send order.
+        return $this->hasMany(Message::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    // The newest message — the preview line in the chat list.
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(Message::class)->latestOfMany('id');
+    }
+
+    // The participant who isn't $userId.
+    public function otherParticipant(int $userId): ?User
+    {
+        return $this->buyer_id === $userId ? $this->seller : $this->buyer;
     }
 }

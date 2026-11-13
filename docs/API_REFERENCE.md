@@ -340,8 +340,11 @@ One conversation exists per `(ad, buyer)` pair — starting it twice for the sam
 **Does:** All conversations the caller is part of, as either buyer or seller, newest-activity first.
 **Output — `200`:** paginated `ConversationResource` collection:
 ```json
-{ "id": 1, "ad": { ...AdResource }, "buyer": { ...UserResource }, "seller": { ...UserResource }, "last_message_at": "2026-09-03T..." }
+{ "id": 1, "ad": { ...AdResource }, "buyer": { ...UserResource }, "seller": { ...UserResource }, "last_message_at": "2026-09-03T...",
+  "last_message": { "id": 41, "body": "Is it still available?", "sender_id": 7, "created_at": "..." },
+  "unread_count": 2 }
 ```
+`last_message` is `null` for a conversation with no messages yet. `unread_count` = messages from the other participant with `read_at = null`. If either side deleted their account, the conversation is still listed and that side shows as `{"name": "مستخدم محذوف", ...}`.
 
 ### `POST /ads/{id}/conversations`
 **Auth:** required.
@@ -353,19 +356,31 @@ One conversation exists per `(ad, buyer)` pair — starting it twice for the sam
 
 ### `GET /conversations/{id}/messages`
 **Auth:** required, **must be a participant** (buyer or seller on that conversation).
-**Does:** Full message history, oldest first (paginated 50/page — intended for polling, not one-shot infinite scroll).
-**Output — `200`:** paginated `MessageResource` collection:
+**Does:** The message history. Three modes (query params):
+| Params | Order | Paging | Use for |
+|---|---|---|---|
+| none | oldest first | 50/page | full history |
+| `order=desc` | newest first | 50/page — page 1 is the latest 50 | opening a chat and scrolling back |
+| `after_id={messageId}` | oldest first | **unpaginated**, max 200, only messages with `id > after_id` | polling every few seconds (send the last id you have; `after_id=0` = everything) |
+
+**Output — `200`:** `MessageResource` items (with `links`/`meta` in the paginated modes, just `{"data": [...]}` for `after_id`):
 ```json
 { "id": 1, "conversation_id": 1, "sender": { ...UserResource }, "body": "Hello, is this still available?", "read_at": null, "created_at": "..." }
 ```
-**Errors:** `403` if the caller isn't a participant.
+Reading does **not** mark messages as read — call `POST /conversations/{id}/read`.
+**Errors:** `403` if the caller isn't a participant; `422` on an invalid `order`/`after_id`.
+
+### `POST /conversations/{id}/read`
+**Auth:** required, **must be a participant**.
+**Does:** Sets `read_at` on every message in this conversation sent by the *other* participant that isn't read yet (the caller's own messages are untouched).
+**Output — `200`:** `{"data": {"marked": 3}}` (how many were marked).
 
 ### `POST /conversations/{id}/messages`
 **Auth:** required, **must be a participant**.
 **Does:** Sends a message, bumps the conversation's `last_message_at`, and **notifies the other participant** (see Notifications — `type: "new_message"`).
 **Input:** `{"body": "..."}` (required, max 2000 chars).
 **Output:** a `MessageResource` (`200`/`201`, same auto-201 note as above).
-**Errors:** `403` if not a participant; `422` if `body` missing/too long.
+**Errors:** `403` if not a participant; `422` if `body` missing/too long, or `{"message": "هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة."}` if the other participant deleted their account.
 
 ---
 

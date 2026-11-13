@@ -63,6 +63,11 @@ class ChatController extends Controller
 
         $data = $request->validate(['body' => ['required', 'string', 'max:2000']]);
 
+        $recipient = $conversation->otherParticipant($request->user()->id);
+        if ($recipient->trashed()) {
+            return back()->withErrors(['body' => __('هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة.')]);
+        }
+
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->id,
             'body' => $data['body'],
@@ -70,7 +75,6 @@ class ChatController extends Controller
 
         $conversation->update(['last_message_at' => now()]);
 
-        $recipient = $conversation->buyer_id === $request->user()->id ? $conversation->seller : $conversation->buyer;
         $recipient->notify(new NewMessageReceived($message));
         $push->sendToUser($recipient, "رسالة جديدة من {$request->user()->name}", $data['body'], ['type' => 'new_message', 'conversation_id' => $conversation->id]);
 

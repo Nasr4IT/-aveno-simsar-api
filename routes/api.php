@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ads/{ad}/conversations', [ChatController::class, 'start']);
     Route::get('/conversations/{conversation}/messages', [ChatController::class, 'messages']);
     Route::post('/conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
+    Route::post('/conversations/{conversation}/read', [ChatController::class, 'markRead']);
 
     Route::post('/users/{user}/ratings', [RatingController::class, 'store']);
     Route::post('/users/{user}/report', [ReportController::class, 'reportUser']);

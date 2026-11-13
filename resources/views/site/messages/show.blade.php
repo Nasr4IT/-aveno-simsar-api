@@ -24,11 +24,15 @@
                 @endforelse
             </div>
 
-            <form class="compose" method="POST" action="{{ route('site.messages.send', $conversation) }}">
-                @csrf
-                <input type="text" name="body" maxlength="2000" required autocomplete="off" placeholder="{{ __('اكتب رسالتك...') }}" autofocus>
-                <button class="btn btn-primary" type="submit">{{ __('إرسال') }}</button>
-            </form>
+            @if ($other->trashed())
+                <p class="muted small" style="text-align:center; margin:12px 0 0">{{ __('هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة.') }}</p>
+            @else
+                <form class="compose" method="POST" action="{{ route('site.messages.send', $conversation) }}">
+                    @csrf
+                    <input type="text" name="body" maxlength="2000" required autocomplete="off" placeholder="{{ __('اكتب رسالتك...') }}" autofocus>
+                    <button class="btn btn-primary" type="submit">{{ __('إرسال') }}</button>
+                </form>
+            @endif
         </div>
     </div>
 

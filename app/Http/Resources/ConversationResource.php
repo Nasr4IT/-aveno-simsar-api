@@ -15,6 +15,14 @@ class ConversationResource extends JsonResource
             'buyer' => new UserResource($this->whenLoaded('buyer')),
             'seller' => new UserResource($this->whenLoaded('seller')),
             'last_message_at' => $this->last_message_at,
+            // GET /conversations only: the preview line and the unread dot.
+            'last_message' => $this->whenLoaded('latestMessage', fn () => $this->latestMessage ? [
+                'id' => $this->latestMessage->id,
+                'body' => $this->latestMessage->body,
+                'sender_id' => $this->latestMessage->sender_id,
+                'created_at' => $this->latestMessage->created_at,
+            ] : null),
+            'unread_count' => $this->whenHas('unread_count', fn () => (int) $this->unread_count),
         ];
     }
 }

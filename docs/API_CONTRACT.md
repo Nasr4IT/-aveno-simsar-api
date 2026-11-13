@@ -80,12 +80,13 @@ Every ad returned anywhere has `is_favorited` (for the caller — send the token
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/conversations` | ✓ | caller's conversations, as buyer or seller |
+| GET | `/conversations` | ✓ | caller's conversations, as buyer or seller, most recent first; each has `last_message {id, body, sender_id, created_at}` (or `null`) and `unread_count` (messages from the other side not yet read) |
 | POST | `/ads/{id}/conversations` | ✓ | start (or fetch existing) conversation about this ad |
-| GET | `/conversations/{id}/messages` | ✓ (participant) | paginated, oldest first |
-| POST | `/conversations/{id}/messages` | ✓ (participant) | body: `{body}` |
+| GET | `/conversations/{id}/messages` | ✓ (participant) | default: paginated (50), oldest first. `?order=desc`: paginated, newest first (page 1 = latest). `?after_id={messageId}`: only newer messages, oldest first, **unpaginated** (max 200) — use for polling |
+| POST | `/conversations/{id}/messages` | ✓ (participant) | body: `{body}`. 422 if the other person deleted their account |
+| POST | `/conversations/{id}/read` | ✓ (participant) | marks the other person's messages read → `{"data": {"marked": n}}`. Reading messages does **not** mark them read by itself |
 
-MVP is polling — have the Flutter app refresh `/messages` every few seconds while a chat screen is open. A push/broadcast upgrade later doesn't change these routes.
+MVP is polling — while a chat screen is open, call `/messages?after_id=<last id you have>` every few seconds. A push/broadcast upgrade later doesn't change these routes.
 
 ## Ratings
 
