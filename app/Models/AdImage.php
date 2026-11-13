@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +27,6 @@ class AdImage extends Model
     // Cloudflare R2 — see docs/HOW_IT_WORKS.md § Persistent Image Storage).
     public function getUrlAttribute(): string
     {
-        return Storage::disk(config('filesystems.default'))->url($this->path);
+        return MediaUrl::for($this->path);
     }
 }

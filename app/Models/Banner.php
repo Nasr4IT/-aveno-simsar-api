@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class Banner extends Model
 {
@@ -28,7 +28,7 @@ class Banner extends Model
 
     public function getImageUrlAttribute(): string
     {
-        return Storage::disk(config('filesystems.default'))->url($this->image_path);
+        return MediaUrl::for($this->image_path);
     }
 
     // Currently within its admin-set window and not paused — what the

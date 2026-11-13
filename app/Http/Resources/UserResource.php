@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\MediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,7 +26,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->when($private, $this->phone),
             'email' => $this->when($private, $this->email),
-            'avatar_url' => $this->avatar_path ? asset('storage/'.$this->avatar_path) : null,
+            'avatar_url' => MediaUrl::for($this->avatar_path),
             'governorate' => $this->whenLoaded('governorate'),
             'city' => $this->whenLoaded('city'),
             'rating_average' => (float) $this->rating_average,
