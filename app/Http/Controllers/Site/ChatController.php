@@ -36,11 +36,13 @@ class ChatController extends Controller
             return back()->withErrors(['message' => __('لا يمكنك مراسلة نفسك.')]);
         }
 
-        $conversation = Conversation::firstOrCreate([
-            'ad_id' => $ad->id,
-            'buyer_id' => $request->user()->id,
-            'seller_id' => $ad->user_id,
-        ]);
+        $key = ['ad_id' => $ad->id, 'buyer_id' => $request->user()->id, 'seller_id' => $ad->user_id];
+
+        if (! $ad->allow_chat && ! Conversation::where($key)->exists()) {
+            return back()->withErrors(['message' => __('البائع أوقف المراسلة على هذا الإعلان.')]);
+        }
+
+        $conversation = Conversation::firstOrCreate($key);
 
         return redirect()->route('site.messages.show', $conversation);
     }

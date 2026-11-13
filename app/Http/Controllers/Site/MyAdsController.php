@@ -81,7 +81,7 @@ class MyAdsController extends Controller
         }
 
         DB::transaction(function () use ($ad, $data, $category) {
-            $ad->fill(array_intersect_key($data, array_flip(['title', 'description', 'price'])));
+            $ad->fill(array_intersect_key($data, array_flip(['title', 'description', 'price', ...Ad::OPTION_FIELDS])));
             $this->resetToPending($ad);
 
             if (array_key_exists('attributes', $data)) {

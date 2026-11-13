@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Ad;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAdRequest extends FormRequest
@@ -18,6 +19,7 @@ class UpdateAdRequest extends FormRequest
             'description' => ['sometimes', 'string', 'max:5000'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'attributes' => ['sometimes', 'array'],
+            ...Ad::optionRules(partial: true),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Ad;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,6 +34,7 @@ class StoreAdRequest extends FormRequest
             // Dynamic per-category fields arrive as attributes[<key>] = value; validated
             // at runtime against category_attributes.is_required/type (see AdController TODO).
             'attributes' => ['nullable', 'array'],
+            ...Ad::optionRules(),
         ];
     }
 }

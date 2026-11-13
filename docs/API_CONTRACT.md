@@ -50,14 +50,16 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
 | GET | `/my/ads/stats` | ✓ | aggregate counts across the caller's ads: by status, total views, favorites, conversations |
-| POST | `/ads` | ✓ | multipart: `category_id, governorate_id, city_id, title, description, price?, currency?, latitude?, longitude?, images[] (1-12), attributes[<key>]=<value>`. Created as `status=pending` |
-| PUT/PATCH | `/ads/{id}` | ✓ (owner) | partial update; edits re-queue the ad for review |
+| POST | `/ads` | ✓ | multipart: `category_id, governorate_id, city_id, title, description, price?, currency?, latitude?, longitude?, images[] (1-12), attributes[<key>]=<value>, is_negotiable?, address?, allow_chat? (default true), allow_calls? (default true), hide_phone? (default false)`. Created as `status=pending` |
+| PUT/PATCH | `/ads/{id}` | ✓ (owner) | partial update; edits re-queue the ad for review — except when only `allow_chat`/`allow_calls`/`hide_phone` change |
 | DELETE | `/ads/{id}` | ✓ (owner) | soft delete |
 | POST | `/ads/{id}/images` | ✓ (owner) | multipart: `images[]` — appends photos, up to 12 total; re-queues for review |
 | DELETE | `/ads/{id}/images/{imageId}` | ✓ (owner) | can't remove the ad's last photo |
 | POST | `/ads/{id}/mark-sold` | ✓ (owner) | `approved` → `sold`; drops out of the public feed but stays viewable |
 | POST | `/ads/{id}/relist` | ✓ (owner) | `sold`/`expired` → `pending`, re-queues for review |
 | POST | `/ads/{id}/report` | ✓ | body: `{reason: spam\|inappropriate\|scam\|other, details?}` |
+
+Every ad also has `is_negotiable, address, allow_chat, allow_calls, hide_phone`. `GET /ads/{id}` adds `contact_phone`: the seller's phone when `allow_calls && !hide_phone` and the caller is logged in, else `null`. With `allow_chat: false`, `POST /ads/{id}/conversations` → 422 (unless a conversation already exists).
 
 Every ad returned anywhere has `is_favorited` (for the caller — send the token on public routes too; `false` for guests). Every list (`/ads`, `/ads/{id}/similar`, `/favorites`, `/my/ads`) includes `user` (seller: `id, name, avatar_url, rating_*` — no phone/email), `category`, `governorate`, `city`, `images`.
 

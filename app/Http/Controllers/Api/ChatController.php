@@ -42,11 +42,13 @@ class ChatController extends Controller
 
         abort_if($ad->user_id === $request->user()->id, 422, 'لا يمكنك مراسلة نفسك');
 
-        $conversation = Conversation::firstOrCreate([
-            'ad_id' => $ad->id,
-            'buyer_id' => $request->user()->id,
-            'seller_id' => $ad->user_id,
-        ]);
+        $key = ['ad_id' => $ad->id, 'buyer_id' => $request->user()->id, 'seller_id' => $ad->user_id];
+
+        // The seller turned chat off for this ad: no new conversations (an
+        // existing one still opens).
+        abort_if(! $ad->allow_chat && ! Conversation::where($key)->exists(), 422, __('البائع أوقف المراسلة على هذا الإعلان.'));
+
+        $conversation = Conversation::firstOrCreate($key);
 
         return new ConversationResource($conversation);
     }

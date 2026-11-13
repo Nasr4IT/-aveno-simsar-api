@@ -62,6 +62,7 @@
                     </div>
 
                     @include('site.partials.location-select', ['governorates' => $governorates, 'required' => true])
+                    @include('site.partials.ad-options')
 
                     @foreach ($selected->attributes_ as $attr)
                         @include('site.partials.attribute-field', ['attr' => $attr, 'enforceRequired' => true])

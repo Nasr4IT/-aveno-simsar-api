@@ -228,8 +228,10 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 **Input:** `{id}` path param.
 **Output — `200`:** a single `AdResource`, plus:
 ```json
-"attributes": [ { "key": "condition", "label_ar": "الحالة", "value": "مستعملة" }, { "key": "year", "label_ar": "سنة الصنع", "value": "2020" } ]
+"attributes": [ { "key": "condition", "label_ar": "الحالة", "value": "مستعملة" }, { "key": "year", "label_ar": "سنة الصنع", "value": "2020" } ],
+"contact_phone": "0999111222"
 ```
+**`contact_phone`** (detail only) is the seller's phone when the ad has `allow_calls: true` **and** `hide_phone: false` **and** the caller is logged in (send the token); otherwise `null`. It's the only place another user's phone ever appears (`user.phone` is never shown to others). Use it for the "Call" button; hide the "Message" button when `allow_chat` is `false`.
 **Errors:** `404` — either the ad genuinely doesn't exist, **or** it exists but isn't `approved` and the caller isn't looking at their own ad (deliberate: a pending/rejected ad is invisible to everyone except through `GET /my/ads`, even by direct ID).
 
 ---
@@ -258,6 +260,13 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 | `latitude` / `longitude` | no | numeric, valid coordinate range |
 | `images[]` | yes | 1–12 image files, each ≤ 5MB (`max:5120` KB) |
 | `attributes[<key>]` | conditionally | one field per dynamic spec on the category, e.g. `attributes[condition]=مستعملة&attributes[year]=2020`; required keys depend on the category (see `GET /categories/{id}`) |
+| `is_negotiable` | no | boolean (`1`/`0`/`true`/`false`), default `false` |
+| `address` | no | string, max 255 — free-text street address shown on the ad |
+| `allow_chat` | no | boolean, default `true` — `false` stops **new** conversations (`POST /ads/{id}/conversations` → `422`; an existing conversation still opens) |
+| `allow_calls` | no | boolean, default `true` |
+| `hide_phone` | no | boolean, default `false` — the phone is shared (as `contact_phone`) only when `allow_calls` is true and `hide_phone` is false |
+
+Every `AdResource` now carries `is_negotiable`, `address`, `allow_chat`, `allow_calls`, `hide_phone`.
 
 **Output — `201`:** a single `AdResource` with `status: "pending"`, including `images` and `attributes` (freshly created).
 **Errors:**
@@ -268,8 +277,8 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 
 ### `PUT/PATCH /ads/{id}`
 **Auth:** required, **must be the ad's owner**.
-**Does:** Partial update (only send the fields you're changing) — `title`, `description`, `price`, and/or `attributes`. Photos are **not** managed here — see `POST`/`DELETE /ads/{id}/images` below. **Any edit resets the ad to `status = pending`** and clears `rejection_reason`/`reviewed_by`/`reviewed_at`, forcing a fresh admin review.
-**Input (JSON or form body, all optional):** `title`, `description`, `price`, `attributes` (object — same dynamic-attribute rules as create, but required-ness isn't re-enforced on a partial edit; an empty value for a key clears that attribute).
+**Does:** Partial update (only send the fields you're changing) — `title`, `description`, `price`, `attributes`, `is_negotiable`, `address`, `allow_chat`, `allow_calls`, `hide_phone`. Photos are **not** managed here — see `POST`/`DELETE /ads/{id}/images` below. **An edit resets the ad to `status = pending`** and clears `rejection_reason`/`reviewed_by`/`reviewed_at`, forcing a fresh admin review — **except** when the request only changes `allow_chat`, `allow_calls` and/or `hide_phone` (contact preferences don't change what's published, so the ad stays live).
+**Input (JSON or form body, all optional):** `title`, `description`, `price`, `attributes` (object — same dynamic-attribute rules as create, but required-ness isn't re-enforced on a partial edit; an empty value for a key clears that attribute), plus the five option fields above.
 **Output — `200`:** the updated `AdResource`.
 **Errors:** `403` if the caller isn't the owner; `422` on validation failure.
 
@@ -353,6 +362,7 @@ One conversation exists per `(ad, buyer)` pair — starting it twice for the sam
 **Errors:**
 - `404` if the ad isn't `approved` — same visibility rule as `GET /ads/{id}` and favoriting; you can't message about an ad you couldn't have seen.
 - `422` `{"message": "لا يمكنك مراسلة نفسك"}` if you try to message yourself about your own ad.
+- `422` `{"message": "البائع أوقف المراسلة على هذا الإعلان."}` if the ad has `allow_chat: false` and you don't already have a conversation about it.
 
 ### `GET /conversations/{id}/messages`
 **Auth:** required, **must be a participant** (buyer or seller on that conversation).

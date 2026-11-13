@@ -91,6 +91,7 @@ class AdController extends Controller
                 'currency' => $data['currency'] ?? 'USD',
                 'latitude' => $data['latitude'] ?? null,
                 'longitude' => $data['longitude'] ?? null,
+                ...array_intersect_key($data, array_flip(Ad::OPTION_FIELDS)),
                 'status' => 'pending',
             ]);
 

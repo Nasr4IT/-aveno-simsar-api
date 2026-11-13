@@ -127,6 +127,7 @@ class AdController extends Controller
                 'currency' => $data['currency'] ?? 'USD',
                 'latitude' => $data['latitude'] ?? null,
                 'longitude' => $data['longitude'] ?? null,
+                ...array_intersect_key($data, array_flip(Ad::OPTION_FIELDS)),
                 'status' => 'pending',
             ]);
 
@@ -159,8 +160,15 @@ class AdController extends Controller
         }
 
         DB::transaction(function () use ($ad, $data, $category) {
-            $ad->fill(array_intersect_key($data, array_flip(['title', 'description', 'price'])));
-            $this->resetToPending($ad);
+            $ad->fill(array_intersect_key($data, array_flip(['title', 'description', 'price', ...Ad::OPTION_FIELDS])));
+
+            // Changing only how buyers may contact the seller (chat / calls /
+            // hide phone) doesn't change what's published — no re-review.
+            if (array_diff(array_keys($data), Ad::CONTACT_OPTIONS) !== []) {
+                $this->resetToPending($ad);
+            } else {
+                $ad->save();
+            }
 
             if (array_key_exists('attributes', $data)) {
                 $this->attributes->sync($ad, $category, $data['attributes'] ?? []);

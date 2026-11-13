@@ -48,6 +48,8 @@
             <label for="description">{{ __('الوصف') }}</label>
             <textarea id="description" name="description" rows="5" required maxlength="5000">{{ old('description', $ad->description) }}</textarea>
 
+            @include('site.partials.ad-options', ['ad' => $ad])
+
             <div class="row" style="margin-top:16px">
                 <button class="btn btn-primary" type="submit">{{ __('حفظ التعديلات') }}</button>
                 <a class="btn btn-muted" href="{{ route('site.my.ads') }}">{{ __('إلغاء') }}</a>

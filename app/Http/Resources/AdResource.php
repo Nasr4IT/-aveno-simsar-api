@@ -19,6 +19,15 @@ class AdResource extends JsonResource
             'currency' => $this->currency,
             'status' => $this->status,
             'is_featured' => $this->is_featured,
+            'is_negotiable' => (bool) $this->is_negotiable,
+            'address' => $this->address,
+            'allow_chat' => (bool) $this->allow_chat,
+            'allow_calls' => (bool) $this->allow_calls,
+            'hide_phone' => (bool) $this->hide_phone,
+            // Detail only: the seller's phone, when they allow calls and
+            // haven't hidden it, and only to a logged-in viewer (so the
+            // numbers can't be scraped anonymously). null otherwise.
+            'contact_phone' => $this->when($request->routeIs('*.show'), fn () => $this->contactPhoneFor($request)),
             'views_count' => $this->views_count,
             // Only present when the controller eager-loaded them via
             // withCount/loadCount (GET /ads/{id}, /my/ads, /my/ads/stats) —
@@ -44,6 +53,17 @@ class AdResource extends JsonResource
             'created_at' => $this->created_at,
             'published_at' => $this->published_at,
         ];
+    }
+
+    private function contactPhoneFor(Request $request): ?string
+    {
+        $viewer = $request->user() ?? auth('sanctum')->user();
+
+        if (! $viewer || ! $this->resource->sharesPhone() || ! $this->relationLoaded('user') || ! $this->user || $this->user->trashed()) {
+            return null;
+        }
+
+        return $this->user->phone;
     }
 
     // true when the viewer has this ad in their favorites; false for guests.

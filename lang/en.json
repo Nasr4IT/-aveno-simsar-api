@@ -226,5 +226,15 @@
     "تم حذف حسابك.": "Your account has been deleted.",
     "الرمز غير صحيح أو منتهي الصلاحية.": "The code is wrong or has expired.",
     ":count مُباع": ":count sold",
-    "هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة.": "This user deleted their account — new messages cannot be sent."
+    "هذا المستخدم حذف حسابه، لا يمكن إرسال رسائل جديدة.": "This user deleted their account — new messages cannot be sent.",
+    "العنوان التفصيلي (اختياري)": "Street address (optional)",
+    "مثال: المزة، شارع الجلاء": "e.g. Mezzeh, Al-Jalaa Street",
+    "السعر قابل للتفاوض": "Price is negotiable",
+    "السماح بالمراسلة": "Allow messages",
+    "السماح بالاتصال": "Allow calls",
+    "إخفاء رقم هاتفي": "Hide my phone number",
+    "يظهر رقمك للمستخدمين المسجّلين فقط عند السماح بالاتصال وعدم إخفاء الرقم.": "Your number is shown only to logged-in users, and only when calls are allowed and the number is not hidden.",
+    "قابل للتفاوض": "Negotiable",
+    "البائع لم يفعّل المراسلة أو الاتصال لهذا الإعلان.": "The seller has turned off messages and calls for this ad.",
+    "البائع أوقف المراسلة على هذا الإعلان.": "The seller has turned off messages for this ad."
 }

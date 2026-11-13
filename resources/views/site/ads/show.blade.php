@@ -31,9 +31,14 @@
                         <span class="badge badge-approved">{{ __('مميّز') }}</span>
                     @endif
                 </div>
-                <div class="price-big">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('السعر عند التواصل') }}</div>
+                <div class="row">
+                    <div class="price-big">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('السعر عند التواصل') }}</div>
+                    @if ($ad->is_negotiable)
+                        <span class="badge badge-approved">{{ __('قابل للتفاوض') }}</span>
+                    @endif
+                </div>
                 <div class="row muted small" style="margin-top:6px">
-                    <span class="row">@include('site.partials.icon', ['name' => 'pin', 'size' => 14]) {{ collect([$ad->city?->localized('name'), $ad->governorate?->localized('name')])->filter()->implode(__('، ')) }}</span>
+                    <span class="row">@include('site.partials.icon', ['name' => 'pin', 'size' => 14]) {{ collect([$ad->address, $ad->city?->localized('name'), $ad->governorate?->localized('name')])->filter()->implode(__('، ')) }}</span>
                     <span class="row">@include('site.partials.icon', ['name' => 'clock', 'size' => 14]) {{ __('نُشر :time', ['time' => ($ad->published_at ?? $ad->created_at)->diffForHumans()]) }}</span>
                     <span class="row">@include('site.partials.icon', ['name' => 'eye', 'size' => 14]) {{ trans_choice('{1} مشاهدة واحدة|[0,*] :count مشاهدة', $ad->views_count, ['count' => number_format($ad->views_count)]) }}</span>
                     <span class="row">@include('site.partials.icon', ['name' => 'tag', 'size' => 14]) <a href="{{ route('site.explore', ['category_id' => $ad->category_id]) }}">{{ $ad->category?->localized('name') }}</a></span>
@@ -70,10 +75,18 @@
                             <a class="btn btn-outline" href="{{ route('site.my.ads') }}">{{ __('هذا إعلانك — إدارة إعلاناتي') }}</a>
                         @else
                             @if ($ad->status === 'approved')
-                                <form method="POST" action="{{ route('site.ads.message', $ad) }}">
-                                    @csrf
-                                    <button class="btn btn-primary btn-block" type="submit">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) {{ __('مراسلة البائع') }}</button>
-                                </form>
+                                @if ($ad->allow_chat)
+                                    <form method="POST" action="{{ route('site.ads.message', $ad) }}">
+                                        @csrf
+                                        <button class="btn btn-primary btn-block" type="submit">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) {{ __('مراسلة البائع') }}</button>
+                                    </form>
+                                @endif
+                                @if ($ad->sharesPhone())
+                                    <a class="btn btn-outline btn-block" href="tel:{{ $ad->user->phone }}" dir="ltr">@include('site.partials.icon', ['name' => 'phone', 'size' => 18]) {{ $ad->user->phone }}</a>
+                                @endif
+                                @if (! $ad->allow_chat && ! $ad->sharesPhone())
+                                    <p class="muted small" style="margin:0">{{ __('البائع لم يفعّل المراسلة أو الاتصال لهذا الإعلان.') }}</p>
+                                @endif
                                 <form method="POST" action="{{ route($isFavorited ? 'site.ads.unfavorite' : 'site.ads.favorite', $ad) }}">
                                     @csrf
                                     <button class="btn btn-outline btn-block" type="submit">@include('site.partials.icon', ['name' => 'heart', 'size' => 18, 'filled' => $isFavorited, 'class' => $isFavorited ? 'pop' : '']) {{ $isFavorited ? __('إزالة من المفضلة') : __('حفظ في المفضلة') }}</button>
