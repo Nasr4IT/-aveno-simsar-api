@@ -57,15 +57,33 @@
 
         <aside>
             <div class="card">
-                <div class="seller">
+                <a class="seller" href="{{ route('site.users.show', $ad->user) }}">
                     <div class="avatar">{{ mb_substr($ad->user->name, 0, 1) }}</div>
                     <div>
                         <strong>{{ $ad->user->name }}</strong>
                         <div>@include('site.partials.rating-stars', ['average' => $ad->user->rating_average, 'count' => $ad->user->rating_count])</div>
                     </div>
-                </div>
+                </a>
                 <div class="actions">
-                    @yield('ad-actions')
+                    @auth
+                        @if ($ad->user_id === auth()->id())
+                            <a class="btn btn-outline" href="{{ route('site.my.ads') }}">هذا إعلانك — إدارة إعلاناتي</a>
+                        @else
+                            @if ($ad->status === 'approved')
+                                <form method="POST" action="{{ route('site.ads.message', $ad) }}">
+                                    @csrf
+                                    <button class="btn btn-primary btn-block" type="submit">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) مراسلة البائع</button>
+                                </form>
+                                <form method="POST" action="{{ route($isFavorited ? 'site.ads.unfavorite' : 'site.ads.favorite', $ad) }}">
+                                    @csrf
+                                    <button class="btn btn-outline btn-block" type="submit">@include('site.partials.icon', ['name' => 'heart', 'size' => 18, 'filled' => $isFavorited]) {{ $isFavorited ? 'إزالة من المفضلة' : 'حفظ في المفضلة' }}</button>
+                                </form>
+                            @endif
+                            @include('site.partials.report-form', ['action' => route('site.ads.report', $ad), 'label' => 'الإبلاغ عن هذا الإعلان'])
+                        @endif
+                    @else
+                        <a class="btn btn-primary btn-block" href="{{ route('site.login') }}">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) سجّل الدخول للمراسلة</a>
+                    @endauth
                 </div>
                 <p class="muted small" style="margin:12px 0 0">
                     @include('site.partials.icon', ['name' => 'heart', 'size' => 13]) {{ $ad->favorited_by_count }} أضافوه للمفضلة

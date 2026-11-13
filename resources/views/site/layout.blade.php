@@ -156,6 +156,28 @@
         .stars .ico.off { color: var(--border); }
         .actions { display: grid; gap: 10px; margin-top: 14px; }
 
+        /* ---- messages & notifications ---- */
+        .convo { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text); }
+        .convo:last-child { border-bottom: none; }
+        .convo img { width: 56px; height: 44px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+        .convo .who { flex: 1; min-width: 0; }
+        .convo .who strong { display: block; }
+        .convo .unread { background: var(--teal); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; font-weight: 700; }
+        .thread { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding: 4px; }
+        .bubble { max-width: 78%; padding: 10px 14px; border-radius: 16px; background: var(--bg); border: 1px solid var(--border); align-self: flex-start; font-size: 14px; }
+        .bubble.mine { background: var(--teal); color: #fff; border-color: var(--teal); align-self: flex-end; }
+        .bubble .t { display: block; font-size: 11px; opacity: .7; margin-top: 4px; }
+        .compose { display: flex; gap: 8px; margin-top: 12px; }
+        .compose input { flex: 1; border-radius: 999px; }
+        .notif { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .notif:last-child { border-bottom: none; }
+        .notif.unread { background: var(--teal-soft); margin: 0 -20px; padding: 12px 20px; }
+        .notif .dot { width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); color: var(--teal-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif form { margin: 0; }
+        .notif button { background: none; border: none; padding: 0; font: inherit; color: var(--text); cursor: pointer; text-align: right; }
+        .rating-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .rating-row:last-child { border-bottom: none; }
+
         /* ---- tables, pagination ---- */
         table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
         th, td { text-align: right; padding: 11px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }

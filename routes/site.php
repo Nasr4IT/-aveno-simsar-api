@@ -2,9 +2,16 @@
 
 use App\Http\Controllers\Site\AdController;
 use App\Http\Controllers\Site\AuthController;
+use App\Http\Controllers\Site\ChatController;
 use App\Http\Controllers\Site\ExploreController;
+use App\Http\Controllers\Site\FavoriteController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\MyAdsController;
+use App\Http\Controllers\Site\NotificationController;
+use App\Http\Controllers\Site\ProfileController;
+use App\Http\Controllers\Site\RatingController;
+use App\Http\Controllers\Site\ReportController;
+use App\Http\Controllers\Site\UserController;
 use Illuminate\Support\Facades\Route;
 
 // The public website: a browser version of the Flutter app, offering the
@@ -15,6 +22,7 @@ Route::name('site.')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
     Route::get('/ads/{ad:slug}', [AdController::class, 'show'])->name('ads.show');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -41,5 +49,26 @@ Route::name('site.')->group(function () {
             Route::post('/ads/{ad}/images', [MyAdsController::class, 'addImages'])->name('ads.images.store');
             Route::post('/ads/{ad}/images/{image}/delete', [MyAdsController::class, 'removeImage'])->name('ads.images.destroy');
         });
+
+        Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');
+        Route::post('/ads/{ad}/favorite', [FavoriteController::class, 'store'])->name('ads.favorite');
+        Route::post('/ads/{ad}/unfavorite', [FavoriteController::class, 'destroy'])->name('ads.unfavorite');
+
+        Route::get('/messages', [ChatController::class, 'index'])->name('messages');
+        Route::post('/ads/{ad}/message', [ChatController::class, 'start'])->name('ads.message');
+        Route::get('/messages/{conversation}', [ChatController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{conversation}', [ChatController::class, 'send'])->name('messages.send');
+        Route::get('/messages/{conversation}/poll', [ChatController::class, 'poll'])->name('messages.poll');
+
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+        Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+        Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+        Route::post('/users/{user}/rate', [RatingController::class, 'store'])->name('users.rate');
+        Route::post('/users/{user}/report', [ReportController::class, 'user'])->name('users.report');
+        Route::post('/ads/{ad}/report', [ReportController::class, 'ad'])->name('ads.report');
     });
 });
