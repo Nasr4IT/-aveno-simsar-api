@@ -5,7 +5,7 @@
         <div>
             <div class="card" style="margin-bottom:16px">
                 <div class="seller">
-                    <div class="avatar">{{ mb_substr($user->name, 0, 1) }}</div>
+                    @include('site.partials.avatar', ['user' => $user, 'size' => 64])
                     <div>
                         <h1 style="margin:0">{{ $user->name }}</h1>
                         <div>@include('site.partials.rating-stars', ['average' => $user->rating_average, 'count' => $user->rating_count])</div>

@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('throttle:auth')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 });
 
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -54,6 +56,9 @@ Route::get('/users/{user}/ratings', [RatingController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::match(['put', 'patch', 'post'], '/auth/me', [AuthController::class, 'updateMe']);
+    Route::delete('/auth/me', [AuthController::class, 'destroyMe']);
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
     Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
     Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);

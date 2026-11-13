@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
         // account can't be brute-forced, and 20 a minute per IP overall, so
         // one client can't spray many accounts. Over the limit → 429.
         RateLimiter::for('auth', function (Request $request) {
-            $identifier = PhoneNumber::normalize((string) ($request->input('phone') ?? $request->input('email') ?? ''));
+            $identifier = PhoneNumber::normalize((string) ($request->input('phone') ?? $request->input('email') ?? $request->input('identifier') ?? ''));
 
             return [
                 Limit::perMinute(5)->by('auth:'.$identifier.'|'.$request->ip()),

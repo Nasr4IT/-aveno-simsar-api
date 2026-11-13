@@ -20,7 +20,13 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | POST | `/auth/register` | – | `name, phone, password, email?, governorate_id?, city_id?` | 201, returns `{user, token}` |
 | POST | `/auth/login` | – | `phone, password` | 200, returns `{user, token}`; 422 on bad credentials, 403 if banned |
 | POST | `/auth/logout` | ✓ | – | revokes the current token |
-| GET | `/auth/me` | ✓ | – | current user profile |
+| GET | `/auth/me` | ✓ | – | current user profile, with `governorate` and `city` |
+| PUT/PATCH | `/auth/me` | ✓ | JSON, any of: `name, email, governorate_id, city_id, remove_avatar` | partial update; returns the user with `governorate`/`city` |
+| POST | `/auth/me` | ✓ | multipart, same fields + `avatar` (image, max 5 MB) | use POST for the avatar upload — PHP can't read multipart on PUT |
+| POST | `/auth/change-password` | ✓ | `current_password, password` (min 8, must differ) | keeps the current token, revokes all others; 422 on wrong `current_password` |
+| DELETE | `/auth/me` | ✓ | `password` | deletes the account (ads, favorites, ratings, tokens); chats stay for the other side with the sender shown as "مستخدم محذوف"; phone/email freed. 422 on wrong password |
+| POST | `/auth/forgot-password` | – | `phone` **or** `email` | emails a 6-digit code (valid 30 min) to the account's email. Always the same `200` message, whether or not the account exists or has an email |
+| POST | `/auth/reset-password` | – | `phone` or `email`, `code` (6 digits), `password` (min 8) | sets the password and revokes **all** tokens — log in again. 422 on `code` if wrong/expired/used |
 
 ## Categories
 

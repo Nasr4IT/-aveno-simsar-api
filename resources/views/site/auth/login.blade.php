@@ -19,7 +19,10 @@
             <label for="password">{{ __('كلمة المرور') }}</label>
             <input type="password" id="password" name="password" required>
 
-            <label class="inline"><input type="checkbox" name="remember" value="1"> {{ __('تذكّرني') }}</label>
+            <div class="row" style="justify-content:space-between">
+                <label class="inline"><input type="checkbox" name="remember" value="1"> {{ __('تذكّرني') }}</label>
+                <a class="small" href="{{ route('site.password.request') }}" style="margin-top:8px">{{ __('نسيت كلمة المرور؟') }}</a>
+            </div>
 
             <button class="btn btn-primary btn-block" type="submit" style="margin-top:18px">{{ __('دخول') }}</button>
         </form>

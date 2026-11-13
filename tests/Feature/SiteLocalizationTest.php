@@ -119,7 +119,7 @@ class SiteLocalizationTest extends TestCase
         $files = array_merge(
             $this->filesIn(resource_path('views/site'), '.blade.php'),
             $this->filesIn(app_path('Http/Controllers/Site'), '.php'),
-            [app_path('Services/AdAttributeService.php'), app_path('Services/ImageService.php')],
+            $this->filesIn(app_path('Services'), '.php'),
         );
 
         $missing = [];

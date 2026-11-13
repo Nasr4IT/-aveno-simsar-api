@@ -8,6 +8,7 @@ use App\Http\Controllers\Site\FavoriteController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\MyAdsController;
+use App\Http\Controllers\Site\PasswordResetController;
 use App\Http\Controllers\Site\NotificationController;
 use App\Http\Controllers\Site\ProfileController;
 use App\Http\Controllers\Site\RatingController;
@@ -31,6 +32,10 @@ Route::name('site.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth')->name('login.attempt');
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth')->name('register.attempt');
+        Route::get('/forgot-password', [PasswordResetController::class, 'showRequest'])->name('password.request');
+        Route::post('/forgot-password', [PasswordResetController::class, 'sendCode'])->middleware('throttle:auth')->name('password.email');
+        Route::get('/reset-password', [PasswordResetController::class, 'showReset'])->name('password.reset');
+        Route::post('/reset-password', [PasswordResetController::class, 'reset'])->middleware('throttle:auth')->name('password.update');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -68,6 +73,8 @@ Route::name('site.')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.password');
+        Route::post('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
         Route::post('/users/{user}/rate', [RatingController::class, 'store'])->name('users.rate');
         Route::post('/users/{user}/report', [ReportController::class, 'user'])->name('users.report');

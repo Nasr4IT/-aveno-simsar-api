@@ -17,7 +17,9 @@ class Report extends Model
 
     public function reporter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'reporter_id');
+        // withTrashed: the admin's report queue still renders after the
+        // reporter deletes their account.
+        return $this->belongsTo(User::class, 'reporter_id')->withTrashed();
     }
 
     public function reportable(): MorphTo

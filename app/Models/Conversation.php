@@ -17,17 +17,19 @@ class Conversation extends Model
 
     public function ad(): BelongsTo
     {
-        return $this->belongsTo(Ad::class);
+        // withTrashed (here and on buyer/seller): the chat history survives
+        // the ad being deleted or either side deleting their account.
+        return $this->belongsTo(Ad::class)->withTrashed();
     }
 
     public function buyer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'buyer_id');
+        return $this->belongsTo(User::class, 'buyer_id')->withTrashed();
     }
 
     public function seller(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'seller_id')->withTrashed();
     }
 
     public function messages(): HasMany

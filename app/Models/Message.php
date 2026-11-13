@@ -21,6 +21,8 @@ class Message extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        // withTrashed: a deleted account's messages stay in the other
+        // person's chat, shown as "مستخدم محذوف" (see AccountService::delete).
+        return $this->belongsTo(User::class, 'sender_id')->withTrashed();
     }
 }

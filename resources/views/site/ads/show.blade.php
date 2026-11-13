@@ -58,7 +58,7 @@
         <aside>
             <div class="card">
                 <a class="seller" href="{{ route('site.users.show', $ad->user) }}">
-                    <div class="avatar">{{ mb_substr($ad->user->name, 0, 1) }}</div>
+                    @include('site.partials.avatar', ['user' => $ad->user])
                     <div>
                         <strong>{{ $ad->user->name }}</strong>
                         <div>@include('site.partials.rating-stars', ['average' => $ad->user->rating_average, 'count' => $ad->user->rating_count])</div>

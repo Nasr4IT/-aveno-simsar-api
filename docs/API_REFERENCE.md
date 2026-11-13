@@ -88,7 +88,58 @@ Every endpoint below has been exercised against a running instance of this API (
 **Auth:** required.
 **Does:** Returns the caller's own profile — the standard way to check "am I still logged in" and to read `rating_average`/`rating_count` after a rating event.
 **Input:** none.
-**Output — `200`:** a single `UserResource` under `data`.
+**Output — `200`:** a single `UserResource` under `data`, including `phone`, `email`, `governorate` and `city`.
+
+---
+
+### `PUT/PATCH /auth/me` and `POST /auth/me` (edit profile)
+**Auth:** required.
+**Does:** Partial update of the caller's profile — send only the fields that change. Use **`POST` with `multipart/form-data`** when uploading an avatar (PHP does not parse multipart bodies on `PUT`); plain JSON `PUT`/`PATCH` works for everything else.
+**Input:**
+| Field | Notes |
+|---|---|
+| `name` | string, max 100 |
+| `email` | valid email, unique; send `null` to clear |
+| `governorate_id`, `city_id` | must exist; `null` clears |
+| `avatar` | image (jpg/png/webp…), max 5 MB; resized to max 1600px. Replaces the previous one |
+| `remove_avatar` | `true` deletes the current avatar |
+
+**Output — `200`:** `{"data": UserResource}` with `governorate` and `city` loaded and the new `avatar_url`.
+**Errors:** `422` (e.g. `email` taken, `avatar` not an image).
+
+---
+
+### `POST /auth/change-password`
+**Auth:** required.
+**Input:** `current_password`, `password` (min 8, different from the current one).
+**Output — `200`:** `{"message": "تم تغيير كلمة المرور."}`. The token used for this request stays valid; **every other token of this user is revoked** (other devices are signed out).
+**Errors:** `422` on `current_password` if it's wrong.
+
+---
+
+### `DELETE /auth/me` (delete account)
+**Auth:** required.
+**Input (JSON body):** `password`.
+**Does:** Permanently deletes the account — required by Google Play and the App Store. Removes the user's ads (they disappear from every list), favorites, ratings given and received (sellers' averages are recomputed), device tokens, notifications and all API tokens. The user row is anonymised (name becomes `"مستخدم محذوف"`, phone/email/avatar/location wiped) and soft-deleted, so the same phone number and email can sign up again.
+**Conversations are kept** so the other person doesn't lose their history: `GET /conversations` and `/messages` still return them, with this user shown as `{"name": "مستخدم محذوف", "avatar_url": null, ...}` and the ad still present.
+**Output — `200`:** `{"message": "تم حذف حسابك."}`. Discard the token.
+**Errors:** `422` on `password` if it's wrong.
+
+---
+
+### `POST /auth/forgot-password`
+**Auth:** none. Rate-limited (5/min).
+**Input:** `phone` **or** `email` (one is required).
+**Does:** If the account exists, isn't banned and has an email address, emails a 6-digit code valid for **30 minutes** to that address (requesting again replaces the previous code). Accounts with no email can't reset this way — the user has to contact support.
+**Output — `200` always** (same message whether or not the account exists, so the endpoint can't be used to discover accounts): `{"message": "إذا كان للحساب بريد إلكتروني، فقد أرسلنا إليه رمزًا ..."}`.
+
+---
+
+### `POST /auth/reset-password`
+**Auth:** none. Rate-limited (5/min).
+**Input:** `phone` or `email` (same one used above), `code` (6 digits), `password` (min 8).
+**Output — `200`:** `{"message": "تم تعيين كلمة المرور الجديدة. سجّل الدخول بها الآن."}`. The code is single-use, and **all** of the user's tokens are revoked — call `/auth/login` with the new password.
+**Errors:** `422` on `code` (`"الرمز غير صحيح أو منتهي الصلاحية."`) if wrong, expired or already used.
 
 ---
 
