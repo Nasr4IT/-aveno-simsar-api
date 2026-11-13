@@ -9,9 +9,9 @@ use App\Services\AccountService;
 use App\Services\PasswordResetService;
 use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * See docs/API_CONTRACT.md § Auth.
