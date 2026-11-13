@@ -31,7 +31,10 @@ Every endpoint below has been exercised against a running instance of this API (
     "is_banned": false, "created_at": "2026-09-03T19:13:45.000000Z"
   }
   ```
-  (`governorate`/`city` appear here too, only when the caller eager-loaded them — they don't on any endpoint below.)
+  **`phone` and `email` are only present when the viewer is that user (or an admin).** On anyone else — an ad's seller, a rater, the other side of a chat, a public profile — those two keys are absent, not `null`. `rating_count` is always an integer.
+  `governorate`/`city` (each `{id, name_ar, name_en, latitude, longitude, …}`) appear on `/auth/register`, `/auth/login`, `/auth/me` and `PUT /auth/me`; elsewhere they're absent.
+- **Rate limits** → `429` `{"message": "Too Many Attempts."}` with a `Retry-After` header (seconds). 120 requests/minute per user (or IP) on all of `/api`; 5/minute per phone-or-email + IP (and 20/minute per IP) on `/auth/login`, `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`.
+- **Phone numbers** are Syrian mobiles stored as `09XXXXXXXX`. Send any common spelling — `+963 999 111 222`, `00963999111222`, `963999111222`, `999111222`, with dashes/spaces or Arabic-Indic digits — it's normalised before validation and lookup. Anything that doesn't normalise to `09` + 8 digits → `422` on `phone`.
 
 ---
 
@@ -44,7 +47,7 @@ Every endpoint below has been exercised against a running instance of this API (
 | Field | Required | Notes |
 |---|---|---|
 | `name` | yes | string, max 100 |
-| `phone` | yes | string, must be unique — this is the login identifier |
+| `phone` | yes | Syrian mobile in any common spelling (normalised to `09XXXXXXXX`), must be unique — this is the login identifier |
 | `password` | yes | string, min 8 |
 | `email` | no | must be a valid, unique email if given |
 | `governorate_id` | no | must exist in `governorates` |
@@ -53,7 +56,7 @@ Every endpoint below has been exercised against a running instance of this API (
 **Output — `201`:**
 ```json
 {
-  "user": { "id": 3, "name": "Test User", "phone": "0999111222", "email": null, "avatar_url": null, "rating_average": 0, "rating_count": null, "is_banned": false, "created_at": "..." },
+  "user": { "id": 3, "name": "Test User", "phone": "0999111222", "email": null, "avatar_url": null, "governorate": null, "city": null, "rating_average": 0, "rating_count": 0, "is_banned": false, "created_at": "..." },
   "token": "4|JuyvPN0mHQqJir2X1y344aBi0wmr2R3ch7jGWf9K8775e271"
 }
 ```
@@ -64,9 +67,10 @@ Every endpoint below has been exercised against a running instance of this API (
 ### `POST /auth/login`
 **Auth:** none.
 **Does:** Authenticates by phone + password, returns a fresh token. Blocks banned users.
-**Input (JSON body):** `phone` (required), `password` (required).
+**Input (JSON body):** `phone` (required, any common spelling — normalised), `password` (required).
 **Output — `200`:** same shape as register (`{"user": ..., "token": "..."}`).
 **Errors:**
+- `429` — more than 5 attempts a minute for this phone from this IP.
 - `422` `{"message": "بيانات الدخول غير صحيحة"}` — wrong phone or password.
 - `403` `{"message": "تم إيقاف هذا الحساب"}` — account is banned (`is_banned = true`).
 
@@ -257,7 +261,7 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 ### `GET /favorites`
 **Auth:** required.
 **Does:** The caller's saved/bookmarked ads.
-**Output — `200`:** paginated `AdResource` collection (only ads the caller favorited).
+**Output — `200`:** paginated `AdResource` collection — the caller's favorited ads that are still `approved` or `sold` (a favorited ad that went back to `pending` or was `rejected` is left out, since `GET /ads/{id}` would 404 for it).
 
 ### `POST /ads/{id}/favorite`
 **Auth:** required.

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AdminPanel;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,8 @@ class AdminAuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge(['phone' => PhoneNumber::normalize($request->input('phone'))]);
+
         $data = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],

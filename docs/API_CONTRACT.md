@@ -5,6 +5,12 @@ Auth: Laravel Sanctum bearer token. Register or log in once, store the `token`, 
 
 All responses are JSON. List endpoints are paginated (Laravel's default shape: `data`, `links`, `meta`). Errors follow Laravel's default validation shape: `{"message": "...", "errors": {"field": ["..."]}}` with HTTP 422, or `{"message": "..."}` with 401/403/404/501.
 
+**Rate limits:** every `/api` route allows 120 requests/minute per user (or per IP when logged out). Login, register and the password-reset endpoints allow 5 attempts/minute per phone-or-email + IP and 20/minute per IP. Over the limit → `429` with a `Retry-After` header.
+
+**Phone numbers:** Syrian mobiles only, stored as `09XXXXXXXX`. Any common spelling is accepted and normalised on register, login and reset (`+963 999 111 222`, `00963999111222`, `963…`, `999111222`, dashes/spaces, Arabic-Indic digits) — so the same number can never become two accounts. Anything else → `422` on `phone`.
+
+**Contact details are private:** a `UserResource`'s `phone` and `email` keys are only present for the account owner (and admins). Everywhere else — an ad's seller, a rater, the other side of a chat, a public profile — the keys are absent.
+
 This file is the contract between the Laravel backend and the Flutter app. **A route, field, or status code doesn't change without this file changing in the same commit** — that's the rule that keeps two people building against each other without breaking each other daily.
 
 ## Auth
@@ -51,7 +57,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 
 | Method | Path | Auth |
 |---|---|---|
-| GET | `/favorites` | ✓ |
+| GET | `/favorites` | ✓ | — only ads that are still `approved` or `sold` |
 | POST | `/ads/{id}/favorite` | ✓ |
 | DELETE | `/ads/{id}/favorite` | ✓ |
 

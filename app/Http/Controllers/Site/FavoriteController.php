@@ -12,6 +12,7 @@ class FavoriteController extends Controller
     public function index(Request $request)
     {
         $ads = Ad::whereHas('favoritedBy', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->whereIn('status', ['approved', 'sold'])
             ->with(['images', 'city'])
             ->latest()
             ->paginate(20);

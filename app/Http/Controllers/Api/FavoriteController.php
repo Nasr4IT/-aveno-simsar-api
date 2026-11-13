@@ -13,7 +13,10 @@ class FavoriteController extends Controller
     // GET /api/favorites
     public function index(Request $request)
     {
+        // Only ads the user can still open: one that went back to pending or
+        // was rejected after being favorited 404s on GET /ads/{id}.
         $ads = Ad::whereHas('favoritedBy', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->whereIn('status', ['approved', 'sold'])
             ->with('images')
             ->paginate(20);
 

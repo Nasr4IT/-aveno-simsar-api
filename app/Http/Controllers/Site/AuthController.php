@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Http\Controllers\Controller;
 use App\Models\Governorate;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -23,6 +24,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge(['phone' => PhoneNumber::normalize($request->input('phone'))]);
+
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -51,9 +54,11 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $request->merge(['phone' => PhoneNumber::normalize($request->input('phone'))]);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'unique:users,phone'],
+            'phone' => ['required', 'string', PhoneNumber::RULE, 'unique:users,phone'],
             'email' => ['nullable', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'governorate_id' => ['nullable', 'exists:governorates,id'],

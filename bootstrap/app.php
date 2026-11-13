@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureFrontendRequestsAreStateful::class,
         ]);
 
+        // 120 requests/minute per user (or IP) on every /api route — the
+        // 'api' limiter is defined in AppServiceProvider. Stricter 'auth'
+        // limits sit on the login/register/reset routes themselves.
+        $middleware->throttleApi();
+
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);

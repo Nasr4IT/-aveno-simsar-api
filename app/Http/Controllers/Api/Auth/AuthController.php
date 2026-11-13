@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -19,9 +20,11 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        $request->merge(['phone' => PhoneNumber::normalize($request->input('phone'))]);
+
         $data = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'unique:users,phone'],
+            'phone' => ['required', 'string', PhoneNumber::RULE, 'unique:users,phone'],
             'email' => ['nullable', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'governorate_id' => ['nullable', 'exists:governorates,id'],
@@ -33,14 +36,26 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        return $this->tokenResponse($user, 201);
+    }
+
+    // {user, token}. The new user becomes the request's viewer first, so
+    // UserResource shows them their own phone/email (contact details are
+    // private to the owner).
+    private function tokenResponse(User $user, int $status = 200)
+    {
+        auth('sanctum')->setUser($user);
+
         return response()->json([
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load(['governorate', 'city'])),
             'token' => $user->createToken('mobile')->plainTextToken,
-        ], 201);
+        ], $status);
     }
 
     public function login(Request $request)
     {
+        $request->merge(['phone' => PhoneNumber::normalize($request->input('phone'))]);
+
         $credentials = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -56,10 +71,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'تم إيقاف هذا الحساب'], 403);
         }
 
-        return response()->json([
-            'user' => new UserResource($user),
-            'token' => $user->createToken('mobile')->plainTextToken,
-        ]);
+        return $this->tokenResponse($user);
     }
 
     public function logout(Request $request)
@@ -71,6 +83,6 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return new UserResource($request->user());
+        return new UserResource($request->user()->load(['governorate', 'city']));
     }
 }

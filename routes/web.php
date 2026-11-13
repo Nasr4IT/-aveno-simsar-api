@@ -23,7 +23,7 @@ require __DIR__.'/site.php';
 
 Route::prefix('admin-panel')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
+    Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:auth')->name('login.attempt');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
     Route::middleware(['auth', 'admin'])->group(function () {
