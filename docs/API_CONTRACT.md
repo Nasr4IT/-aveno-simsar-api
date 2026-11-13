@@ -45,7 +45,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
+| GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, user_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
 | GET | `/ads/{id}` | – | full detail (the only endpoint that includes `description`, `attributes` and `user`), increments `views_count`; visible for `approved` and `sold` |
 | GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
@@ -58,6 +58,15 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | POST | `/ads/{id}/mark-sold` | ✓ (owner) | `approved` → `sold`; drops out of the public feed but stays viewable |
 | POST | `/ads/{id}/relist` | ✓ (owner) | `sold`/`expired` → `pending`, re-queues for review |
 | POST | `/ads/{id}/report` | ✓ | body: `{reason: spam\|inappropriate\|scam\|other, details?}` |
+
+Every ad returned anywhere has `is_favorited` (for the caller — send the token on public routes too; `false` for guests). Every list (`/ads`, `/ads/{id}/similar`, `/favorites`, `/my/ads`) includes `user` (seller: `id, name, avatar_url, rating_*` — no phone/email), `category`, `governorate`, `city`, `images`.
+
+## Users (public profiles)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/users/{id}` | – | name, avatar, governorate, city, rating, `created_at` (member since), `active_ads_count`, `sold_ads_count`. 404 if banned/deleted. Their ads: `GET /ads?user_id={id}` |
+| GET | `/users/{id}/ratings/summary` | – | `{average, count, stars: {"5": n, …, "1": n}}` |
 
 ## Favorites
 
@@ -91,6 +100,7 @@ MVP is polling — have the Flutter app refresh `/messages` every few seconds wh
 | Method | Path | Auth |
 |---|---|---|
 | GET | `/notifications` | ✓ |
+| GET | `/notifications/unread-count` | ✓ — `{"data": {"count": n}}` |
 | POST | `/notifications/{id}/read` | ✓ |
 | POST | `/notifications/read-all` | ✓ |
 

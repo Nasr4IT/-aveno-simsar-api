@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,7 +51,9 @@ Route::get('/governorates', [GovernorateController::class, 'index']);
 Route::get('/ad-packages', [PaymentController::class, 'packages']);
 Route::post('/payments/shamcash/webhook', [PaymentController::class, 'webhook']);
 
+Route::get('/users/{user}', [UserController::class, 'show']);
 Route::get('/users/{user}/ratings', [RatingController::class, 'index']);
+Route::get('/users/{user}/ratings/summary', [UserController::class, 'ratingsSummary']);
 
 // --- Authenticated (Sanctum bearer token) ------------------------------
 Route::middleware('auth:sanctum')->group(function () {
@@ -87,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/{user}/report', [ReportController::class, 'reportUser']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 

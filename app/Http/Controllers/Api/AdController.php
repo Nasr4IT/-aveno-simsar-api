@@ -56,7 +56,7 @@ class AdController extends Controller
         abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
 
         $ad->increment('views_count');
-        $ad->load(['images', 'attributeValues.attribute', 'user', 'category'])
+        $ad->load([...AdFeedQueryService::CARD_RELATIONS, 'attributeValues.attribute'])
             ->loadCount(['favoritedBy', 'conversations']);
 
         return new AdResource($ad);
@@ -255,7 +255,7 @@ class AdController extends Controller
     public function myAds(Request $request)
     {
         return AdResource::collection(
-            $request->user()->ads()->with('images')->withCount(['favoritedBy', 'conversations'])->latest()->paginate(20)
+            $request->user()->ads()->with(AdFeedQueryService::CARD_RELATIONS)->withCount(['favoritedBy', 'conversations'])->latest()->paginate(20)
         );
     }
 

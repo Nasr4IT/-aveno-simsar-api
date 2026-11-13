@@ -31,6 +31,9 @@ class UserResource extends JsonResource
             'rating_average' => (float) $this->rating_average,
             'rating_count' => (int) $this->rating_count,
             'is_banned' => (bool) $this->is_banned,
+            // Only on GET /users/{id} (public profile).
+            'active_ads_count' => $this->whenHas('active_ads_count', fn () => (int) $this->active_ads_count),
+            'sold_ads_count' => $this->whenHas('sold_ads_count', fn () => (int) $this->sold_ads_count),
             'created_at' => $this->created_at,
         ];
     }

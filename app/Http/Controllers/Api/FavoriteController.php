@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdResource;
 use App\Models\Ad;
+use App\Services\AdFeedQueryService;
 use Illuminate\Http\Request;
 
 // See docs/API_CONTRACT.md § Favorites ("قائمة المفضلة للمستخدم").
@@ -17,7 +18,8 @@ class FavoriteController extends Controller
         // was rejected after being favorited 404s on GET /ads/{id}.
         $ads = Ad::whereHas('favoritedBy', fn ($q) => $q->where('user_id', $request->user()->id))
             ->whereIn('status', ['approved', 'sold'])
-            ->with('images')
+            ->with(AdFeedQueryService::CARD_RELATIONS)
+            ->latest()
             ->paginate(20);
 
         return AdResource::collection($ads);

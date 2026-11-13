@@ -10,6 +10,7 @@
                         <h1 style="margin:0">{{ $user->name }}</h1>
                         <div>@include('site.partials.rating-stars', ['average' => $user->rating_average, 'count' => $user->rating_count])</div>
                         <div class="muted small">{{ __('عضو منذ :time', ['time' => $user->created_at->diffForHumans()]) }}</div>
+                        <div class="muted small">{{ trans_choice('{0} لا إعلانات|{1} إعلان واحد|[2,*] :count إعلان', $ads->total(), ['count' => $ads->total()]) }} · {{ __(':count مُباع', ['count' => $soldCount]) }}</div>
                     </div>
                 </div>
             </div>
@@ -55,6 +56,19 @@
 
             <div class="card">
                 <h3 style="margin-top:0">{{ __('التقييمات') }}</h3>
+                @if ($summary['count'] > 0)
+                    <div style="margin-bottom:12px">
+                        @foreach ($summary['stars'] as $score => $total)
+                            <div class="row" style="flex-wrap:nowrap; gap:8px; font-size:12.5px">
+                                <span style="width:28px">{{ $score }}★</span>
+                                <div style="flex:1; height:8px; border-radius:999px; background:var(--bg); overflow:hidden">
+                                    <div style="height:100%; width:{{ round($total / $summary['count'] * 100) }}%; background:#f59e0b; border-radius:999px"></div>
+                                </div>
+                                <span class="muted" style="width:24px; text-align:end">{{ $total }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
                 @forelse ($ratings as $rating)
                     <div class="rating-row">
                         <div class="row"><strong>{{ $rating->raterUser->name }}</strong> @include('site.partials.rating-stars', ['average' => $rating->score])</div>

@@ -14,13 +14,19 @@ use Illuminate\Database\Eloquent\Builder;
 // returned builder however they like.
 class AdFeedQueryService
 {
+    // What an ad card needs (photo, category, location, seller name) — used
+    // by every list of ads on the API so cards look the same everywhere.
+    public const CARD_RELATIONS = ['images', 'category', 'city', 'governorate', 'user'];
+
     // Query params that are never treated as a dynamic-attribute filter.
-    private const RESERVED_PARAMS = ['category_id', 'governorate_id', 'city_id', 'min_price', 'max_price', 'q', 'page', 'sort', 'lat', 'lng'];
+    private const RESERVED_PARAMS = ['category_id', 'governorate_id', 'city_id', 'user_id', 'min_price', 'max_price', 'q', 'page', 'sort', 'lat', 'lng'];
 
     public static function filterRules(): array
     {
         return [
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            // One seller's listings (their public profile's "ads" tab).
+            'user_id' => ['nullable', 'integer'],
             'governorate_id' => ['nullable', 'integer', 'exists:governorates,id'],
             'city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
@@ -43,6 +49,7 @@ class AdFeedQueryService
             ->when($filters['category_id'] ?? null, fn ($q, $v) => $q->where('category_id', $v))
             ->when($filters['governorate_id'] ?? null, fn ($q, $v) => $q->where('governorate_id', $v))
             ->when($filters['city_id'] ?? null, fn ($q, $v) => $q->where('city_id', $v))
+            ->when($filters['user_id'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
             ->when($filters['min_price'] ?? null, fn ($q, $v) => $q->where('price', '>=', $v))
             ->when($filters['max_price'] ?? null, fn ($q, $v) => $q->where('price', '<=', $v))
             ->tap(fn ($q) => $this->applyAttributeFilters($q, $queryParams, $filters['category_id'] ?? null));
@@ -51,7 +58,7 @@ class AdFeedQueryService
             $this->applySearch($query, $filters['q']);
         }
 
-        $query->with(['images', 'category', 'city', 'governorate']);
+        $query->with(self::CARD_RELATIONS);
 
         $this->applySort($query, $filters);
 
@@ -65,7 +72,7 @@ class AdFeedQueryService
         $query = Ad::approved()
             ->where('id', '!=', $ad->id)
             ->where('category_id', $ad->category_id)
-            ->with(['images', 'category', 'city', 'governorate']);
+            ->with(self::CARD_RELATIONS);
 
         if ($ad->price !== null) {
             $query->whereBetween('price', [$ad->price * 0.7, $ad->price * 1.3])

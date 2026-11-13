@@ -196,6 +196,7 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 | `category_id` | int | exact match |
 | `governorate_id` | int | exact match |
 | `city_id` | int | exact match |
+| `user_id` | int | one seller's ads (still `approved` only) — the "ads" tab of a public profile |
 | `min_price` / `max_price` | number | inclusive range on `price` |
 | `q` | string | matches against `title` **or** `description` (`LIKE %q%`). If that comes back empty, falls back to a typo-tolerant match on `title` only (multibyte-safe edit distance, e.g. "Totoya" still finds "Toyota") — the exact pass always wins outright when it finds anything, the fuzzy pass never runs otherwise. |
 | `sort` | string | one of `newest` (default), `price_asc`, `price_desc`, `popular` (by `views_count` descending), `nearest`. Picking any value other than `newest` **replaces** the default featured-first ordering entirely — it doesn't layer on top of it. |
@@ -207,14 +208,17 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 {
   "id": 1, "title": "كيا سبورتاج 2019 للبيع", "slug": "kia-sportage-2019-test",
   "price": 15000, "currency": "USD", "status": "approved", "is_featured": false, "views_count": 0,
+  "is_favorited": false,
   "latitude": null, "longitude": null,
   "category": { "id": 1, "name_ar": "سيارات", ... },
   "governorate": { "id": 1, "name_ar": "دمشق", ... },
   "city": { "id": 1, "governorate_id": 1, "name_ar": "دمشق", ... },
+  "user": { "id": 4, "name": "Seller One", "avatar_url": null, "rating_average": 4.5, "rating_count": 2, ... },
   "images": [ { "id": 1, "url": "http://.../storage/ads/1/xyz.jpg", "is_cover": true } ],
   "created_at": "...", "published_at": "..."
 }
 ```
+**`is_favorited`** is on every ad the API returns (feed, detail, similar, favorites, my ads): `true` when the caller (send the bearer token even on these public routes) has it in their favorites, `false` for other ads and for guests. **`user`** (the seller, no phone/email), `category`, `governorate` and `city` are on every ad in every list — `/ads`, `/ads/{id}/similar`, `/favorites`, `/my/ads` — as well as on the detail.
 
 ---
 
@@ -369,6 +373,20 @@ One conversation exists per `(ad, buyer)` pair — starting it twice for the sam
 
 `(rater, rated, ad)` is a unique triple — rating the same person again (for the same `ad_id`, including both `null`) **updates** the existing rating rather than creating a second one, and the target's `rating_average`/`rating_count` are recomputed from scratch every time (see `app/Services/RatingService.php`).
 
+### `GET /users/{id}` (public profile)
+**Auth:** none.
+**Output — `200`:** `{"data": UserResource}` with `governorate`, `city` and two extra counts — **no `phone`/`email`** (unless the caller is that user):
+```json
+{ "id": 4, "name": "Seller One", "avatar_url": null, "governorate": {...}, "city": {...},
+  "rating_average": 4.5, "rating_count": 2, "is_banned": false, "created_at": "...",
+  "active_ads_count": 7, "sold_ads_count": 3 }
+```
+Their listings: `GET /ads?user_id={id}`. **Errors:** `404` for banned or deleted accounts.
+
+### `GET /users/{id}/ratings/summary`
+**Auth:** none.
+**Output — `200`:** `{"data": {"average": 3.75, "count": 4, "stars": {"5": 2, "4": 1, "3": 0, "2": 0, "1": 1}}}` — every star 1–5 is always present. `404` for banned/deleted accounts.
+
 ### `GET /users/{id}/ratings`
 **Auth:** none — shown on a public seller profile.
 **Output — `200`:** paginated `RatingResource` collection:
@@ -397,6 +415,10 @@ Backed by Laravel's standard database-notifications table (`Notifiable` trait on
 | `ad_rejected` | Admin rejects your ad | `ad_id`, `title`, `reason` |
 | `new_message` | Someone messages you in a conversation | `conversation_id`, `sender_id`, `sender_name`, `body` |
 | `new_rating` | Someone rates you | `rating_id`, `rater_id`, `rater_name`, `score` |
+
+### `GET /notifications/unread-count`
+**Auth:** required.
+**Output — `200`:** `{"data": {"count": 3}}` — for the bell badge.
 
 ### `GET /notifications`
 **Auth:** required.

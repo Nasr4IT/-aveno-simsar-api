@@ -14,6 +14,12 @@ class NotificationController extends Controller
         return $request->user()->notifications()->paginate(30);
     }
 
+    // GET /api/notifications/unread-count — the bell badge.
+    public function unreadCount(Request $request)
+    {
+        return response()->json(['data' => ['count' => $request->user()->unreadNotifications()->count()]]);
+    }
+
     // POST /api/notifications/{id}/read
     public function markRead(Request $request, string $id)
     {

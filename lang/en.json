@@ -224,5 +224,6 @@
     "تم تعيين كلمة المرور الجديدة. سجّل الدخول بها الآن.": "Your new password is set. Log in with it now.",
     "تم تغيير كلمة المرور.": "Password changed.",
     "تم حذف حسابك.": "Your account has been deleted.",
-    "الرمز غير صحيح أو منتهي الصلاحية.": "The code is wrong or has expired."
+    "الرمز غير صحيح أو منتهي الصلاحية.": "The code is wrong or has expired.",
+    ":count مُباع": ":count sold"
 }
