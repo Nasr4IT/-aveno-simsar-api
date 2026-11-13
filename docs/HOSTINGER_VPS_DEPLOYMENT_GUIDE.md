@@ -1,7 +1,8 @@
 # Deploying the Semsar Backend to a Hostinger VPS (CyberPanel)
 
-This guide walks through putting the Semsar (Aveno Marketplace) Laravel 11 API —
-including the admin panel — on a Hostinger VPS running **CyberPanel**
+This guide walks through putting the Semsar (Aveno Marketplace) Laravel 11 app —
+the public website, the admin panel and the mobile app's API are all one
+deployment — on a Hostinger VPS running **CyberPanel**
 (OpenLiteSpeed). It assumes root SSH access to the VPS and a domain or
 subdomain you can point at it (e.g. `api.yourdomain.com`).
 
@@ -17,7 +18,7 @@ Repository: `https://github.com/Nasr4IT/-aveno-simsar-api.git`
 | PHP extensions | openssl, pdo, mbstring, tokenizer, xml, ctype, json, bcmath, fileinfo, curl, zip, **gd** |
 | Database | MySQL 5.7+/8 (or PostgreSQL — this guide uses MySQL since that's what CyberPanel provisions out of the box) |
 | Web server | OpenLiteSpeed, document root = the app's `public/` folder (**not** the project root) |
-| Node/npm | Not needed — this is an API + server-rendered admin panel, there's no frontend build step |
+| Node/npm | Not needed — the website and admin panel are server-rendered, there's no frontend build step |
 | Background process | One `php artisan queue:work` process must run continuously (push notifications, approval emails, etc. are queued) |
 
 ---
@@ -277,14 +278,20 @@ curl https://api.yourdomain.com/api/categories
 
 Should return a JSON array of categories.
 
-Then open `https://api.yourdomain.com/admin-panel/login` in a browser — you
+Open `https://api.yourdomain.com/` in a browser — that's the public website
+(home page with categories and listings). Everything a user can do in the
+app works here too: register, browse, post an ad, favorites, chat.
+
+Then open `https://api.yourdomain.com/admin-panel/login` — you
 should see the Semsar Admin Panel login screen. Log in with the seeded admin
 account from step 9, confirm the dashboard loads, **then change that
 password**.
 
 Give your Flutter developer friend `https://api.yourdomain.com` as the API
 base URL — `/api/...` for every endpoint in `API_REFERENCE.md`/the Postman
-collection.
+collection. (Since the same deployment now serves the public website, you may
+prefer your root domain, e.g. `https://semsar.example` — the API is then
+`https://semsar.example/api/...`. Nothing else changes.)
 
 ---
 

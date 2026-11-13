@@ -1,18 +1,24 @@
 # How Aveno Marketplace Works
 
-This is the product-level walkthrough: what the app does, screen by screen, and which backend pieces make each screen work. If you're wiring up the Flutter app, read this first to understand the *flow*, then go to [`API_REFERENCE.md`](API_REFERENCE.md) for the exact request/response shape of any endpoint it mentions.
+This is the product-level walkthrough: what the platform does, screen by screen, and which backend pieces make each screen work. If you're wiring up the Flutter app, read this first to understand the *flow*, then go to [`API_REFERENCE.md`](API_REFERENCE.md) for the exact request/response shape of any endpoint it mentions. The same flows exist on the public website (see [The Public Website](#the-public-website)).
 
 ## The big picture
 
 ```mermaid
 flowchart LR
-    App[Flutter App<br/>Android / iOS / Web] -- HTTPS + Bearer token --> API[Laravel API<br/>this repo, hosted on Render]
-    API --> DB[(PostgreSQL)]
-    API -. "images (resized to disk)" .-> Storage[(File storage)]
-    Admin[Admin / moderator<br/>Postman or a future admin UI] -- HTTPS + Bearer token + admin role --> API
+    App[Flutter App<br/>Android / iOS] -- HTTPS + Bearer token --> API[/api/* — JSON API]
+    Browser[Any browser] -- session cookie --> Site[Public website<br/>/ , /explore, /sell, ...]
+    AdminUI[Admin in a browser] -- session cookie + admin role --> Panel[Admin panel<br/>/admin-panel]
+    subgraph Laravel[This repo — one Laravel app, one deployment]
+        API --> Core[Models + shared services<br/>AdFeedQueryService, AdAttributeService, ImageService]
+        Site --> Core
+        Panel --> Core
+    end
+    Core --> DB[(MySQL / PostgreSQL)]
+    Core -. "images (resized)" .-> Storage[(File storage)]
 ```
 
-There is **no server-rendered website and no built admin dashboard** — this repo is a pure JSON API. Every screen, including the admin side, is just a client sending HTTP requests and rendering the response. Right now the only client is the Flutter app (and Postman, for testing); an admin panel is a separate possible future client, not something this repo serves.
+One Laravel app serves three surfaces against one database: the **JSON API** the Flutter app talks to (bearer tokens), the **public website** (a browser version of the app, session-based), and the **admin panel** (session-based, `admin` role). The website and the API share the same service classes for the feed, search, sorting and dynamic attributes, so the two can't drift apart; the admin panel governs both, because everything lands in the same tables.
 
 One account type, two roles: every person is a `User` row. Nothing structurally separates "buyer" from "seller" — anyone can browse, post an ad, message, and rate. The only special role is **`admin`** (granted via Spatie permissions), which unlocks the moderation endpoints under `/admin/*`.
 
@@ -216,12 +222,26 @@ A few smaller pieces that round out the seller experience, all added onto existi
 
 ---
 
+## The Public Website
+
+Everything above also exists as a website, served from this same app at the root domain — a browser version of the Flutter app for people who don't install it. It's server-rendered Blade (Arabic, RTL, in the Semsar brand, **no build step**), so deploying it is the same as deploying the API (see the Hostinger guides).
+
+**Same features as the app.** Home (categories, banners, featured and latest ads), `/explore` with every filter the API has (search with the typo-tolerant fallback, category, governorate/city, price range, sort incl. "nearest to me" via browser geolocation, and per-category dynamic filters), ad detail with similar ads, `/sell` (the app's three-step "sell your item" flow with the category's dynamic fields), `/my/ads` (status, rejection reason, edit, add/remove photos, mark sold, relist, delete, stats), favorites, chat (polling, like the API), notifications, profile, public seller profiles with ratings, and reporting. The only app things with no page are device-token registration (push is a phone concept) and the paid ad-boost checkout (§13 — a stub on the backend for the app too).
+
+**Same account, different login mechanism.** The website logs in at `/login` with the same phone + password, against the same `users` table, but gets a session cookie instead of a Sanctum token (`Site\AuthController`, like the admin panel's login). One account works on the app, the website, and — if it has the `admin` role — the admin panel.
+
+**Same rules, by construction.** `Site\*` controllers (`app/Http/Controllers/Site/`) query Eloquent directly rather than calling the JSON API, and reuse the same pieces the API uses: `AdFeedQueryService` (feed filters/search/sort), `AdAttributeService` (dynamic-attribute validation), `ImageService` (photo storage), `StoreAdRequest`/`UpdateAdRequest`, the same notifications and push calls. An ad posted from the website lands in the same pending queue, is approved from the same admin panel, and shows up in the app — and vice-versa.
+
+Routes are in `routes/site.php` (names `site.*`); views in `resources/views/site/`; tests in `tests/Feature/Site*Test.php`. The old JSON status at `/` moved to `/healthz`.
+
+---
+
 ## Known gaps (so nobody builds against something that isn't there)
 
 - **Sham Cash payments are stubbed** (§13) — `501` on checkout, no real money flow yet.
 - **Push notifications and S3/R2 image storage are code-complete but need an external account to actually turn on** — both silently no-op without credentials (the same pattern as Sham Cash), so nothing breaks by leaving them off, but nothing happens either until `FIREBASE_CREDENTIALS_JSON` (push) or `FILESYSTEM_DISK=s3` + `AWS_*` (persistent image storage, e.g. Cloudflare R2) are actually set. Until then, in-app/polling notifications (§12) and local-disk images both still work exactly as before.
 - **Sentry error tracking is wired in but inactive** without a `SENTRY_LARAVEL_DSN` — free to sign up for when you want it.
-- **The queue worker has no supervisor** — it's a second process backgrounded inside the same container as the web server (Render's free tier has no separate worker-service type), so it dies silently with the container rather than being restarted on its own if it crashes. Acceptable for this scale; revisit before relying on it for anything time-sensitive.
+- **The queue worker needs a supervisor in production** — on a VPS, run it as a `systemd` service exactly as the Hostinger guide describes; in the Docker/Render setup it's merely backgrounded next to the web server and dies silently with the container. Without a running worker, notifications and push messages queue up and never go out.
 
 ## Where to go next
 
@@ -229,3 +249,4 @@ A few smaller pieces that round out the seller experience, all added onto existi
 - [`Aveno_Marketplace.postman_collection.json`](Aveno_Marketplace.postman_collection.json) — click-to-test version of every call mentioned above, already pointed at the live deployment.
 - [`ERD.md`](ERD.md) — the data model behind all of this, if you need to understand how tables relate.
 - [`API_CONTRACT.md`](API_CONTRACT.md) — the short route-level contract the Flutter team builds against; update it in the same commit as any backend change that touches a route, field, or status code.
+- [`HOSTINGER_VPS_DEPLOYMENT_GUIDE.md`](HOSTINGER_VPS_DEPLOYMENT_GUIDE.md) / [`FILEZILLA_UPLOAD_GUIDE_AR.md`](FILEZILLA_UPLOAD_GUIDE_AR.md) — deploying the whole thing (website, admin panel and API are one deployment) to a VPS, in English and in Arabic.
