@@ -27,9 +27,12 @@
         'list' => '<rect x="4" y="4" width="16" height="16" rx="3" /><path d="M8 9h8M8 13h8M8 17h4" />',
         'check' => '<path d="m5 12.5 4.5 4.5L19 7.5" />',
         'flag' => '<path d="M6 3v18" /><path d="M6 4.5c2-1 4-1 6 0s4 1 6 0v9c-2 1-4 1-6 0s-4-1-6 0z" />',
+        'globe' => '<circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.2 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.2-3.6-8.5S9.6 5.9 12 3.5z" />',
+        'moon' => '<path d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10z" />',
+        'sun' => '<circle cx="12" cy="12" r="3.8" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />',
     ];
     $size = $size ?? 20;
 @endphp
-<svg class="ico" width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="{{ ($filled ?? false) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<svg class="ico {{ $class ?? '' }}"width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="{{ ($filled ?? false) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     {!! $paths[$name] !!}
 </svg>

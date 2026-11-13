@@ -36,6 +36,6 @@ class ProfileController extends Controller
 
         $user->update($data);
 
-        return back()->with('status', 'تم حفظ بياناتك.');
+        return back()->with('status', __('تم حفظ بياناتك.'));
     }
 }

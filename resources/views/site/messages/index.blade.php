@@ -1,12 +1,12 @@
 @extends('site.layout')
-@section('title', 'الرسائل')
+@section('title', __('الرسائل'))
 @section('content')
     <div class="section" style="margin-top:20px; max-width:760px; margin-inline:auto">
-        <h1>الرسائل</h1>
+        <h1>{{ __('الرسائل') }}</h1>
         @if ($conversations->isEmpty())
             <div class="card empty">
                 @include('site.partials.icon', ['name' => 'chat', 'size' => 40])
-                لا توجد محادثات بعد — راسل بائعًا من صفحة أي إعلان.
+                {{ __('لا توجد محادثات بعد — راسل بائعًا من صفحة أي إعلان.') }}
             </div>
         @else
             <div class="card" style="padding:4px 20px">
@@ -24,7 +24,7 @@
                         @if ($conversation->unread_count)
                             <span class="unread">{{ $conversation->unread_count }}</span>
                         @endif
-                        <span class="muted small">{{ $conversation->last_message_at?->locale('ar')->diffForHumans(short: true) }}</span>
+                        <span class="muted small">{{ $conversation->last_message_at?->diffForHumans(short: true) }}</span>
                     </a>
                 @endforeach
             </div>

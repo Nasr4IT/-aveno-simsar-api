@@ -41,7 +41,7 @@ class ImageService
             $image = $this->manager->read($file->getRealPath());
         } catch (InterventionRuntimeException $e) {
             throw ValidationException::withMessages([
-                'images' => ['تعذّرت معالجة أحد الملفات المرفوعة — الرجاء رفع صورة بصيغة JPG أو PNG.'],
+                'images' => [__('تعذّرت معالجة أحد الملفات المرفوعة — الرجاء رفع صورة بصيغة JPG أو PNG.')],
             ]);
         }
 

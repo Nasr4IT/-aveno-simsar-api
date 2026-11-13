@@ -6,6 +6,7 @@ use App\Http\Controllers\Site\ChatController;
 use App\Http\Controllers\Site\ExploreController;
 use App\Http\Controllers\Site\FavoriteController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\MyAdsController;
 use App\Http\Controllers\Site\NotificationController;
 use App\Http\Controllers\Site\ProfileController;
@@ -23,6 +24,7 @@ Route::name('site.')->group(function () {
     Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
     Route::get('/ads/{ad:slug}', [AdController::class, 'show'])->name('ads.show');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/lang/{locale}', LocaleController::class)->name('locale');
 
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

@@ -16,7 +16,7 @@ class RatingController extends Controller
     public function store(Request $request, User $user, RatingService $ratingService, PushNotificationService $push)
     {
         if ($user->id === $request->user()->id) {
-            return back()->withErrors(['score' => 'لا يمكنك تقييم نفسك.']);
+            return back()->withErrors(['score' => __('لا يمكنك تقييم نفسك.')]);
         }
 
         $data = $request->validate([
@@ -35,6 +35,6 @@ class RatingController extends Controller
         $user->notify(new NewRatingReceived($rating));
         $push->sendToUser($user, 'تقييم جديد', "قيّمك {$request->user()->name} بـ {$data['score']} نجوم", ['type' => 'new_rating']);
 
-        return back()->with('status', 'شكرًا لتقييمك.');
+        return back()->with('status', __('شكرًا لتقييمك.'));
     }
 }

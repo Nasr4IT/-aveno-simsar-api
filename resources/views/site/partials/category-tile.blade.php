@@ -10,9 +10,9 @@
 <a class="cat-tile" href="{{ route('site.explore', ['category_id' => $category->id]) }}">
     <div class="icon">@include('site.partials.icon', ['name' => $icon, 'size' => 24])</div>
     <div>
-        <strong>{{ $category->name_ar }}</strong>
+        <strong>{{ $category->localized('name') }}</strong>
         @isset($category->ads_count)
-            <span>{{ number_format($category->ads_count) }} إعلان</span>
+            <span>{{ trans_choice('{0} لا إعلانات|{1} إعلان واحد|[2,*] :count إعلان', $category->ads_count, ['count' => number_format($category->ads_count)]) }}</span>
         @endisset
     </div>
 </a>

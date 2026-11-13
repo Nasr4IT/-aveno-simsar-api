@@ -26,7 +26,7 @@ class AdAttributeService
 
             if (! $present) {
                 if ($enforceRequired && $attr->is_required) {
-                    $errors[] = "الحقل \"{$attr->label_ar}\" مطلوب.";
+                    $errors[] = __('الحقل ":label" مطلوب.', ['label' => $attr->localized('label')]);
                 }
 
                 continue;
@@ -35,10 +35,10 @@ class AdAttributeService
             $value = $attributes[$attr->key];
 
             match ($attr->type) {
-                'number' => is_numeric($value) ? null : $errors[] = "قيمة \"{$attr->label_ar}\" يجب أن تكون رقمًا.",
-                'select' => in_array($value, $attr->options ?? [], true) ? null : $errors[] = "قيمة \"{$attr->label_ar}\" غير صالحة.",
+                'number' => is_numeric($value) ? null : $errors[] = __('قيمة ":label" يجب أن تكون رقمًا.', ['label' => $attr->localized('label')]),
+                'select' => in_array($value, $attr->options ?? [], true) ? null : $errors[] = __('قيمة ":label" غير صالحة.', ['label' => $attr->localized('label')]),
                 'multiselect' => array_diff(is_array($value) ? $value : [$value], $attr->options ?? []) === []
-                    ? null : $errors[] = "قيمة \"{$attr->label_ar}\" غير صالحة.",
+                    ? null : $errors[] = __('قيمة ":label" غير صالحة.', ['label' => $attr->localized('label')]),
                 default => null,
             };
         }

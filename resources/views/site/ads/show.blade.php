@@ -26,31 +26,31 @@
                 <div class="row" style="justify-content:space-between">
                     <h1 style="margin:0">{{ $ad->title }}</h1>
                     @if ($ad->status === 'sold')
-                        <span class="badge badge-sold">مُباع</span>
+                        <span class="badge badge-sold">{{ __('مُباع') }}</span>
                     @elseif ($ad->is_featured)
-                        <span class="badge badge-approved">مميّز</span>
+                        <span class="badge badge-approved">{{ __('مميّز') }}</span>
                     @endif
                 </div>
-                <div class="price-big">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : 'السعر عند التواصل' }}</div>
+                <div class="price-big">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('السعر عند التواصل') }}</div>
                 <div class="row muted small" style="margin-top:6px">
-                    <span class="row">@include('site.partials.icon', ['name' => 'pin', 'size' => 14]) {{ $ad->city?->name_ar }}، {{ $ad->governorate?->name_ar }}</span>
-                    <span class="row">@include('site.partials.icon', ['name' => 'clock', 'size' => 14]) نُشر {{ ($ad->published_at ?? $ad->created_at)->locale('ar')->diffForHumans() }}</span>
-                    <span class="row">@include('site.partials.icon', ['name' => 'eye', 'size' => 14]) {{ number_format($ad->views_count) }} مشاهدة</span>
-                    <span class="row">@include('site.partials.icon', ['name' => 'tag', 'size' => 14]) <a href="{{ route('site.explore', ['category_id' => $ad->category_id]) }}">{{ $ad->category?->name_ar }}</a></span>
+                    <span class="row">@include('site.partials.icon', ['name' => 'pin', 'size' => 14]) {{ collect([$ad->city?->localized('name'), $ad->governorate?->localized('name')])->filter()->implode(__('، ')) }}</span>
+                    <span class="row">@include('site.partials.icon', ['name' => 'clock', 'size' => 14]) {{ __('نُشر :time', ['time' => ($ad->published_at ?? $ad->created_at)->diffForHumans()]) }}</span>
+                    <span class="row">@include('site.partials.icon', ['name' => 'eye', 'size' => 14]) {{ trans_choice('{1} مشاهدة واحدة|[0,*] :count مشاهدة', $ad->views_count, ['count' => number_format($ad->views_count)]) }}</span>
+                    <span class="row">@include('site.partials.icon', ['name' => 'tag', 'size' => 14]) <a href="{{ route('site.explore', ['category_id' => $ad->category_id]) }}">{{ $ad->category?->localized('name') }}</a></span>
                 </div>
 
                 @if ($ad->attributeValues->isNotEmpty())
-                    <h3 style="margin-top:18px">المواصفات</h3>
+                    <h3 style="margin-top:18px">{{ __('المواصفات') }}</h3>
                     <dl class="kv">
                         @foreach ($ad->attributeValues as $value)
                             @php $decoded = json_decode($value->value, true); @endphp
-                            <dt>{{ $value->attribute->label_ar }}</dt>
-                            <dd>{{ is_array($decoded) ? implode('، ', $decoded) : ($value->attribute->type === 'boolean' ? ($value->value ? 'نعم' : 'لا') : $value->value) }}</dd>
+                            <dt>{{ $value->attribute->localized('label') }}</dt>
+                            <dd>{{ is_array($decoded) ? implode(__('، '), $decoded) : ($value->attribute->type === 'boolean' ? ($value->value ? __('نعم') : __('لا')) : $value->value) }}</dd>
                         @endforeach
                     </dl>
                 @endif
 
-                <h3 style="margin-top:18px">الوصف</h3>
+                <h3 style="margin-top:18px">{{ __('الوصف') }}</h3>
                 <p style="white-space:pre-line; margin:0">{{ $ad->description }}</p>
             </div>
         </div>
@@ -67,26 +67,26 @@
                 <div class="actions">
                     @auth
                         @if ($ad->user_id === auth()->id())
-                            <a class="btn btn-outline" href="{{ route('site.my.ads') }}">هذا إعلانك — إدارة إعلاناتي</a>
+                            <a class="btn btn-outline" href="{{ route('site.my.ads') }}">{{ __('هذا إعلانك — إدارة إعلاناتي') }}</a>
                         @else
                             @if ($ad->status === 'approved')
                                 <form method="POST" action="{{ route('site.ads.message', $ad) }}">
                                     @csrf
-                                    <button class="btn btn-primary btn-block" type="submit">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) مراسلة البائع</button>
+                                    <button class="btn btn-primary btn-block" type="submit">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) {{ __('مراسلة البائع') }}</button>
                                 </form>
                                 <form method="POST" action="{{ route($isFavorited ? 'site.ads.unfavorite' : 'site.ads.favorite', $ad) }}">
                                     @csrf
-                                    <button class="btn btn-outline btn-block" type="submit">@include('site.partials.icon', ['name' => 'heart', 'size' => 18, 'filled' => $isFavorited]) {{ $isFavorited ? 'إزالة من المفضلة' : 'حفظ في المفضلة' }}</button>
+                                    <button class="btn btn-outline btn-block" type="submit">@include('site.partials.icon', ['name' => 'heart', 'size' => 18, 'filled' => $isFavorited, 'class' => $isFavorited ? 'pop' : '']) {{ $isFavorited ? __('إزالة من المفضلة') : __('حفظ في المفضلة') }}</button>
                                 </form>
                             @endif
-                            @include('site.partials.report-form', ['action' => route('site.ads.report', $ad), 'label' => 'الإبلاغ عن هذا الإعلان'])
+                            @include('site.partials.report-form', ['action' => route('site.ads.report', $ad), 'label' => __('الإبلاغ عن هذا الإعلان')])
                         @endif
                     @else
-                        <a class="btn btn-primary btn-block" href="{{ route('site.login') }}">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) سجّل الدخول للمراسلة</a>
+                        <a class="btn btn-primary btn-block" href="{{ route('site.login') }}">@include('site.partials.icon', ['name' => 'chat', 'size' => 18]) {{ __('سجّل الدخول للمراسلة') }}</a>
                     @endauth
                 </div>
                 <p class="muted small" style="margin:12px 0 0">
-                    @include('site.partials.icon', ['name' => 'heart', 'size' => 13]) {{ $ad->favorited_by_count }} أضافوه للمفضلة
+                    @include('site.partials.icon', ['name' => 'heart', 'size' => 13]) {{ trans_choice('{0} لم يُضفه أحد للمفضلة بعد|{1} شخص واحد أضافه للمفضلة|[2,*] :count أضافوه للمفضلة', $ad->favorited_by_count, ['count' => $ad->favorited_by_count]) }}
                 </p>
             </div>
         </aside>
@@ -94,7 +94,7 @@
 
     @if ($similar->isNotEmpty())
         <section class="section">
-            <div class="section-head"><h2>إعلانات مشابهة</h2></div>
+            <div class="section-head"><h2>{{ __('إعلانات مشابهة') }}</h2></div>
             <div class="rail">
                 @foreach ($similar as $other)
                     @include('site.partials.ad-card', ['ad' => $other])
@@ -105,9 +105,12 @@
 
     @push('scripts')
         <script>
+            // Thumbnail click: crossfade the main photo.
             document.querySelectorAll('.gallery .thumbs img').forEach(function (thumb) {
                 thumb.addEventListener('click', function () {
-                    document.getElementById('gallery-main').src = thumb.dataset.full;
+                    var main = document.getElementById('gallery-main');
+                    main.classList.add('swap');
+                    setTimeout(function () { main.src = thumb.dataset.full; main.classList.remove('swap'); }, 180);
                     document.querySelectorAll('.gallery .thumbs img').forEach(function (t) { t.classList.remove('active'); });
                     thumb.classList.add('active');
                 });

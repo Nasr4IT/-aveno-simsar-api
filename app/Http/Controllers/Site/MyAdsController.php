@@ -89,31 +89,31 @@ class MyAdsController extends Controller
             }
         });
 
-        return redirect()->route('site.my.ads')->with('status', 'تم حفظ التعديلات — سيُعاد نشر الإعلان بعد مراجعته.');
+        return redirect()->route('site.my.ads')->with('status', __('تم حفظ التعديلات — سيُعاد نشر الإعلان بعد مراجعته.'));
     }
 
     public function markSold(Request $request, Ad $ad)
     {
         $this->authorizeOwner($request, $ad);
         if ($ad->status !== 'approved') {
-            return back()->withErrors(['ad' => 'لا يمكن تحديد إعلان غير منشور كمباع.']);
+            return back()->withErrors(['ad' => __('لا يمكن تحديد إعلان غير منشور كمباع.')]);
         }
 
         $ad->update(['status' => 'sold']);
 
-        return back()->with('status', "تم تحديد \"{$ad->title}\" كمباع.");
+        return back()->with('status', __('تم تحديد ":title" كمباع.', ['title' => $ad->title]));
     }
 
     public function relist(Request $request, Ad $ad)
     {
         $this->authorizeOwner($request, $ad);
         if (! in_array($ad->status, ['sold', 'expired'], true)) {
-            return back()->withErrors(['ad' => 'يمكن إعادة النشر فقط للإعلانات المباعة أو منتهية الصلاحية.']);
+            return back()->withErrors(['ad' => __('يمكن إعادة النشر فقط للإعلانات المباعة أو منتهية الصلاحية.')]);
         }
 
         $this->resetToPending($ad);
 
-        return back()->with('status', "أُعيد إرسال \"{$ad->title}\" للمراجعة.");
+        return back()->with('status', __('أُعيد إرسال ":title" للمراجعة.', ['title' => $ad->title]));
     }
 
     public function destroy(Request $request, Ad $ad)
@@ -122,7 +122,7 @@ class MyAdsController extends Controller
 
         $ad->delete();
 
-        return redirect()->route('site.my.ads')->with('status', 'تم حذف الإعلان.');
+        return redirect()->route('site.my.ads')->with('status', __('تم حذف الإعلان.'));
     }
 
     public function addImages(Request $request, Ad $ad, ImageService $imageService)
@@ -144,7 +144,7 @@ class MyAdsController extends Controller
             $this->resetToPending($ad);
         });
 
-        return back()->with('status', 'تمت إضافة الصور — سيُعاد نشر الإعلان بعد مراجعته.');
+        return back()->with('status', __('تمت إضافة الصور — سيُعاد نشر الإعلان بعد مراجعته.'));
     }
 
     public function removeImage(Request $request, Ad $ad, AdImage $image)
@@ -157,7 +157,7 @@ class MyAdsController extends Controller
         abort_unless($image->ad_id === $ad->id, 404);
 
         if ($ad->images()->count() <= 1) {
-            return back()->withErrors(['images' => 'يجب أن يحتوي الإعلان على صورة واحدة على الأقل — احذف الإعلان بالكامل إذا أردت إزالته.']);
+            return back()->withErrors(['images' => __('يجب أن يحتوي الإعلان على صورة واحدة على الأقل — احذف الإعلان بالكامل إذا أردت إزالته.')]);
         }
 
         DB::transaction(function () use ($ad, $image) {
@@ -173,7 +173,7 @@ class MyAdsController extends Controller
             $this->resetToPending($ad);
         });
 
-        return back()->with('status', 'تم حذف الصورة.');
+        return back()->with('status', __('تم حذف الصورة.'));
     }
 
     private function authorizeOwner(Request $request, Ad $ad): void
@@ -190,7 +190,7 @@ class MyAdsController extends Controller
         }
 
         return redirect()->route('site.my.ads')
-            ->withErrors(['ad' => 'لا يمكن تعديل إعلان مُباع أو منتهي الصلاحية — استخدم "إعادة النشر" أولاً.']);
+            ->withErrors(['ad' => __('لا يمكن تعديل إعلان مُباع أو منتهي الصلاحية — استخدم "إعادة النشر" أولاً.')]);
     }
 
     // Any post-creation edit sends the ad back through review, clearing a

@@ -1,12 +1,12 @@
 @extends('site.layout')
-@section('title', 'المفضلة')
+@section('title', __('المفضلة'))
 @section('content')
     <div class="section" style="margin-top:20px">
-        <h1>المفضلة</h1>
+        <h1>{{ __('المفضلة') }}</h1>
         @if ($ads->isEmpty())
             <div class="card empty">
                 @include('site.partials.icon', ['name' => 'heart', 'size' => 40])
-                لم تحفظ أي إعلان بعد — اضغط "حفظ في المفضلة" على أي إعلان يعجبك.
+                {{ __('لم تحفظ أي إعلان بعد — اضغط "حفظ في المفضلة" على أي إعلان يعجبك.') }}
             </div>
         @else
             <div class="ad-grid">

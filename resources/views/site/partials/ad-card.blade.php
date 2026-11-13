@@ -8,17 +8,17 @@
             <div class="noimg">@include('site.partials.icon', ['name' => 'image', 'size' => 36])</div>
         @endif
         @if ($ad->status === 'sold')
-            <span class="pill sold">مُباع</span>
+            <span class="pill sold">{{ __('مُباع') }}</span>
         @elseif ($ad->is_featured)
-            <span class="pill">مميّز</span>
+            <span class="pill">{{ __('مميّز') }}</span>
         @endif
     </div>
     <div class="body">
         <div class="title">{{ $ad->title }}</div>
-        <div class="price">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : 'السعر عند التواصل' }}</div>
+        <div class="price">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('السعر عند التواصل') }}</div>
         <div class="meta">
-            <span>@include('site.partials.icon', ['name' => 'pin', 'size' => 13]) {{ $ad->city?->name_ar ?? '—' }}</span>
-            <span>@include('site.partials.icon', ['name' => 'clock', 'size' => 13]) {{ $ad->created_at->locale('ar')->diffForHumans(short: true) }}</span>
+            <span>@include('site.partials.icon', ['name' => 'pin', 'size' => 13]) {{ $ad->city?->localized('name') ?? '—' }}</span>
+            <span>@include('site.partials.icon', ['name' => 'clock', 'size' => 13]) {{ $ad->created_at->diffForHumans(short: true) }}</span>
         </div>
     </div>
 </a>

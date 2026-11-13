@@ -1,0 +1,71 @@
+<?php
+
+// Arabic validation messages. Before this file existed, the Arabic site
+// (and the API, whose default locale is also Arabic) fell back to Laravel's
+// English messages. Any rule not listed here still falls back to English
+// (config/app.php 'fallback_locale').
+return [
+    'accepted' => 'يجب قبول حقل :attribute.',
+    'after_or_equal' => 'يجب أن يكون :attribute تاريخًا لاحقًا أو مساويًا لـ :date.',
+    'array' => 'يجب أن يكون :attribute قائمة.',
+    'before_or_equal' => 'يجب أن يكون :attribute تاريخًا سابقًا أو مساويًا لـ :date.',
+    'between' => [
+        'array' => 'يجب أن يحتوي :attribute على عدد عناصر بين :min و :max.',
+        'file' => 'يجب أن يكون حجم :attribute بين :min و :max كيلوبايت.',
+        'numeric' => 'يجب أن تكون قيمة :attribute بين :min و :max.',
+        'string' => 'يجب أن يكون طول :attribute بين :min و :max حرفًا.',
+    ],
+    'boolean' => 'يجب أن تكون قيمة :attribute صحيحة أو خاطئة.',
+    'confirmed' => 'تأكيد :attribute غير متطابق.',
+    'date' => ':attribute ليس تاريخًا صحيحًا.',
+    'email' => 'يجب أن يكون :attribute عنوان بريد إلكتروني صحيحًا.',
+    'exists' => 'القيمة المختارة لـ :attribute غير صالحة.',
+    'file' => 'يجب أن يكون :attribute ملفًا.',
+    'image' => 'يجب أن يكون :attribute صورة.',
+    'in' => 'القيمة المختارة لـ :attribute غير صالحة.',
+    'integer' => 'يجب أن يكون :attribute عددًا صحيحًا.',
+    'max' => [
+        'array' => 'يجب ألا يحتوي :attribute على أكثر من :max عناصر.',
+        'file' => 'يجب ألا يتجاوز حجم :attribute :max كيلوبايت.',
+        'numeric' => 'يجب ألا تتجاوز قيمة :attribute :max.',
+        'string' => 'يجب ألا يتجاوز طول :attribute :max حرفًا.',
+    ],
+    'mimes' => 'يجب أن يكون :attribute ملفًا من نوع: :values.',
+    'min' => [
+        'array' => 'يجب أن يحتوي :attribute على :min عناصر على الأقل.',
+        'file' => 'يجب أن يكون حجم :attribute :min كيلوبايت على الأقل.',
+        'numeric' => 'يجب أن تكون قيمة :attribute :min على الأقل.',
+        'string' => 'يجب أن يكون طول :attribute :min أحرف على الأقل.',
+    ],
+    'numeric' => 'يجب أن يكون :attribute رقمًا.',
+    'regex' => 'صيغة :attribute غير صحيحة.',
+    'required' => 'حقل :attribute مطلوب.',
+    'required_with' => 'حقل :attribute مطلوب عند تحديد :values.',
+    'string' => 'يجب أن يكون :attribute نصًا.',
+    'unique' => ':attribute مستخدم من قبل.',
+    'uploaded' => 'فشل رفع :attribute.',
+    'url' => 'صيغة الرابط :attribute غير صحيحة.',
+
+    'attributes' => [
+        'name' => 'الاسم',
+        'phone' => 'رقم الهاتف',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+        'title' => 'العنوان',
+        'description' => 'الوصف',
+        'price' => 'السعر',
+        'currency' => 'العملة',
+        'category_id' => 'الفئة',
+        'governorate_id' => 'المحافظة',
+        'city_id' => 'المدينة',
+        'images' => 'الصور',
+        'images.*' => 'الصورة',
+        'body' => 'الرسالة',
+        'score' => 'التقييم',
+        'comment' => 'التعليق',
+        'reason' => 'السبب',
+        'details' => 'التفاصيل',
+        'min_price' => 'السعر الأدنى',
+        'max_price' => 'السعر الأعلى',
+    ],
+];

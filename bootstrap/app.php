@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,6 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+        ]);
+
+        // Arabic/English for the public website (cookie-driven; the admin
+        // panel is pinned to Arabic inside the middleware). Web group only —
+        // the JSON API's language is untouched.
+        $middleware->web(append: [
+            SetLocale::class,
         ]);
 
         // Three surfaces, three guest behaviours: the JSON API gets a plain

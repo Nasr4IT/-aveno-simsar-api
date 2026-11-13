@@ -37,6 +37,6 @@ class NotificationController extends Controller
     {
         $request->user()->unreadNotifications->markAsRead();
 
-        return back()->with('status', 'تم تحديد الكل كمقروء.');
+        return back()->with('status', __('تم تحديد الكل كمقروء.'));
     }
 }

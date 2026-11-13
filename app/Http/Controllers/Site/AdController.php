@@ -98,7 +98,7 @@ class AdController extends Controller
             $imageService->storeAdImages($ad, $request->file('images', []));
         });
 
-        return redirect()->route('site.my.ads')->with('status', 'تم إرسال إعلانك للمراجعة — سيظهر للجميع فور موافقة الإدارة عليه.');
+        return redirect()->route('site.my.ads')->with('status', __('تم إرسال إعلانك للمراجعة — سيظهر للجميع فور موافقة الإدارة عليه.'));
     }
 
     private function uniqueSlug(string $title): string

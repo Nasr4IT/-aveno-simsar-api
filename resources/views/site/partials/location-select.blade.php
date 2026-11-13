@@ -4,20 +4,20 @@
     $selectedCity = $selectedCity ?? old('city_id', request('city_id'));
     $required = $required ?? false;
 @endphp
-<label for="governorate_id">المحافظة</label>
+<label for="governorate_id">{{ __('المحافظة') }}</label>
 <select id="governorate_id" name="governorate_id" data-location-governorate {{ $required ? 'required' : '' }}>
-    <option value="">— اختر —</option>
+    <option value="">{{ __('— اختر —') }}</option>
     @foreach ($governorates as $governorate)
-        <option value="{{ $governorate->id }}" @selected((string) $selectedGovernorate === (string) $governorate->id)>{{ $governorate->name_ar }}</option>
+        <option value="{{ $governorate->id }}" @selected((string) $selectedGovernorate === (string) $governorate->id)>{{ $governorate->localized('name') }}</option>
     @endforeach
 </select>
 
-<label for="city_id">المدينة</label>
+<label for="city_id">{{ __('المدينة') }}</label>
 <select id="city_id" name="city_id" data-location-city {{ $required ? 'required' : '' }}>
-    <option value="">— اختر —</option>
+    <option value="">{{ __('— اختر —') }}</option>
     @foreach ($governorates as $governorate)
         @foreach ($governorate->cities as $city)
-            <option value="{{ $city->id }}" data-governorate="{{ $governorate->id }}" @selected((string) $selectedCity === (string) $city->id)>{{ $city->name_ar }}</option>
+            <option value="{{ $city->id }}" data-governorate="{{ $governorate->id }}" @selected((string) $selectedCity === (string) $city->id)>{{ $city->localized('name') }}</option>
         @endforeach
     @endforeach
 </select>

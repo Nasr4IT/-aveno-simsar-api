@@ -31,11 +31,11 @@ class AuthController extends Controller
         $user = User::where('phone', $credentials['phone'])->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            return back()->withErrors(['phone' => 'بيانات الدخول غير صحيحة.'])->onlyInput('phone');
+            return back()->withErrors(['phone' => __('بيانات الدخول غير صحيحة.')])->onlyInput('phone');
         }
 
         if ($user->is_banned) {
-            return back()->withErrors(['phone' => 'تم إيقاف هذا الحساب.'])->onlyInput('phone');
+            return back()->withErrors(['phone' => __('تم إيقاف هذا الحساب.')])->onlyInput('phone');
         }
 
         Auth::login($user, $request->boolean('remember'));
@@ -68,7 +68,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('site.home')->with('status', "أهلاً بك يا {$user->name}! تم إنشاء حسابك.");
+        return redirect()->route('site.home')->with('status', __('أهلاً بك يا :name! تم إنشاء حسابك.', ['name' => $user->name]));
     }
 
     public function logout(Request $request)

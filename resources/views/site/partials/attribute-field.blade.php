@@ -4,11 +4,11 @@
     $value = old("attributes.{$attr->key}", $value ?? null);
     $required = $attr->is_required && ($enforceRequired ?? true);
 @endphp
-<label for="attr-{{ $attr->key }}">{{ $attr->label_ar }} @if ($required)<span style="color:var(--danger)">*</span>@endif</label>
+<label for="attr-{{ $attr->key }}">{{ $attr->localized('label') }} @if ($required)<span style="color:var(--danger)">*</span>@endif</label>
 @switch($attr->type)
     @case('select')
         <select id="attr-{{ $attr->key }}" name="{{ $name }}" @required($required)>
-            <option value="">— اختر —</option>
+            <option value="">{{ __('— اختر —') }}</option>
             @foreach ($attr->options ?? [] as $option)
                 <option value="{{ $option }}" @selected((string) $value === (string) $option)>{{ $option }}</option>
             @endforeach
@@ -23,9 +23,9 @@
         @break
     @case('boolean')
         <select id="attr-{{ $attr->key }}" name="{{ $name }}" @required($required)>
-            <option value="">— اختر —</option>
-            <option value="1" @selected((string) $value === '1')>نعم</option>
-            <option value="0" @selected((string) $value === '0')>لا</option>
+            <option value="">{{ __('— اختر —') }}</option>
+            <option value="1" @selected((string) $value === '1')>{{ __('نعم') }}</option>
+            <option value="0" @selected((string) $value === '0')>{{ __('لا') }}</option>
         </select>
         @break
     @case('number')

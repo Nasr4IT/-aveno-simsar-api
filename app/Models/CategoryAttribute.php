@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CategoryAttribute extends Model
 {
+    use HasLocalizedFields;
+
     protected $fillable = [
         'category_id', 'key', 'label_ar', 'label_en', 'type',
         'options', 'is_required', 'is_filterable', 'sort_order',

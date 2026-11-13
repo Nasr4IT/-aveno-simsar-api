@@ -33,7 +33,7 @@ class ChatController extends Controller
         abort_unless($ad->status === 'approved', 404);
 
         if ($ad->user_id === $request->user()->id) {
-            return back()->withErrors(['message' => 'لا يمكنك مراسلة نفسك.']);
+            return back()->withErrors(['message' => __('لا يمكنك مراسلة نفسك.')]);
         }
 
         $conversation = Conversation::firstOrCreate([
@@ -97,7 +97,7 @@ class ChatController extends Controller
                 'mine' => $m->sender_id === $me,
                 'sender_name' => $m->sender->name,
                 'body' => $m->body,
-                'time' => $m->created_at->locale('ar')->diffForHumans(),
+                'time' => $m->created_at->diffForHumans(),
             ]),
         ]);
     }

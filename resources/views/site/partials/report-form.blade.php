@@ -3,15 +3,15 @@
     <summary class="muted small" style="cursor:pointer">@include('site.partials.icon', ['name' => 'flag', 'size' => 13]) {{ $label }}</summary>
     <form method="POST" action="{{ $action }}" style="margin-top:8px">
         @csrf
-        <label for="reason">السبب</label>
+        <label for="reason">{{ __('السبب') }}</label>
         <select id="reason" name="reason" required>
-            <option value="spam">إعلان مكرر / سبام</option>
-            <option value="inappropriate">محتوى غير لائق</option>
-            <option value="scam">احتيال</option>
-            <option value="other">سبب آخر</option>
+            <option value="spam">{{ __('إعلان مكرر / سبام') }}</option>
+            <option value="inappropriate">{{ __('محتوى غير لائق') }}</option>
+            <option value="scam">{{ __('احتيال') }}</option>
+            <option value="other">{{ __('سبب آخر') }}</option>
         </select>
-        <label for="details">تفاصيل (اختياري)</label>
+        <label for="details">{{ __('تفاصيل (اختياري)') }}</label>
         <textarea id="details" name="details" rows="2" maxlength="1000"></textarea>
-        <button class="btn btn-muted btn-sm" type="submit" style="margin-top:8px">إرسال البلاغ</button>
+        <button class="btn btn-muted btn-sm" type="submit" style="margin-top:8px">{{ __('إرسال البلاغ') }}</button>
     </form>
 </details>

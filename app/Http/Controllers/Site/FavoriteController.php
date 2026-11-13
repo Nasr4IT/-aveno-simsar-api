@@ -27,13 +27,13 @@ class FavoriteController extends Controller
 
         $request->user()->favorites()->firstOrCreate(['ad_id' => $ad->id]);
 
-        return back()->with('status', 'أُضيف إلى المفضلة.');
+        return back()->with('status', __('أُضيف إلى المفضلة.'));
     }
 
     public function destroy(Request $request, Ad $ad)
     {
         $request->user()->favorites()->where('ad_id', $ad->id)->delete();
 
-        return back()->with('status', 'أُزيل من المفضلة.');
+        return back()->with('status', __('أُزيل من المفضلة.'));
     }
 }

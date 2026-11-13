@@ -22,23 +22,23 @@ class ReportController extends Controller
         abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
 
         if ($ad->user_id === $request->user()->id) {
-            return back()->withErrors(['reason' => 'لا يمكنك الإبلاغ عن إعلانك الخاص.']);
+            return back()->withErrors(['reason' => __('لا يمكنك الإبلاغ عن إعلانك الخاص.')]);
         }
 
         $this->fileReport($request->user()->id, $ad, $request->validate(self::RULES));
 
-        return back()->with('status', 'تم إرسال البلاغ — شكرًا لمساعدتك في إبقاء المنصة آمنة.');
+        return back()->with('status', __('تم إرسال البلاغ — شكرًا لمساعدتك في إبقاء المنصة آمنة.'));
     }
 
     public function user(Request $request, User $user)
     {
         if ($user->id === $request->user()->id) {
-            return back()->withErrors(['reason' => 'لا يمكنك الإبلاغ عن نفسك.']);
+            return back()->withErrors(['reason' => __('لا يمكنك الإبلاغ عن نفسك.')]);
         }
 
         $this->fileReport($request->user()->id, $user, $request->validate(self::RULES));
 
-        return back()->with('status', 'تم إرسال البلاغ — شكرًا لمساعدتك في إبقاء المنصة آمنة.');
+        return back()->with('status', __('تم إرسال البلاغ — شكرًا لمساعدتك في إبقاء المنصة آمنة.'));
     }
 
     // One open report per (reporter, target); re-reporting reopens it.
