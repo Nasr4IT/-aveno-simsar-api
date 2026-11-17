@@ -60,7 +60,16 @@ class PushNotificationService
     {
         $json = config('services.firebase.credentials_json');
 
-        return $json ? json_decode($json, true) : null;
+        if (! $json && ($path = config('services.firebase.credentials_path'))) {
+            $path = str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path) ? $path : base_path($path);
+            $json = is_readable($path) ? file_get_contents($path) : null;
+        }
+
+        $credentials = $json ? json_decode($json, true) : null;
+
+        return is_array($credentials) && isset($credentials['project_id'], $credentials['client_email'], $credentials['private_key'])
+            ? $credentials
+            : null;
     }
 
     private function accessToken(array $credentials): ?string
