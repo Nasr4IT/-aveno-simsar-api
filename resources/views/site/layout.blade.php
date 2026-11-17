@@ -94,6 +94,8 @@
         .topbar nav a:hover { background: var(--bg); }
         .topbar nav a.active { color: var(--teal-dark); background: var(--teal-soft); }
         .topbar nav a.btn-primary { color: #fff; }
+        .tool-admin { background: var(--teal); border-color: var(--teal); color: #fff; }
+        .tool-admin:hover { background: var(--teal-hover); border-color: var(--teal-hover); color: #fff; }
         .topbar nav .badge-count { background: var(--teal); color: #fff; border-radius: 999px; font-size: 11px; padding: 1px 7px; font-weight: 700; animation: pulseRing 2.2s infinite; }
         .topbar form.inline { display: inline; }
         .tools { display: flex; align-items: center; gap: 6px; }
@@ -339,6 +341,7 @@
 @php
     $navUser = auth()->user();
     $unread = $navUser ? $navUser->unreadNotifications()->count() : 0;
+    $isAdmin = $navUser && $navUser->getRoleNames()->contains('admin');
 @endphp
 <header class="topbar" id="topbar">
     <div class="container">
@@ -366,6 +369,12 @@
             @endif
         </nav>
         <div class="tools">
+            @if ($isAdmin)
+                {{-- Only admin accounts see this: one click from the website to the admin panel (also on phones). --}}
+                <a class="tool tool-admin" href="{{ route('admin.dashboard') }}" title="{{ __('لوحة التحكم') }}">
+                    @include('site.partials.icon', ['name' => 'grid', 'size' => 17]) <span class="label">{{ __('لوحة التحكم') }}</span>
+                </a>
+            @endif
             <a class="tool" href="{{ route('site.locale', $otherLocale) }}" hreflang="{{ $otherLocale }}" lang="{{ $otherLocale }}" title="{{ $isRtl ? 'Switch to English' : 'التبديل إلى العربية' }}">
                 @include('site.partials.icon', ['name' => 'globe', 'size' => 17]) <span class="label">{{ $isRtl ? 'English' : 'العربية' }}</span>
             </a>

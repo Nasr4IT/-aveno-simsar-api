@@ -272,6 +272,30 @@ class AdminPanelTest extends TestCase
         $this->actingAs($user, 'sanctum')->getJson('/api/admin/ads')->assertForbidden();
     }
 
+    // Easy access for the client: an admin signed in on the website gets a
+    // "Control panel" button; normal users and guests never see it; /admin
+    // is a short address for the panel.
+    public function test_only_admins_see_the_control_panel_button_on_the_website(): void
+    {
+        $admin = $this->adminUser();
+        $member = User::factory()->create();
+        $panel = 'href="'.route('admin.dashboard').'"';
+
+        $this->get('/')->assertOk()->assertDontSee($panel, false);
+        $this->actingAs($member)->get('/')->assertOk()->assertDontSee($panel, false);
+        $this->actingAs($member)->get('/profile')->assertOk()->assertDontSee($panel, false);
+
+        $this->actingAs($admin)->get('/')->assertOk()->assertSee($panel, false);
+        $this->actingAs($admin)->get('/profile')->assertOk()->assertSee($panel, false);
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('href="'.route('site.home').'"', false);
+    }
+
+    public function test_the_short_admin_address_leads_to_the_panel(): void
+    {
+        $this->get('/admin')->assertRedirect('/admin-panel');
+        $this->get('/admin-panel')->assertRedirect(route('admin.login'));
+    }
+
     // Regression: the options hint shows the Arabic comma ("بنزين، ديزل")
     // but only the Latin comma was split, so following the hint created a
     // single option containing the whole list.

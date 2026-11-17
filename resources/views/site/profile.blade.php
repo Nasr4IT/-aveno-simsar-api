@@ -16,6 +16,9 @@
                 <a class="btn btn-outline btn-sm" href="{{ route('site.favorites') }}">{{ __('المفضلة') }}</a>
                 <a class="btn btn-outline btn-sm" href="{{ route('site.messages') }}">{{ __('الرسائل') }}</a>
                 <a class="btn btn-outline btn-sm" href="{{ route('site.notifications') }}">{{ __('الإشعارات') }}</a>
+                @if ($user->getRoleNames()->contains('admin'))
+                    <a class="btn btn-primary btn-sm" href="{{ route('admin.dashboard') }}">{{ __('لوحة التحكم') }}</a>
+                @endif
             </div>
         </div>
 

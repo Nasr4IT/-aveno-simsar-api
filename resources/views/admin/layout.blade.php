@@ -188,6 +188,9 @@
                 @include('admin.partials.icon', ['name' => 'flag']) {{ __('البلاغات') }}
                 @if ($reportCount) <span class="count">{{ $reportCount }}</span> @endif
             </a>
+            <a href="{{ route('site.home') }}" target="_blank" rel="noopener" style="margin-top:14px; border-top:1px solid rgba(255,255,255,.1); border-radius:0 0 10px 10px">
+                @include('admin.partials.icon', ['name' => 'home']) {{ __('عرض الموقع') }}
+            </a>
         </div>
     </nav>
     <main>

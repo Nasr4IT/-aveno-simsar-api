@@ -21,6 +21,10 @@ Route::get('/healthz', fn () => response()->json([
 
 require __DIR__.'/site.php';
 
+// Short, easy-to-remember address for the client: /admin → the dashboard
+// (which itself sends a guest to the admin login).
+Route::redirect('/admin', '/admin-panel');
+
 Route::prefix('admin-panel')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:auth')->name('login.attempt');

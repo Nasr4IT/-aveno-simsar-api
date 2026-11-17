@@ -346,5 +346,6 @@
     "تم تجاهل البلاغ.": "Report dismissed.",
     "لا يمكن حظر مستخدم يمتلك صلاحيات إدارية": "An admin account cannot be banned",
     "تم حظر :name.": ":name has been banned.",
-    "تم إلغاء حظر :name.": ":name has been unbanned."
+    "تم إلغاء حظر :name.": ":name has been unbanned.",
+    "عرض الموقع": "View website"
 }
