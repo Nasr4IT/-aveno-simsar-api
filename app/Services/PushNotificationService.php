@@ -72,6 +72,25 @@ class PushNotificationService
             : null;
     }
 
+    /**
+     * For `php artisan push:check`: is Firebase configured, and does Google
+     * accept the key? Returns [ok, message]. Never sends a notification.
+     */
+    public function checkSetup(): array
+    {
+        $credentials = $this->credentials();
+        if (! $credentials) {
+            return [false, 'No valid Firebase key found. Set FIREBASE_CREDENTIALS_PATH (or FIREBASE_CREDENTIALS_JSON) in .env, then run: php artisan optimize:clear'];
+        }
+
+        Cache::forget('fcm_access_token');
+        $token = $this->accessToken($credentials);
+
+        return $token
+            ? [true, "Firebase is working: Google accepted the key for project \"{$credentials['project_id']}\" ({$credentials['client_email']})."]
+            : [false, "The key file was read (project \"{$credentials['project_id']}\") but Google rejected it. Generate a new private key in Firebase and upload it again."];
+    }
+
     private function accessToken(array $credentials): ?string
     {
         if ($cached = Cache::get('fcm_access_token')) {
@@ -89,7 +108,9 @@ class PushNotificationService
         ]));
 
         $signingInput = "{$header}.{$claims}";
-        openssl_sign($signingInput, $signature, $credentials['private_key'], OPENSSL_ALGO_SHA256);
+        if (! @openssl_sign($signingInput, $signature, $credentials['private_key'], OPENSSL_ALGO_SHA256)) {
+            return null; // malformed private key
+        }
         $jwt = $signingInput.'.'.$this->base64url($signature);
 
         $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [

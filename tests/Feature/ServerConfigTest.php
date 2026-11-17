@@ -39,6 +39,15 @@ class ServerConfigTest extends TestCase
         $this->assertNull($this->credentials());
     }
 
+    public function test_push_check_reports_a_missing_or_rejected_key(): void
+    {
+        config(['services.firebase.credentials_json' => null, 'services.firebase.credentials_path' => null]);
+        $this->artisan('push:check')->expectsOutputToContain('No valid Firebase key')->assertExitCode(1);
+
+        config(['services.firebase.credentials_json' => json_encode(['project_id' => 'simsar-test', 'client_email' => 'x@y.iam.gserviceaccount.com', 'private_key' => 'not a real key'])]);
+        $this->artisan('push:check')->expectsOutputToContain('Google rejected it')->assertExitCode(1);
+    }
+
     // The app is Arabic-only: the top-level 422 "message" must not end in
     // English "(and 2 more errors)".
     public function test_the_validation_summary_message_is_fully_arabic(): void
