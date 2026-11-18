@@ -11,8 +11,15 @@
             --radius: 16px; --radius-sm: 10px;
             --shadow: 0 2px 14px rgba(3,44,58,.07); --shadow-lg: 0 14px 34px rgba(3,44,58,.14);
             --ease: cubic-bezier(.2,.7,.2,1);
+            color-scheme: light;
         }
+        /* The page background lives on <html> too, so nothing white can show around or before the body. */
+        html { background: var(--bg); }
+        /* Cross-page crossfade (Chrome/Edge) instead of a blank blink between admin pages. */
+        @view-transition { navigation: auto; }
+        @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
         :root[data-theme="dark"] {
+            color-scheme: dark;
             --navy: #E8F4F7; --navy-light: #0f3646; --sidebar: #031820; --teal-dark: #2CC5D2; --teal-soft: rgba(12,167,181,.16);
             --bg: #061920; --card: #0B2530; --border: #17394A; --text: #DCEBEF; --muted: #86A3AD;
             --input-bg: #08202A; --soft-bg: #133443; --soft-bg-hover: #1a4152;

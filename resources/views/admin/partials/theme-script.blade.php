@@ -7,6 +7,8 @@
             btn.addEventListener('click', function () {
                 var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-theme', next);
+                var meta = document.querySelector('meta[name="color-scheme"]');
+                if (meta) meta.setAttribute('content', next);
                 try { localStorage.setItem('semsar-theme', next); } catch (e) {}
             });
         });

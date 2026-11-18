@@ -21,6 +21,10 @@
                 theme = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
             root.setAttribute('data-theme', theme);
+            // Tell the browser too: with "light dark" it paints the blank
+            // canvas between pages from the device setting (white flash).
+            var meta = document.querySelector('meta[name="color-scheme"]');
+            if (meta) meta.setAttribute('content', theme);
             root.classList.add('js');
         })();
     </script>
@@ -52,7 +56,11 @@
 
         /* ================= base ================= */
         * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; background: var(--bg); color-scheme: light; }
+        :root[data-theme="dark"] { color-scheme: dark; }
+        /* Cross-page crossfade (Chrome/Edge) instead of a blank blink between pages. */
+        @view-transition { navigation: auto; }
+        @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
         body { margin: 0; font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; transition: background-color .35s, color .35s; }
         a { color: var(--teal-dark); text-decoration: none; }
         img { max-width: 100%; display: block; }
@@ -436,6 +444,8 @@
         document.getElementById('theme-toggle').addEventListener('click', function () {
             var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             root.setAttribute('data-theme', next);
+            var meta = document.querySelector('meta[name="color-scheme"]');
+            if (meta) meta.setAttribute('content', next);
             try { localStorage.setItem('semsar-theme', next); } catch (e) {}
         });
 
