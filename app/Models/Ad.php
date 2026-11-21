@@ -50,6 +50,24 @@ class Ad extends Model
         ];
     }
 
+    // Who may open this ad's detail page (API GET /ads/{id} and the website):
+    // anyone while it's public (approved, or sold — still viewable), and its
+    // owner (or an admin) in any status, so the seller can review and edit a
+    // pending or rejected ad before it's approved.
+    public function isVisibleTo(?User $viewer): bool
+    {
+        if (in_array($this->status, ['approved', 'sold'], true)) {
+            return true;
+        }
+
+        return $viewer && ($viewer->id === $this->user_id || $viewer->getRoleNames()->contains('admin'));
+    }
+
+    public function isOwnedBy(?User $viewer): bool
+    {
+        return $viewer !== null && $viewer->id === $this->user_id;
+    }
+
     // The seller's phone as shown on the ad: only when they allow calls and
     // haven't hidden their number.
     public function sharesPhone(): bool

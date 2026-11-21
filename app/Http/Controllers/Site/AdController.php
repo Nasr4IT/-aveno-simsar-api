@@ -27,9 +27,13 @@ class AdController extends Controller
     // conversation) — it's only hidden from the browse feed.
     public function show(Ad $ad)
     {
-        abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
+        // Same rule as the API: public ads for everyone; the owner (or an
+        // admin) can also open a pending/rejected ad. Owners don't add views.
+        abort_unless($ad->isVisibleTo(auth()->user()), 404);
 
-        $ad->increment('views_count');
+        if (! $ad->isOwnedBy(auth()->user())) {
+            $ad->increment('views_count');
+        }
         $ad->load(['images', 'attributeValues.attribute', 'user', 'category', 'city', 'governorate'])
             ->loadCount('favoritedBy');
 

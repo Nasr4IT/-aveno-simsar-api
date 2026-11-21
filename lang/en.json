@@ -347,5 +347,8 @@
     "لا يمكن حظر مستخدم يمتلك صلاحيات إدارية": "An admin account cannot be banned",
     "تم حظر :name.": ":name has been banned.",
     "تم إلغاء حظر :name.": ":name has been unbanned.",
-    "عرض الموقع": "View website"
+    "عرض الموقع": "View website",
+    "هذا الإعلان بانتظار مراجعة الإدارة، ولا يراه غيرك حتى تتم الموافقة عليه.": "This ad is waiting for review — nobody else can see it until it is approved.",
+    "تم رفض هذا الإعلان، ولا يراه غيرك.": "This ad was rejected — nobody else can see it.",
+    "انتهت صلاحية هذا الإعلان، ولا يراه غيرك. يمكنك إعادة نشره من إعلاناتي.": "This ad has expired — nobody else can see it. You can relist it from My ads."
 }

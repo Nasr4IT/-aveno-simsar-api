@@ -36,11 +36,8 @@
                                     <div class="row" style="flex-wrap:nowrap">
                                         @if ($cover)<img src="{{ $cover->url }}" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:8px">@endif
                                         <div>
-                                            @if (in_array($ad->status, ['approved', 'sold'], true))
-                                                <a href="{{ route('site.ads.show', $ad) }}"><strong>{{ $ad->title }}</strong></a>
-                                            @else
-                                                <strong>{{ $ad->title }}</strong>
-                                            @endif
+                                            {{-- The owner can open their own ad in any status (pending/rejected show a notice). --}}
+                                            <a href="{{ route('site.ads.show', $ad) }}"><strong>{{ $ad->title }}</strong></a>
                                             <div class="muted small">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('بدون سعر') }} · {{ $ad->created_at->diffForHumans() }}</div>
                                             @if ($ad->status === 'rejected' && $ad->rejection_reason)
                                                 <div class="small" style="color:var(--danger)">{{ __('سبب الرفض: :reason', ['reason' => $ad->rejection_reason]) }}</div>

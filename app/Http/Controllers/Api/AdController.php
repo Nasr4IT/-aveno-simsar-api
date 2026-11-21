@@ -51,11 +51,17 @@ class AdController extends Controller
     // A sold ad stays viewable (closure for anyone who had it favorited/in a
     // conversation, and the seller can point back to it) — it's only hidden
     // from the browse feed itself, via Ad::scopeApproved().
-    public function show(Ad $ad)
+    public function show(Request $request, Ad $ad)
     {
-        abort_unless(in_array($ad->status, ['approved', 'sold'], true), 404);
+        // Public route (no auth middleware): read the bearer token directly,
+        // so an owner can open their own pending/rejected ad. Everyone else
+        // still gets 404 for a non-public ad.
+        $viewer = $request->user() ?? auth('sanctum')->user();
+        abort_unless($ad->isVisibleTo($viewer), 404);
 
-        $ad->increment('views_count');
+        if (! $ad->isOwnedBy($viewer)) {
+            $ad->increment('views_count');
+        }
         $ad->load([...AdFeedQueryService::CARD_RELATIONS, 'attributeValues.attribute'])
             ->loadCount(['favoritedBy', 'conversations']);
 

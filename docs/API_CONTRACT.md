@@ -46,7 +46,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | GET | `/ads` | – | public feed, `status=approved` only. Query params: `category_id, governorate_id, city_id, user_id, min_price, max_price, q, sort` (`newest`\|`price_asc`\|`price_desc`\|`popular`\|`nearest`; `nearest` additionally requires `lat`, `lng`) + one param per filterable `category_attribute.key` (e.g. `?fuel_type=بنزين`) |
-| GET | `/ads/{id}` | – | full detail (the only endpoint that includes `description`, `attributes` and `user`), increments `views_count`; visible for `approved` and `sold` |
+| GET | `/ads/{id}` | – | full detail (the only endpoint that includes `description`, `attributes` and `user`), increments `views_count` (not for the owner); visible to everyone for `approved` and `sold`, and **to its owner in any status** (send the token) so a pending/rejected ad can be reviewed and edited; 404 for anyone else |
 | GET | `/ads/{id}/similar` | – | same-category ads, price within ±30% when the ad has one — unpaginated, max 10 |
 | GET | `/my/ads` | ✓ | the caller's own ads, any status |
 | GET | `/my/ads/stats` | ✓ | aggregate counts across the caller's ads: by status, total views, favorites, conversations |
@@ -59,7 +59,7 @@ This file is the contract between the Laravel backend and the Flutter app. **A r
 | POST | `/ads/{id}/relist` | ✓ (owner) | `sold`/`expired` → `pending`, re-queues for review |
 | POST | `/ads/{id}/report` | ✓ | body: `{reason: spam\|inappropriate\|scam\|other, details?}` |
 
-Every ad also has `is_negotiable, address, allow_chat, allow_calls, hide_phone`. `GET /ads/{id}` adds `contact_phone`: the seller's phone when `allow_calls && !hide_phone` and the caller is logged in, else `null`. With `allow_chat: false`, `POST /ads/{id}/conversations` → 422 (unless a conversation already exists).
+For the ad's owner (and admins) every ad also has `rejection_reason` — the admin's text when `status` is `rejected`, else `null`; the key is absent for everyone else. Every ad also has `is_negotiable, address, allow_chat, allow_calls, hide_phone`. `GET /ads/{id}` adds `contact_phone`: the seller's phone when `allow_calls && !hide_phone` and the caller is logged in, else `null`. With `allow_chat: false`, `POST /ads/{id}/conversations` → 422 (unless a conversation already exists).
 
 Every ad returned anywhere has `is_favorited` (for the caller — send the token on public routes too; `false` for guests). Every list (`/ads`, `/ads/{id}/similar`, `/favorites`, `/my/ads`) includes `user` (seller: `id, name, avatar_url, rating_*` — no phone/email), `category`, `governorate`, `city`, `images`.
 

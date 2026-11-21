@@ -18,6 +18,9 @@ class AdResource extends JsonResource
             'price' => $this->price !== null ? (float) $this->price : null,
             'currency' => $this->currency,
             'status' => $this->status,
+            // Owner (and admins) only — why the ad was rejected. Absent for
+            // everyone else; null when the ad isn't rejected.
+            'rejection_reason' => $this->when($this->viewerIsOwnerOrAdmin($request), fn () => $this->status === 'rejected' ? $this->rejection_reason : null),
             'is_featured' => $this->is_featured,
             'is_negotiable' => (bool) $this->is_negotiable,
             'address' => $this->address,
@@ -53,6 +56,13 @@ class AdResource extends JsonResource
             'created_at' => $this->created_at,
             'published_at' => $this->published_at,
         ];
+    }
+
+    private function viewerIsOwnerOrAdmin(Request $request): bool
+    {
+        $viewer = $request->user() ?? auth('sanctum')->user();
+
+        return $viewer && ($viewer->id === $this->user_id || $viewer->getRoleNames()->contains('admin'));
     }
 
     private function contactPhoneFor(Request $request): ?string

@@ -232,7 +232,8 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 "contact_phone": "0999111222"
 ```
 **`contact_phone`** (detail only) is the seller's phone when the ad has `allow_calls: true` **and** `hide_phone: false` **and** the caller is logged in (send the token); otherwise `null`. It's the only place another user's phone ever appears (`user.phone` is never shown to others). Use it for the "Call" button; hide the "Message" button when `allow_chat` is `false`.
-**Errors:** `404` — either the ad genuinely doesn't exist, **or** it exists but isn't `approved` and the caller isn't looking at their own ad (deliberate: a pending/rejected ad is invisible to everyone except through `GET /my/ads`, even by direct ID).
+**Owner access:** the ad's owner (send the bearer token — this route is public, so the token is optional for everyone else) can open their own ad in **any** status — `pending`, `rejected`, `expired` — to review the description and specs and then edit with `PUT /ads/{id}`. The owner's own visits don't increment `views_count`. The owner also gets `rejection_reason` (the admin's reason when `status` is `rejected`, otherwise `null`).
+**Errors:** `404` — either the ad doesn't exist, **or** it isn't `approved`/`sold` and the caller isn't its owner (or an admin). Guests and other users can never see a pending or rejected ad, even by direct ID.
 
 ---
 
@@ -240,7 +241,7 @@ This is the core of the app. `status` is one of `pending|approved|rejected|expir
 **Auth:** required.
 **Does:** The caller's own ads, **any status** (pending/approved/rejected/etc.) — this is how a seller sees "my listing was rejected" or checks review status.
 **Input:** none.
-**Output — `200`:** paginated `AdResource` collection (20/page), same shape as the public feed items.
+**Output — `200`:** paginated `AdResource` collection (20/page), same shape as the public feed items, **plus `rejection_reason`** on every item (the admin's reason for `rejected` ads, `null` otherwise) — show it in "My ads". `rejection_reason` is only ever returned to the ad's owner (and admins); other users never see the key.
 
 ---
 

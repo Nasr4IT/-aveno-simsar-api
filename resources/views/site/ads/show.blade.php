@@ -31,6 +31,24 @@
                         <span class="badge badge-approved">{{ __('مميّز') }}</span>
                     @endif
                 </div>
+                {{-- Only the owner (or an admin) can open a non-public ad; tell them why nobody else sees it. --}}
+                @if (in_array($ad->status, ['pending', 'rejected', 'expired'], true))
+                    <div class="{{ $ad->status === 'rejected' ? 'errors' : 'flash' }}" style="margin:10px 0">
+                        @if ($ad->status === 'pending')
+                            {{ __('هذا الإعلان بانتظار مراجعة الإدارة، ولا يراه غيرك حتى تتم الموافقة عليه.') }}
+                        @elseif ($ad->status === 'rejected')
+                            {{ __('تم رفض هذا الإعلان، ولا يراه غيرك.') }}
+                            @if ($ad->rejection_reason)
+                                <div><strong>{{ __('سبب الرفض: :reason', ['reason' => $ad->rejection_reason]) }}</strong></div>
+                            @endif
+                        @else
+                            {{ __('انتهت صلاحية هذا الإعلان، ولا يراه غيرك. يمكنك إعادة نشره من إعلاناتي.') }}
+                        @endif
+                        @if ($ad->isOwnedBy(auth()->user()) && in_array($ad->status, ['pending', 'rejected'], true))
+                            <div style="margin-top:6px"><a href="{{ route('site.my.ads.edit', $ad) }}">{{ __('تعديل الإعلان') }}</a></div>
+                        @endif
+                    </div>
+                @endif
                 <div class="row">
                     <div class="price-big">{{ $ad->price !== null ? number_format($ad->price, 0).' '.$ad->currency : __('السعر عند التواصل') }}</div>
                     @if ($ad->is_negotiable)
