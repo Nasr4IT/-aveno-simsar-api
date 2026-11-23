@@ -148,27 +148,34 @@ class AdFeedQueryService
     // over mb_str_split() characters instead of raw bytes.
     private function multibyteLevenshtein(string $a, string $b): int
     {
+        // Edit distance where swapping two neighbouring letters ("Kai" for
+        // "Kia", the most common phone typo) counts as one edit, not two
+        // (optimal string alignment / restricted Damerau-Levenshtein).
         $a = mb_str_split($a);
         $b = mb_str_split($b);
+        $lenA = count($a);
+        $lenB = count($b);
 
-        $previousRow = range(0, count($b));
-
-        foreach ($a as $i => $charA) {
-            $currentRow = [$i + 1];
-
-            foreach ($b as $j => $charB) {
-                $cost = $charA === $charB ? 0 : 1;
-                $currentRow[] = min(
-                    $previousRow[$j + 1] + 1,
-                    $currentRow[$j] + 1,
-                    $previousRow[$j] + $cost
-                );
-            }
-
-            $previousRow = $currentRow;
+        $d = [];
+        for ($i = 0; $i <= $lenA; $i++) {
+            $d[$i][0] = $i;
+        }
+        for ($j = 0; $j <= $lenB; $j++) {
+            $d[0][$j] = $j;
         }
 
-        return end($previousRow);
+        for ($i = 1; $i <= $lenA; $i++) {
+            for ($j = 1; $j <= $lenB; $j++) {
+                $cost = $a[$i - 1] === $b[$j - 1] ? 0 : 1;
+                $d[$i][$j] = min($d[$i - 1][$j] + 1, $d[$i][$j - 1] + 1, $d[$i - 1][$j - 1] + $cost);
+
+                if ($i > 1 && $j > 1 && $a[$i - 1] === $b[$j - 2] && $a[$i - 2] === $b[$j - 1]) {
+                    $d[$i][$j] = min($d[$i][$j], $d[$i - 2][$j - 2] + 1);
+                }
+            }
+        }
+
+        return $d[$lenA][$lenB];
     }
 
     // Default (no sort param, or 'newest') preserves the original

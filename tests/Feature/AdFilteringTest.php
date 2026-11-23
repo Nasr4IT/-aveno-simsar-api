@@ -199,6 +199,21 @@ class AdFilteringTest extends TestCase
         $this->assertSame($ad->id, $response->json('data.0.id'));
     }
 
+    // Found in live QA: "Kai" for "Kia" (two neighbouring letters swapped,
+    // the most common phone typo) counted as two edits and found nothing.
+    public function test_search_treats_swapped_neighbouring_letters_as_one_typo(): void
+    {
+        $kia = Ad::factory()->create(['title' => 'Kia Sportage 2019', 'status' => 'approved']);
+        Ad::factory()->create(['title' => 'Unrelated listing', 'status' => 'approved']);
+
+        foreach (['Kai', 'Kia', 'Sportgae'] as $q) {
+            $this->assertSame([$kia->id], collect($this->getJson('/api/ads?q='.$q)->assertOk()->json('data'))->pluck('id')->all(), $q);
+        }
+
+        $arabic = Ad::factory()->create(['title' => 'سيارة كيا للبيع', 'status' => 'approved']);
+        $this->assertContains($arabic->id, collect($this->getJson('/api/ads?'.http_build_query(['q' => 'كاي']))->json('data'))->pluck('id')->all());
+    }
+
     public function test_search_does_not_fuzzy_match_unrelated_words(): void
     {
         Ad::factory()->create(['title' => 'Toyota Corolla 2019', 'status' => 'approved']);
