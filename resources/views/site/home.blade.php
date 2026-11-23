@@ -6,7 +6,7 @@
             @auth
                 {{ __('أهلاً، :name', ['name' => auth()->user()->name]) }} <span class="wave">👋</span>
             @else
-                {{ __('أهلاً بك في Semsar') }}
+                {{ __('أهلاً بك في Simsar') }}
             @endauth
         </h1>
         <p>{{ __('اعثر على أفضل العروض بالقرب منك.') }}</p>

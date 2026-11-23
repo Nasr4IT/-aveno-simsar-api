@@ -3,9 +3,9 @@
 @section('hide-errors', true)
 @section('content')
     <div class="card auth-box">
-        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar"></div>
+        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Simsar"></div>
         <h1>{{ __('تسجيل الدخول') }}</h1>
-        <p class="sub">{{ __('نفس حسابك في تطبيق Semsar') }}</p>
+        <p class="sub">{{ __('نفس حسابك في تطبيق Simsar') }}</p>
 
         @if ($errors->any())
             <div class="errors">{{ $errors->first() }}</div>

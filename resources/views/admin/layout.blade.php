@@ -8,15 +8,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', __('الرئيسية')) — Semsar Admin Panel</title>
+    <title>@yield('title', __('الرئيسية')) — Simsar Admin Panel</title>
     <link rel="icon" href="{{ asset('images/admin/favicon.png') }}">
     <meta name="color-scheme" content="light dark">
+    @include('partials.fonts')
     @include('admin.partials.theme-boot')
     <style>
         @include('admin.partials.theme-tokens')
 
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); transition: background-color .35s, color .35s; }
+        body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); transition: background-color .35s, color .35s; }
         a { color: var(--teal-dark); text-decoration: none; }
         .shell { display: flex; min-height: 100vh; }
 
@@ -161,9 +162,9 @@
 <div class="shell">
     <nav class="sidebar">
         <a class="brand" href="{{ route('admin.dashboard') }}" style="padding-top:0;padding-bottom:0;animation:none;background:none">
-            <img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar">
+            <img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Simsar">
             <div class="brand-text">
-                <strong>Semsar</strong>
+                <strong>Simsar</strong>
                 <span>{{ __('لوحة التحكم') }}</span>
             </div>
         </a>

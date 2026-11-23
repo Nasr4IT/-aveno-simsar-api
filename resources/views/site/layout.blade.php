@@ -8,9 +8,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', __('الرئيسية')) — Semsar</title>
+    <title>@yield('title', __('الرئيسية')) — Simsar</title>
     <link rel="icon" href="{{ asset('images/admin/favicon.png') }}">
     <meta name="color-scheme" content="light dark">
+    @include('partials.fonts')
     <script>
         // Apply the saved (or system) theme before first paint, so dark-mode
         // visitors never see a white flash. 'js' turns on the reveal animations.
@@ -61,7 +62,7 @@
         /* Cross-page crossfade (Chrome/Edge) instead of a blank blink between pages. */
         @view-transition { navigation: auto; }
         @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
-        body { margin: 0; font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; transition: background-color .35s, color .35s; }
+        body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.55; transition: background-color .35s, color .35s; }
         a { color: var(--teal-dark); text-decoration: none; }
         img { max-width: 100%; display: block; }
         h1, h2, h3 { color: var(--navy); margin: 0 0 8px; line-height: 1.3; }
@@ -307,6 +308,9 @@
         .foot-links a:hover { color: var(--teal-dark); }
         .powered { width: 100%; text-align: center; padding-top: 16px; border-top: 1px dashed var(--border); color: var(--muted); font-size: 13px; letter-spacing: .3px; }
         .powered strong { font-weight: 800; background: linear-gradient(90deg, var(--teal), var(--cyan), var(--teal-hover), var(--teal)); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradientShift 6s linear infinite; }
+        .powered a.aveno { text-decoration: none; display: inline-block; transition: transform .2s var(--ease); }
+        .powered a.aveno:hover { transform: translateY(-1px) scale(1.04); }
+        .powered a.aveno:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
         .powered .copy { display: block; font-size: 11.5px; margin-top: 4px; letter-spacing: 0; }
 
         /* ================= bottom nav (mobile) ================= */
@@ -354,7 +358,7 @@
 <header class="topbar" id="topbar">
     <div class="container">
         <a class="brand" href="{{ route('site.home') }}">
-            <img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar"> Semsar
+            <img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Simsar"> Simsar
         </a>
         <form class="search" method="GET" action="{{ route('site.explore') }}">
             @include('site.partials.icon', ['name' => 'search', 'size' => 18])
@@ -413,7 +417,7 @@
     <div class="container">
         <div class="foot-brand">
             <img src="{{ asset('images/admin/semsar-logo.png') }}" alt="" aria-hidden="true">
-            Semsar <span>— {{ __('سوق الإعلانات المبوّبة') }}</span>
+            Simsar <span>— {{ __('سوق الإعلانات المبوّبة') }}</span>
         </div>
         <nav class="foot-links" aria-label="{{ __('روابط') }}">
             <a href="{{ route('site.home') }}">{{ __('الرئيسية') }}</a>
@@ -422,8 +426,8 @@
             <a href="{{ route('site.locale', $otherLocale) }}" lang="{{ $otherLocale }}">{{ $isRtl ? 'English' : 'العربية' }}</a>
         </nav>
         <div class="powered" dir="ltr">
-            Powered by <strong>AvenoCode</strong>
-            <span class="copy">© {{ date('Y') }} Semsar</span>
+            Powered by <a class="aveno" href="https://www.avenocode.com/" target="_blank" rel="noopener"><strong>AvenoCode</strong></a>
+            <span class="copy">© {{ date('Y') }} Simsar</span>
         </div>
     </div>
 </footer>

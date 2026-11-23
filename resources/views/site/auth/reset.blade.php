@@ -3,7 +3,7 @@
 @section('hide-errors', true)
 @section('content')
     <div class="card auth-box">
-        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar"></div>
+        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Simsar"></div>
         <h1>{{ __('تعيين كلمة مرور جديدة') }}</h1>
         <p class="sub">{{ __('أدخل الرمز المكوّن من 6 أرقام الذي وصلك على البريد الإلكتروني.') }}</p>
 

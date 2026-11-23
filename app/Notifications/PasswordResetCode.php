@@ -23,12 +23,12 @@ class PasswordResetCode extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Semsar — رمز إعادة تعيين كلمة المرور: {$this->code}")
+            ->subject("Simsar — رمز إعادة تعيين كلمة المرور: {$this->code}")
             ->greeting("مرحبًا {$notifiable->name}،")
             ->line('رمز إعادة تعيين كلمة المرور الخاص بك هو:')
             ->line("**{$this->code}**")
             ->line("الرمز صالح لمدة {$this->expiresMinutes} دقيقة. إذا لم تطلب ذلك، تجاهل هذه الرسالة — كلمة مرورك لم تتغير.")
-            ->line("Your Semsar password reset code is {$this->code}. It expires in {$this->expiresMinutes} minutes.")
-            ->salutation('Semsar');
+            ->line("Your Simsar password reset code is {$this->code}. It expires in {$this->expiresMinutes} minutes.")
+            ->salutation('Simsar');
     }
 }

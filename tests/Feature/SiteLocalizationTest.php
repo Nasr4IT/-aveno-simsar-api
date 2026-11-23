@@ -31,7 +31,7 @@ class SiteLocalizationTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('id="theme-toggle"', false)
-            ->assertSee('Powered by <strong>AvenoCode</strong>', false);
+            ->assertSee('Powered by <a class="aveno" href="https://www.avenocode.com/" target="_blank" rel="noopener"><strong>AvenoCode</strong></a>', false);
 
         $this->get('/explore')->assertOk()->assertSee('AvenoCode');
         $this->get('/login')->assertOk()->assertSee('AvenoCode');

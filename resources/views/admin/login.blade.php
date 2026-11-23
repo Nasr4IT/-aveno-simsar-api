@@ -4,9 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ __('تسجيل الدخول') }} — Semsar Admin Panel</title>
+    <title>{{ __('تسجيل الدخول') }} — Simsar Admin Panel</title>
     <link rel="icon" href="{{ asset('images/admin/favicon.png') }}">
     <meta name="color-scheme" content="light dark">
+    @include('partials.fonts')
     @include('admin.partials.theme-boot')
     <style>
         @include('admin.partials.theme-tokens')
@@ -17,7 +18,7 @@
         @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
         @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(24px, -18px); } }
         body {
-            font-family: "Segoe UI", Tahoma, Arial, sans-serif; margin: 0; min-height: 100vh;
+            font-family: var(--font); margin: 0; min-height: 100vh;
             display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
             background: linear-gradient(130deg, #021e28, #032C3A, #0c4257, #098893, #032C3A); background-size: 300% 300%;
             animation: gradientShift 18s ease infinite;
@@ -53,8 +54,8 @@
     <div class="tools">@include('admin.partials.toolbar')</div>
 
     <div class="box">
-        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Semsar"></div>
-        <h1>Semsar Admin Panel</h1>
+        <div class="logo"><img src="{{ asset('images/admin/semsar-logo.png') }}" alt="Simsar"></div>
+        <h1>Simsar Admin Panel</h1>
         <p class="sub">{{ __('تسجيل دخول المسؤولين فقط') }}</p>
 
         @if ($signedInMember ?? null)
