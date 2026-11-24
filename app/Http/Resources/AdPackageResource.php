@@ -12,6 +12,7 @@ class AdPackageResource extends JsonResource
         return [
             'id' => $this->id,
             'name_ar' => $this->name_ar,
+            'name_en' => $this->name_en,
             'duration_days' => $this->duration_days,
             'price' => (float) $this->price,
             'currency' => $this->currency,

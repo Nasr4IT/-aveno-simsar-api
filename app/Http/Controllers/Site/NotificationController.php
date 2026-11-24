@@ -29,6 +29,7 @@ class NotificationController extends Controller
             'new_message' => isset($data['conversation_id']) ? route('site.messages.show', $data['conversation_id']) : route('site.messages'),
             'ad_approved', 'ad_rejected' => route('site.my.ads'),
             'new_rating' => route('site.profile'),
+            'feature_approved', 'feature_rejected' => isset($data['ad_id']) ? route('site.my.ads.feature', $data['ad_id']) : route('site.my.ads'),
             default => route('site.notifications'),
         });
     }

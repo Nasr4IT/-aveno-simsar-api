@@ -4,55 +4,64 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdPackageResource;
+use App\Http\Resources\PaymentResource;
 use App\Models\Ad;
 use App\Models\AdPackage;
 use App\Models\Payment;
-use App\Services\ShamCash\ShamCashClient;
+use App\Models\Setting;
+use App\Services\FeaturePaymentService;
 use Illuminate\Http\Request;
 
 /**
- * See docs/API_CONTRACT.md § Payments.
- * "تفعيل تلقائي للباقة عند إتمام الدفع عبر Sham Cash API" (proposal §2/§3).
- * checkout() opens a Sham Cash session; webhook() is the server-to-server
- * callback that marks the Payment paid and activates the ad's featured window.
+ * Featured-ad packages paid manually through Sham Cash (see
+ * App\Services\FeaturePaymentService and docs/API_CONTRACT.md § Payments):
+ * the seller transfers the price in the Sham Cash app, uploads the receipt,
+ * and an admin approves or rejects the request in the admin panel.
  */
 class PaymentController extends Controller
 {
-    public function __construct(private readonly ShamCashClient $shamCash) {}
-
-    // GET /api/ad-packages — the 15/30/60-day packages, for the "feature this ad" screen.
+    // GET /api/ad-packages — the packages, plus where to pay (meta.shamcash).
     public function packages()
     {
-        return AdPackageResource::collection(AdPackage::where('is_active', true)->orderBy('duration_days')->get());
+        return AdPackageResource::collection(AdPackage::where('is_active', true)->orderBy('duration_days')->get())
+            ->additional(['meta' => ['shamcash' => Setting::shamCash()]]);
     }
 
-    // POST /api/ads/{ad}/checkout  { ad_package_id }
-    public function checkout(Request $request, Ad $ad)
+    // GET /api/payments/shamcash — the Sham Cash account to pay to.
+    public function shamCashInfo()
     {
-        abort_unless($ad->user_id === $request->user()->id, 403);
+        return response()->json(['data' => Setting::shamCash()]);
+    }
 
-        $data = $request->validate(['ad_package_id' => ['required', 'exists:ad_packages,id']]);
-        $package = AdPackage::findOrFail($data['ad_package_id']);
-
-        $payment = Payment::create([
-            'user_id' => $request->user()->id,
-            'ad_id' => $ad->id,
-            'ad_package_id' => $package->id,
-            'amount' => $package->price,
-            'currency' => $package->currency,
-            'status' => 'pending',
+    // POST /api/ads/{ad}/feature-requests (multipart)
+    public function store(Request $request, Ad $ad, FeaturePaymentService $payments)
+    {
+        $data = $request->validate([
+            'ad_package_id' => ['required', 'integer', 'exists:ad_packages,id'],
+            'receipt' => ['required', 'image', 'max:8192'],
+            'transaction_reference' => ['nullable', 'string', 'max:100'],
+            'note' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // TODO: $checkoutUrl = $this->shamCash->createCheckout($payment);
-        abort(501, 'Sham Cash integration pending — see app/Services/ShamCash/ShamCashClient.php');
+        $payment = $payments->request(
+            $request->user(), $ad, AdPackage::findOrFail($data['ad_package_id']),
+            $request->file('receipt'), $data['transaction_reference'] ?? null, $data['note'] ?? null,
+        );
+
+        return (new PaymentResource($payment->load(['ad', 'adPackage'])))->response()->setStatusCode(201);
     }
 
-    // POST /api/payments/shamcash/webhook — public route, verified via HMAC signature.
-    public function webhook(Request $request)
+    // GET /api/my/payments — the caller's feature requests, newest first.
+    public function mine(Request $request)
     {
-        // TODO: verify $this->shamCash->verifyWebhookSignature($request), locate the
-        // Payment by provider_reference, mark it paid, set ad.is_featured = true and
-        // ad.featured_until = now()->addDays($payment->adPackage->duration_days).
-        abort(501, 'Not implemented yet.');
+        return PaymentResource::collection(
+            Payment::where('user_id', $request->user()->id)->with(['ad', 'adPackage'])->latest()->paginate(20)
+        );
+    }
+
+    // GET /api/payments/{payment}/receipt — the image; its seller or an admin only.
+    public function receipt(Request $request, Payment $payment, FeaturePaymentService $payments)
+    {
+        return $payments->receiptResponse($payment, $request->user());
     }
 }

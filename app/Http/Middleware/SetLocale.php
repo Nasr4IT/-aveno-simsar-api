@@ -27,7 +27,11 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->cookie(self::COOKIE, config('app.locale'));
+        // ?lang=en|ar overrides for this one request (e.g. the app opening
+        // the English privacy policy); otherwise the visitor's saved choice.
+        $locale = in_array($request->query('lang'), self::SUPPORTED, true)
+            ? $request->query('lang')
+            : $request->cookie(self::COOKIE, config('app.locale'));
 
         if (! in_array($locale, self::SUPPORTED, true)) {
             $locale = config('app.locale');

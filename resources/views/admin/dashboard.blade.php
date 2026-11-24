@@ -7,6 +7,7 @@
             ['users', $totalUsers, __('إجمالي المستخدمين'), route('admin.users.index')],
             ['users', $bannedUsers, __('مستخدمون محظورون'), null],
             ['flag', $pendingReports, __('بلاغات بانتظار المعالجة'), route('admin.reports.index')],
+            ['card', $pendingPayments, __('مدفوعات بانتظار التأكيد'), route('admin.payments.index')],
             ['image', $activeBanners, __('بانرات نشطة حالياً'), route('admin.banners.index')],
         ] as [$icon, $num, $label, $link])
             <div class="card">

@@ -158,6 +158,7 @@
 @php
     $pendingCount = \App\Models\Ad::where('status', 'pending')->count();
     $reportCount = \App\Models\Report::where('status', 'pending')->count();
+    $paymentCount = \App\Models\Payment::where('status', 'pending')->count();
 @endphp
 <div class="shell">
     <nav class="sidebar">
@@ -188,6 +189,13 @@
             <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
                 @include('admin.partials.icon', ['name' => 'flag']) {{ __('البلاغات') }}
                 @if ($reportCount) <span class="count">{{ $reportCount }}</span> @endif
+            </a>
+            <a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+                @include('admin.partials.icon', ['name' => 'card']) {{ __('المدفوعات') }}
+                @if ($paymentCount) <span class="count">{{ $paymentCount }}</span> @endif
+            </a>
+            <a href="{{ route('admin.settings.edit') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                @include('admin.partials.icon', ['name' => 'gear']) {{ __('الإعدادات') }}
             </a>
             <a href="{{ route('site.home') }}" target="_blank" rel="noopener" style="margin-top:14px; border-top:1px solid rgba(255,255,255,.1); border-radius:0 0 10px 10px">
                 @include('admin.partials.icon', ['name' => 'home']) {{ __('عرض الموقع') }}

@@ -15,18 +15,6 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
-    // Sham Cash — powers the paid featured-ad packages (15/30/60 days).
-    // See app/Services/ShamCash/ShamCashClient.php and
-    // App\Http\Controllers\Api\PaymentController.
-    'shamcash' => [
-        'base_url' => env('SHAMCASH_BASE_URL'),
-        'merchant_id' => env('SHAMCASH_MERCHANT_ID'),
-        'api_key' => env('SHAMCASH_API_KEY'),
-        'api_secret' => env('SHAMCASH_API_SECRET'),
-        'webhook_secret' => env('SHAMCASH_WEBHOOK_SECRET'),
-        'callback_url' => env('SHAMCASH_CALLBACK_URL'),
-    ],
-
     // Push notifications via FCM HTTP v1 (see App\Services\PushNotificationService
     // and docs/HOW_IT_WORKS.md § Push Notifications). Needs a Firebase service
     // account — FCM's older server-key API this used to target is retired, so

@@ -45,7 +45,12 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge badge-{{ $ad->status }}">{{ $statusLabels[$ad->status] ?? $ad->status }}</span></td>
+                                <td>
+                                    <span class="badge badge-{{ $ad->status }}">{{ $statusLabels[$ad->status] ?? $ad->status }}</span>
+                                    @if ($ad->isFeaturedNow())
+                                        <div class="small" style="color:var(--teal-dark); margin-top:4px">⭐ {{ __('مميّز حتى :date', ['date' => $ad->featured_until->format('Y-m-d')]) }}</div>
+                                    @endif
+                                </td>
                                 <td>{{ number_format($ad->views_count) }}</td>
                                 <td>{{ $ad->favorited_by_count }}</td>
                                 <td>{{ $ad->conversations_count }}</td>
@@ -55,6 +60,7 @@
                                             <a class="btn btn-muted btn-sm" href="{{ route('site.my.ads.edit', $ad) }}">{{ __('تعديل') }}</a>
                                         @endif
                                         @if ($ad->status === 'approved')
+                                            <a class="btn btn-primary btn-sm" href="{{ route('site.my.ads.feature', $ad) }}">⭐ {{ __('تمييز') }}</a>
                                             <form method="POST" action="{{ route('site.my.ads.mark-sold', $ad) }}">@csrf<button class="btn btn-outline btn-sm" type="submit">{{ __('تم البيع') }}</button></form>
                                         @endif
                                         @if (in_array($ad->status, ['sold', 'expired'], true))

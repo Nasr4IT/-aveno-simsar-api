@@ -5,10 +5,12 @@ use App\Http\Controllers\Site\AuthController;
 use App\Http\Controllers\Site\ChatController;
 use App\Http\Controllers\Site\ExploreController;
 use App\Http\Controllers\Site\FavoriteController;
+use App\Http\Controllers\Site\FeatureController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\LocaleController;
 use App\Http\Controllers\Site\MyAdsController;
 use App\Http\Controllers\Site\NotificationController;
+use App\Http\Controllers\Site\PageController;
 use App\Http\Controllers\Site\PasswordResetController;
 use App\Http\Controllers\Site\ProfileController;
 use App\Http\Controllers\Site\RatingController;
@@ -26,6 +28,7 @@ Route::name('site.')->group(function () {
     Route::get('/ads/{ad:slug}', [AdController::class, 'show'])->name('ads.show');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::get('/lang/{locale}', LocaleController::class)->name('locale');
+    Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -55,6 +58,10 @@ Route::name('site.')->group(function () {
             Route::post('/ads/{ad}/delete', [MyAdsController::class, 'destroy'])->name('ads.destroy');
             Route::post('/ads/{ad}/images', [MyAdsController::class, 'addImages'])->name('ads.images.store');
             Route::post('/ads/{ad}/images/{image}/delete', [MyAdsController::class, 'removeImage'])->name('ads.images.destroy');
+            // Feature an ad: manual Sham Cash payment with a receipt (admin approves).
+            Route::get('/ads/{ad}/feature', [FeatureController::class, 'show'])->name('ads.feature');
+            Route::post('/ads/{ad}/feature', [FeatureController::class, 'store'])->name('ads.feature.store');
+            Route::get('/payments/{payment}/receipt', [FeatureController::class, 'receipt'])->name('payments.receipt');
         });
 
         Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites');

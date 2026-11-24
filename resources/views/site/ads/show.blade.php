@@ -27,7 +27,7 @@
                     <h1 style="margin:0">{{ $ad->title }}</h1>
                     @if ($ad->status === 'sold')
                         <span class="badge badge-sold">{{ __('مُباع') }}</span>
-                    @elseif ($ad->is_featured)
+                    @elseif ($ad->isFeaturedNow())
                         <span class="badge badge-approved">{{ __('مميّز') }}</span>
                     @endif
                 </div>

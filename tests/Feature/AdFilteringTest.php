@@ -242,7 +242,8 @@ class AdFilteringTest extends TestCase
     {
         $older = Ad::factory()->create(['status' => 'approved', 'created_at' => now()->subDay()]);
         $newer = Ad::factory()->create(['status' => 'approved', 'created_at' => now()]);
-        $featuredButOlder = Ad::factory()->create(['status' => 'approved', 'is_featured' => true, 'created_at' => now()->subDays(5)]);
+        // Featured = featured *now*: a paid package with time left (see Ad::scopeFeaturedFirst).
+        $featuredButOlder = Ad::factory()->create(['status' => 'approved', 'is_featured' => true, 'featured_until' => now()->addDays(10), 'created_at' => now()->subDays(5)]);
 
         $response = $this->getJson('/api/ads');
 

@@ -5,7 +5,9 @@ use App\Http\Controllers\AdminPanel\AdModerationController;
 use App\Http\Controllers\AdminPanel\BannerManagementController;
 use App\Http\Controllers\AdminPanel\CategoryManagementController;
 use App\Http\Controllers\AdminPanel\DashboardController;
+use App\Http\Controllers\AdminPanel\PaymentManagementController;
 use App\Http\Controllers\AdminPanel\ReportManagementController;
+use App\Http\Controllers\AdminPanel\SettingsController;
 use App\Http\Controllers\AdminPanel\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +54,14 @@ Route::prefix('admin-panel')->name('admin.')->group(function () {
         Route::post('/banners/{banner}/update', [BannerManagementController::class, 'update'])->name('banners.update');
         Route::post('/banners/{banner}/toggle', [BannerManagementController::class, 'toggle'])->name('banners.toggle');
         Route::post('/banners/{banner}/delete', [BannerManagementController::class, 'destroy'])->name('banners.destroy');
+
+        Route::get('/payments', [PaymentManagementController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}/receipt', [PaymentManagementController::class, 'receipt'])->name('payments.receipt');
+        Route::post('/payments/{payment}/approve', [PaymentManagementController::class, 'approve'])->name('payments.approve');
+        Route::post('/payments/{payment}/reject', [PaymentManagementController::class, 'reject'])->name('payments.reject');
+
+        Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+        Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
         Route::get('/reports', [ReportManagementController::class, 'index'])->name('reports.index');
         Route::post('/reports/{report}/resolve', [ReportManagementController::class, 'resolve'])->name('reports.resolve');

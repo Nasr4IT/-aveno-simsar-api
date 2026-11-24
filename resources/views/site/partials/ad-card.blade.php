@@ -9,7 +9,7 @@
         @endif
         @if ($ad->status === 'sold')
             <span class="pill sold">{{ __('مُباع') }}</span>
-        @elseif ($ad->is_featured)
+        @elseif ($ad->isFeaturedNow())
             <span class="pill">{{ __('مميّز') }}</span>
         @endif
     </div>

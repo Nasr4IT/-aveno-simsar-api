@@ -31,7 +31,7 @@ class HomeController extends Controller
 
         $latest = Ad::approved()
             ->with(['images', 'city'])
-            ->latest('is_featured')->latest()
+            ->featuredFirst()->latest()
             ->limit(12)
             ->get();
 

@@ -39,7 +39,8 @@
 
             @include('site.partials.location-select', ['governorates' => $governorates])
 
-            <button class="btn btn-primary btn-block" type="submit" style="margin-top:18px">{{ __('إنشاء الحساب') }}</button>
+            <p class="muted small" style="margin:14px 0 0">{!! __('بإنشاء حساب فإنك توافق على :link.', ['link' => '<a href="'.route('site.privacy').'" target="_blank" rel="noopener">'.e(__('سياسة الخصوصية')).'</a>']) !!}</p>
+            <button class="btn btn-primary btn-block" type="submit" style="margin-top:12px">{{ __('إنشاء الحساب') }}</button>
         </form>
 
         <p class="muted small" style="text-align:center; margin:16px 0 0">{{ __('لديك حساب؟') }} <a href="{{ route('site.login') }}">{{ __('سجّل الدخول') }}</a></p>

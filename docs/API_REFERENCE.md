@@ -521,21 +521,64 @@ Separate from `ads` entirely — no owner, no approval workflow, no in-app payme
 
 ---
 
-## Payments (Sham Cash) — partially implemented
+## Payments — featured ads, paid manually through Sham Cash
+
+Flow: the seller picks a package → transfers the price in the Sham Cash app to the account from `GET /payments/shamcash` → uploads the receipt with `POST /ads/{id}/feature-requests` → an admin approves or rejects it in the admin panel → the seller is notified (`feature_approved` / `feature_rejected`). Replaces the old `/ads/{id}/checkout` and `/payments/shamcash/webhook` stubs, which no longer exist.
 
 ### `GET /ad-packages`
 **Auth:** none.
-**Does:** The active featured-ad packages (15/30/60-day boosts), cheapest/shortest first.
-**Output — `200`:** `{"data": [ { "id": 1, "name_ar": "...", "duration_days": 15, "price": 5.0, "currency": "USD" }, ... ]}` (unpaginated — the full active catalog every time).
+**Output — `200`:** the active packages, shortest first, plus where to pay:
+```json
+{ "data": [ { "id": 1, "name_ar": "إبراز 15 يوم", "name_en": "Featured for 15 days", "duration_days": 15, "price": 5.0, "currency": "USD" } ],
+  "meta": { "shamcash": { "account_name": "Simsar", "account_number": "0999000111", "instructions": "..." } } }
+```
 
-### `POST /ads/{id}/checkout` — **stub**
-**Auth:** required, must be the ad's owner.
-**Input:** `{"ad_package_id": <id>}`.
-**Current behavior:** creates a `pending` `Payment` row, then **always returns `501`** `{"message": "Sham Cash integration pending — see app/Services/ShamCash/ShamCashClient.php"}`. Waiting on real Sham Cash API docs — see `app/Services/ShamCash/ShamCashClient.php`.
+### `GET /payments/shamcash`
+**Auth:** none.
+**Output — `200`:** `{"data": {"account_name": "...", "account_number": "...", "instructions": "..."}}` — edited by the admin (panel ▸ Settings). Any field can be `null`; if `account_number` is `null`, payments aren't set up yet — show a "not available" message instead of the upload step.
 
-### `POST /payments/shamcash/webhook` — **stub**
-**Auth:** none (would be HMAC-signature-verified once implemented).
-**Current behavior:** **always returns `501`** `{"message": "Not implemented yet."}`.
+### `POST /ads/{id}/feature-requests`
+**Auth:** required, must be the ad's owner. **Content-Type:** `multipart/form-data`.
+**Input:**
+| Field | Required | Notes |
+|---|---|---|
+| `ad_package_id` | yes | an active package |
+| `receipt` | yes | image of the Sham Cash transfer receipt, max 8 MB (stored privately, resized) |
+| `transaction_reference` | no | the Sham Cash transaction number, max 100 |
+| `note` | no | message to the admin, max 500 |
+
+**Output — `201`:** a `PaymentResource`:
+```json
+{ "data": { "id": 7, "status": "pending", "amount": 5.0, "currency": "USD", "transaction_reference": "TX-123", "note": null,
+  "rejection_reason": null, "receipt_url": "https://simsar-sy.com/api/payments/7/receipt",
+  "package": { "id": 1, "name_ar": "إبراز 15 يوم", "name_en": "Featured for 15 days", "duration_days": 15 },
+  "ad": { "id": 12, "title": "...", "is_featured": false, "featured_until": null },
+  "reviewed_at": null, "paid_at": null, "created_at": "..." } }
+```
+**Errors:** `422` — missing/invalid `receipt` or `ad_package_id`; or on `ad`: not your ad, the ad isn't `approved`, or it already has a `pending` request (wait for the admin's decision).
+
+### `GET /my/payments`
+**Auth:** required. **Output — `200`:** paginated `PaymentResource` list, newest first. `status`: `pending` (waiting for the admin), `paid` (approved — the ad is featured until `ad.featured_until`), `rejected` (see `rejection_reason`; the seller may send a new request).
+
+### `GET /payments/{id}/receipt`
+**Auth:** required — the seller who sent it, or an admin. Returns the image (`image/jpeg`). `404` for anyone else.
+
+### Featured is time-limited
+After approval, the ad gets `is_featured: true` and `featured_until` = approval time + the package's days (added to any featured time it still had). Once `featured_until` passes, `is_featured` is `false` again everywhere (feed order, badge) automatically. `featured_until` is `null` whenever `is_featured` is `false`.
+
+---
+
+## App config
+
+### `GET /app-config`
+**Auth:** none.
+**Output — `200`:**
+```json
+{ "data": { "privacy_policy_url": "https://simsar-sy.com/privacy", "privacy_policy_url_en": "https://simsar-sy.com/privacy?lang=en",
+  "privacy_policy_updated_at": "2026-11-24", "contact_email": null, "contact_phone": null,
+  "shamcash": { "account_name": null, "account_number": null, "instructions": null } } }
+```
+Open the privacy policy in a WebView or the browser from `privacy_policy_url` (Arabic) or `privacy_policy_url_en`; link it on the sign-up screen and in settings. The same URL is what goes into the Google Play / App Store listing.
 
 ---
 

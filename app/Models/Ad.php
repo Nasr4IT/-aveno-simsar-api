@@ -157,8 +157,27 @@ class Ad extends Model
         return $query->where('status', 'approved');
     }
 
+    // "Featured" always means featured *right now*: a paid package ends at
+    // featured_until, and from then on the ad is an ordinary listing again
+    // everywhere (feed order, home rail, the ⭐ badge) — no cron job needed.
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true)->where('featured_until', '>', now());
+    }
+
+    // Currently-featured ads first, then whatever order follows.
+    public function scopeFeaturedFirst($query)
+    {
+        return $query->orderByRaw('CASE WHEN is_featured = 1 AND featured_until > ? THEN 1 ELSE 0 END DESC', [now()]);
+    }
+
+    public function isFeaturedNow(): bool
+    {
+        return (bool) $this->is_featured && $this->featured_until !== null && $this->featured_until->isFuture();
+    }
+
+    public function hasPendingFeatureRequest(): bool
+    {
+        return $this->payments()->where('status', Payment::PENDING)->exists();
     }
 }

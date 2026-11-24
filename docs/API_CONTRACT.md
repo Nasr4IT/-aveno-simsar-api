@@ -3,7 +3,7 @@
 Base URL (local dev): `http://localhost:8000/api`
 Auth: Laravel Sanctum bearer token. Register or log in once, store the `token`, then send `Authorization: Bearer <token>` on every authenticated call. There are no cookies/CSRF to deal with from Flutter.
 
-All responses are JSON. List endpoints are paginated (Laravel's default shape: `data`, `links`, `meta`). Errors follow Laravel's default validation shape: `{"message": "...", "errors": {"field": ["..."]}}` with HTTP 422, or `{"message": "..."}` with 401/403/404/501.
+All responses are JSON. List endpoints are paginated (Laravel's default shape: `data`, `links`, `meta`). Errors follow Laravel's default validation shape: `{"message": "...", "errors": {"field": ["..."]}}` with HTTP 422, or `{"message": "..."}` with 401/403/404.
 
 **Rate limits:** every `/api` route allows 120 requests/minute per user (or per IP when logged out). Login, register and the password-reset endpoints allow 5 attempts/minute per phone-or-email + IP and 20/minute per IP. Over the limit → `429` with a `Retry-After` header.
 
@@ -128,13 +128,25 @@ Separate from `ads` — a business pays the admin directly (outside this app) fo
 | PUT/PATCH | `/admin/banners/{id}` | admin | any of: `title, link_url, starts_at, ends_at, sort_order, is_active` | no image replacement — delete + recreate instead |
 | DELETE | `/admin/banners/{id}` | admin | – | also deletes the image file |
 
-## Payments (Sham Cash featured-ad packages)
+## Payments — featured ads, paid manually through Sham Cash
+
+The seller transfers the package price **inside the Sham Cash app** to the account shown, then uploads a screenshot of the receipt. An admin checks it and approves (the ad is featured for the package's days) or rejects it (with a reason). The seller gets a notification either way (`type: feature_approved` / `feature_rejected`, with `ad_id`).
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| GET | `/ad-packages` | – | the 15/30/60-day catalog |
-| POST | `/ads/{id}/checkout` | ✓ (owner) | body: `{ad_package_id}` → returns a Sham Cash checkout URL for the app to open |
-| POST | `/payments/shamcash/webhook` | – (HMAC-verified) | Sham Cash → server callback; flips the payment to `paid` and activates `is_featured` |
+| GET | `/ad-packages` | – | active packages (`id, name_ar, name_en, duration_days, price, currency`) + `meta.shamcash` (where to pay) |
+| GET | `/payments/shamcash` | – | `{account_name, account_number, instructions}` — set by the admin; `account_number` may be `null` if not configured yet (then disable the "pay" step) |
+| POST | `/ads/{id}/feature-requests` | ✓ (owner) | multipart: `ad_package_id`, `receipt` (image, max 8 MB), `transaction_reference?`, `note?` → **201** `PaymentResource` with `status: pending`. 422 if the ad isn't the caller's, isn't `approved`, or already has a pending request |
+| GET | `/my/payments` | ✓ | the caller's requests, newest first (paginated): `status` = `pending` \| `paid` \| `rejected`, `rejection_reason`, `package`, `ad {id, title, is_featured, featured_until}`, `receipt_url` |
+| GET | `/payments/{id}/receipt` | ✓ (that seller, or admin) | the receipt image itself (send the token); 404 for anyone else — receipts are never public |
+
+**Featured is time-limited.** `is_featured` is `true` only while the paid time runs (`featured_until` in the future); afterwards the ad is ordinary again everywhere — no action needed. A new package on an already-featured ad is added to the remaining time.
+
+## App config
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/app-config` | – | `{privacy_policy_url, privacy_policy_url_en, privacy_policy_updated_at, contact_email, contact_phone, shamcash}` — show the privacy policy from `privacy_policy_url` (link it on sign-up and in settings) |
 
 ## Admin (requires the `admin` role, in addition to auth)
 
@@ -158,6 +170,6 @@ Fully implemented: `Auth`, `Categories` (read), `Ads` (create/read/update/destro
 
 Code-complete but needs an external account to actually activate (silently no-ops without it — see `HOW_IT_WORKS.md` § Known gaps): push notifications (`FIREBASE_CREDENTIALS_JSON`), S3/R2 image storage (`FILESYSTEM_DISK=s3` + `AWS_*`), Sentry error tracking (`SENTRY_LARAVEL_DSN`).
 
-Stubbed (`501 Not Implemented`): `Payments@checkout`/`@webhook` only — real Sham Cash HTTP calls still need to be written in `app/Services/ShamCash/ShamCashClient.php`.
+Featured-ad payments are manual (receipt upload + admin approval) — there is no Sham Cash API integration and no `501` stub any more.
 
 See [`HOW_IT_WORKS.md`](HOW_IT_WORKS.md) for how all of the above fit together screen-by-screen.

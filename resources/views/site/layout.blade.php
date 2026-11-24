@@ -423,6 +423,7 @@
             <a href="{{ route('site.home') }}">{{ __('الرئيسية') }}</a>
             <a href="{{ route('site.explore') }}">{{ __('استكشف') }}</a>
             <a href="{{ route('site.sell') }}">{{ __('بيع غرضك') }}</a>
+            <a href="{{ route('site.privacy') }}">{{ __('سياسة الخصوصية') }}</a>
             <a href="{{ route('site.locale', $otherLocale) }}" lang="{{ $otherLocale }}">{{ $isRtl ? 'English' : 'العربية' }}</a>
         </nav>
         <div class="powered" dir="ltr">

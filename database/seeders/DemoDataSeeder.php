@@ -67,6 +67,7 @@ class DemoDataSeeder extends Seeder
                 'status' => 'approved',
                 'published_at' => now()->subHours($i),
                 'is_featured' => $i < 2,
+                'featured_until' => $i < 2 ? now()->addDays(30) : null,
             ]);
 
             $attributes->sync($ad, $category, $values);

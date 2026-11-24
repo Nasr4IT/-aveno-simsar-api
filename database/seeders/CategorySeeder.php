@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 // Seeds the three category families named in the proposal (§1):
 // سيارات (cars), عقارات (real estate), دراجات نارية (motorcycles) — each with

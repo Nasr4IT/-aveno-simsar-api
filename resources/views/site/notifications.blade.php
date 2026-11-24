@@ -23,7 +23,8 @@
                     @php
                         $data = $notification->data;
                         $icon = match ($data['type'] ?? null) {
-                            'new_message' => 'chat', 'new_rating' => 'star', 'ad_approved' => 'check', 'ad_rejected' => 'x', default => 'bell',
+                            'new_message' => 'chat', 'new_rating' => 'star', 'ad_approved' => 'check', 'ad_rejected' => 'x',
+                            'feature_approved' => 'star', 'feature_rejected' => 'x', default => 'bell',
                         };
                         // The stored 'message' is an Arabic sentence (it is what the
                         // app shows). Rebuild it from the structured fields so it reads
@@ -33,6 +34,8 @@
                             'ad_rejected' => __('تم رفض إعلانك ":title": :reason', ['title' => $data['title'] ?? '', 'reason' => $data['reason'] ?? '']),
                             'new_message' => __('رسالة جديدة من :name', ['name' => $data['sender_name'] ?? '']),
                             'new_rating' => __('قيّمك :name بـ :score نجوم', ['name' => $data['rater_name'] ?? '', 'score' => $data['score'] ?? '']),
+                            'feature_approved' => __('تم تأكيد الدفع وتمييز إعلانك ":title" حتى :date.', ['title' => $data['title'] ?? '', 'date' => substr($data['featured_until'] ?? '', 0, 10)]),
+                            'feature_rejected' => __('تم رفض طلب تمييز إعلانك ":title": :reason', ['title' => $data['title'] ?? '', 'reason' => $data['reason'] ?? '']),
                             default => $data['message'] ?? '',
                         };
                     @endphp

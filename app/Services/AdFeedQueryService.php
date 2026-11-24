@@ -198,7 +198,7 @@ class AdFeedQueryService
                 '(latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?) asc',
                 [$filters['lat'], $filters['lat'], $filters['lng'], $filters['lng']]
             ),
-            default => $query->latest('is_featured')->latest(),
+            default => $query->featuredFirst()->latest(),
         };
     }
 

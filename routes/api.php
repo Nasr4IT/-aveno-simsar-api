@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\AdminBannerController;
 use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminReportController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\AppConfigController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\BannerController;
 use App\Http\Controllers\Api\CategoryController;
@@ -49,7 +50,8 @@ Route::get('/banners', [BannerController::class, 'index']);
 Route::get('/governorates', [GovernorateController::class, 'index']);
 
 Route::get('/ad-packages', [PaymentController::class, 'packages']);
-Route::post('/payments/shamcash/webhook', [PaymentController::class, 'webhook']);
+Route::get('/payments/shamcash', [PaymentController::class, 'shamCashInfo']);
+Route::get('/app-config', AppConfigController::class);
 
 Route::get('/users/{user}', [UserController::class, 'show']);
 Route::get('/users/{user}/ratings', [RatingController::class, 'index']);
@@ -95,7 +97,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
-    Route::post('/ads/{ad}/checkout', [PaymentController::class, 'checkout']);
+    // Featuring an ad: manual Sham Cash payment with a receipt, approved by an admin.
+    Route::post('/ads/{ad}/feature-requests', [PaymentController::class, 'store']);
+    Route::get('/my/payments', [PaymentController::class, 'mine']);
+    Route::get('/payments/{payment}/receipt', [PaymentController::class, 'receipt']);
 
     // --- Admin (auth:sanctum + admin role) -----------------------------
     Route::prefix('admin')->middleware('admin')->group(function () {

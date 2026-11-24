@@ -21,7 +21,8 @@ class AdResource extends JsonResource
             // Owner (and admins) only — why the ad was rejected. Absent for
             // everyone else; null when the ad isn't rejected.
             'rejection_reason' => $this->when($this->viewerIsOwnerOrAdmin($request), fn () => $this->status === 'rejected' ? $this->rejection_reason : null),
-            'is_featured' => $this->is_featured,
+            'is_featured' => $this->resource->isFeaturedNow(),
+            'featured_until' => $this->resource->isFeaturedNow() ? $this->featured_until : null,
             'is_negotiable' => (bool) $this->is_negotiable,
             'address' => $this->address,
             'allow_chat' => (bool) $this->allow_chat,
